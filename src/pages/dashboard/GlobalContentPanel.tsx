@@ -689,6 +689,16 @@ export default function GlobalContentPanel({
     }));
   };
 
+  const addNewsItem = () => {
+    setHomeData((prev) => ({
+      ...prev,
+      newsItems: [
+        { id: Date.now(), title: "Nova Notícia", description: "Descrição...", category: "NOVO", date: new Date().toLocaleDateString('pt-BR'), linkUrl: "", imageUrl: "" },
+        ...(prev.newsItems || [])
+      ]
+    }));
+  };
+
 const compressImage = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -1455,9 +1465,28 @@ const innerContent = (
           </div>
 
           <div className="mt-8 space-y-6">
-            <h5 className="font-bold text-sm text-gray-600">Blocos de Notícia (Máx 3)</h5>
+            <div className="flex justify-between items-center">
+              <h5 className="font-bold text-sm text-gray-600">Notícias</h5>
+              <button
+                onClick={addNewsItem}
+                className="bg-[#2d8dc3] text-white px-3 py-1 text-sm font-bold rounded-lg flex items-center gap-1 hover:bg-[#1a6496]"
+              >
+                <Plus size={16} /> Nova Notícia
+              </button>
+            </div>
             {(homeData.newsItems || []).map((newsItem: any, idx: number) => (
-              <div key={idx} className="bg-gray-50 border border-gray-200 p-4 rounded-xl flex gap-4">
+              <div key={idx} className="bg-gray-50 border border-gray-200 p-4 rounded-xl flex gap-4 relative">
+                <button
+                  onClick={() => {
+                    const newItems = [...homeData.newsItems];
+                    newItems.splice(idx, 1);
+                    setHomeData({ ...homeData, newsItems: newItems });
+                  }}
+                  className="absolute -top-3 -right-3 bg-red-500 text-white p-2 rounded-full shadow-lg hover:bg-red-600 z-10"
+                  title="Excluir Notícia"
+                >
+                  <Trash2 size={14} />
+                </button>
                 <div className="flex-1 space-y-4">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-1">
@@ -1499,7 +1528,7 @@ const innerContent = (
                       }}
                     />
                   </div>
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid md:grid-cols-3 gap-4">
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-gray-500 uppercase">Data</label>
                       <input 
@@ -1526,10 +1555,23 @@ const innerContent = (
                         }}
                       />
                     </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase">Créditos/Fonte</label>
+                      <input 
+                        className="w-full p-2 border border-[#c8d8e8] rounded-lg text-sm" 
+                        placeholder="Ex: Nome do Site"
+                        value={newsItem.credits || ""} 
+                        onChange={(e) => {
+                          const newItems = [...homeData.newsItems];
+                          newItems[idx].credits = e.target.value;
+                          setHomeData({...homeData, newsItems: newItems});
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="w-40 shrink-0 space-y-2">
+                <div className="w-56 shrink-0 space-y-2">
                   <label className="text-[10px] font-bold text-gray-500 uppercase block text-center">Imagem</label>
                   {newsItem.imageUrl ? (
                     <div className="relative aspect-video rounded overflow-hidden">
@@ -1546,29 +1588,45 @@ const innerContent = (
                       </button>
                     </div>
                   ) : (
-                    <div className="aspect-video bg-gray-200 rounded border-2 border-dashed border-gray-300 flex items-center justify-center">
-                      <label className="cursor-pointer text-gray-500 hover:text-primary-base flex flex-col items-center">
-                        <Upload size={16} />
-                        <span className="text-[10px] font-bold uppercase mt-1">Upload</span>
-                        <input 
-                          type="file" 
-                          className="hidden" 
-                          accept="image/*"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            try {
-                               const base64 = await compressImage(file);
-                               const newItems = [...homeData.newsItems];
-                               newItems[idx].imageUrl = base64;
-                               setHomeData({...homeData, newsItems: newItems});
-                            } catch(err) {
-                               console.error(err);
-                               alert("Erro ao enviar imagem.");
-                            }
-                          }}
-                        />
-                      </label>
+                    <div className="space-y-2">
+                      <div className="aspect-video bg-gray-200 rounded border-2 border-dashed border-gray-300 flex items-center justify-center">
+                        <label className="cursor-pointer text-gray-500 hover:text-primary-base flex flex-col items-center">
+                          <Upload size={16} />
+                          <span className="text-[10px] font-bold uppercase mt-1">Upload</span>
+                          <input 
+                            type="file" 
+                            className="hidden" 
+                            accept="image/*"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              try {
+                                 const base64 = await compressImage(file);
+                                 const newItems = [...homeData.newsItems];
+                                 newItems[idx].imageUrl = base64;
+                                 setHomeData({...homeData, newsItems: newItems});
+                              } catch(err) {
+                                 console.error(err);
+                                 alert("Erro ao enviar imagem.");
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+                      <div className="text-center text-[10px] text-gray-400 font-bold uppercase">ou</div>
+                      <input 
+                        type="text" 
+                        className="w-full p-2 border border-[#c8d8e8] rounded-lg text-sm" 
+                        placeholder="Link da imagem..."
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val) {
+                            const newItems = [...homeData.newsItems];
+                            newItems[idx].imageUrl = val;
+                            setHomeData({...homeData, newsItems: newItems});
+                          }
+                        }}
+                      />
                     </div>
                   )}
                 </div>

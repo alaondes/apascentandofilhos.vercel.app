@@ -32,8 +32,8 @@ export default function QuemSomos() {
       "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?auto=format&fit=crop&q=80&w=2070",
     principlesTitle: data?.principlesTitle || "Missão, Visão e Valores",
     principles:
-      data?.principles && data.principles.length > 0
-        ? data.principles
+      data !== null
+        ? (data.principles || [])
         : [
             {
               id: 1,

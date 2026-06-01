@@ -33,8 +33,8 @@ export default function EdificadoMatrimonio() {
     }
   }, []);
 
-  const displaySlides = edificadoData?.slides && edificadoData.slides.length > 0
-    ? edificadoData.slides
+  const displaySlides = edificadoData !== null
+    ? (edificadoData.slides || [])
     : [
         {
           url: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&q=80&w=2070",
@@ -51,8 +51,8 @@ export default function EdificadoMatrimonio() {
     return () => clearInterval(timer);
   }, [displaySlides]);
 
-  const displayBeliefs = edificadoData?.beliefs && edificadoData.beliefs.length > 0
-    ? edificadoData.beliefs
+  const displayBeliefs = edificadoData !== null
+    ? (edificadoData.beliefs || [])
     : [
         {
           id: 1,
@@ -93,8 +93,8 @@ export default function EdificadoMatrimonio() {
     },
   ];
 
-  const coursesList = edificadoData?.cursos && edificadoData.cursos.length > 0
-    ? edificadoData.cursos
+  const coursesList = edificadoData !== null
+    ? (edificadoData.cursos || [])
     : defaultCursos;
 
   const renderIcon = (iconName: string) => {

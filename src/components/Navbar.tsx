@@ -12,30 +12,37 @@ export default function Navbar() {
   const location = useLocation();
   const { user, profile } = useFirebase();
 
-  const [headerLogo, setHeaderLogo] = useState({
-    logoUrl: "/logo.png",
-    title: "MINISTÉRIO",
-    subtitle: "APASCENTANDO FILHOS",
-    links: [
-      { name: "Início", path: "/" },
-      { name: "Quem Somos", path: "/quem-somos" },
-      { name: "Edificado Matrimônio", path: "/edificado-matrimonio" },
-      { name: "Cursos", path: "/cursos" },
-      { name: "Contato", path: "/contato" },
-    ]
-  });
+  const [headerLogo, setHeaderLogo] = useState<any>(null); // Wait until loaded
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, "content", "header_logo"), (snap) => {
       if (snap.exists()) {
         const data = snap.data();
-        setHeaderLogo((prev) => ({
-          ...prev,
-          ...data,
-          title: data.logoTitle || data.title || prev.title,
-          subtitle: data.logoSubtitle || data.subtitle || prev.subtitle,
-          links: data.links && data.links.length > 0 ? data.links : prev.links,
-        }));
+        setHeaderLogo({
+          logoUrl: data.logoUrl || "",
+          title: data.logoTitle || data.title || "",
+          subtitle: data.logoSubtitle || data.subtitle || "",
+          links: data.links && data.links.length > 0 ? data.links : [
+            { name: "Início", path: "/" },
+            { name: "Quem Somos", path: "/quem-somos" },
+            { name: "Edificado Matrimônio", path: "/edificado-matrimonio" },
+            { name: "Cursos", path: "/cursos" },
+            { name: "Contato", path: "/contato" },
+          ],
+        });
+      } else {
+        setHeaderLogo({
+          logoUrl: "",
+          title: "MINISTÉRIO",
+          subtitle: "APASCENTANDO FILHOS",
+          links: [
+            { name: "Início", path: "/" },
+            { name: "Quem Somos", path: "/quem-somos" },
+            { name: "Edificado Matrimônio", path: "/edificado-matrimonio" },
+            { name: "Cursos", path: "/cursos" },
+            { name: "Contato", path: "/contato" },
+          ]
+        })
       }
     }, (err) => console.error("Error fetching header:", err));
     return () => unsub();
@@ -53,6 +60,8 @@ export default function Navbar() {
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location]);
+
+  if (!headerLogo) return null; // Don't render until loaded
 
   const navLinks = headerLogo.links || [];
 

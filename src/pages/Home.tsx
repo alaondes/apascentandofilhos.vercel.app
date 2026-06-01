@@ -25,6 +25,9 @@ import {
   SkipBack,
   PlayCircle,
   SkipForward,
+  Calendar,
+  MessageCircle,
+  MoreVertical,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Link } from "react-router-dom";
@@ -161,6 +164,12 @@ export default function Home({
   const isEditor = profile?.role === "editor";
   const hasGlobalAccess = isGlobalAdmin || isEditor;
 
+  const formatUrl = (url: string | undefined) => {
+    if (!url) return "#";
+    if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/") || url.startsWith("#")) return url;
+    return `https://${url}`;
+  };
+
   useEffect(() => {
     setIsDataLoading(true);
     let loadedCount = 0;
@@ -171,16 +180,19 @@ export default function Home({
 
     const unsubHome = onSnapshot(doc(db, "content", "home"), (snap) => {
       if (snap.exists()) setHomeData(snap.data());
+      else setHomeData({});
       checkLoaded();
     });
 
     const unsubEdif = onSnapshot(doc(db, "content", "edificado_matrimonio"), (snap) => {
       if (snap.exists()) setEdificadoData(snap.data());
+      else setEdificadoData({});
       checkLoaded();
     });
 
     const unsubCursos = onSnapshot(doc(db, "content", "cursos"), (snap) => {
       if (snap.exists()) setCoursesData(snap.data());
+      else setCoursesData({});
       checkLoaded();
     });
 
@@ -254,10 +266,7 @@ export default function Home({
   const currentSlidesSource = useEdificadoSlides
     ? edificadoData?.slides
     : homeData?.slides;
-  const displaySlides =
-    currentSlidesSource && currentSlidesSource.length > 0
-      ? currentSlidesSource
-      : heroImages;
+  const displaySlides = currentSlidesSource || [];
 
   const displayBeliefsTitle =
     edificadoData?.beliefsTitle || "No que Acreditamos!";
@@ -270,56 +279,9 @@ export default function Home({
     "Oferecemos trilhas de aprendizado específicas para cada momento da sua vida familiar.";
 
   // Garantir dados padrão caso o Firestore não tenha crenças
-  const displayBeliefs =
-    edificadoData?.beliefs && edificadoData.beliefs.length > 0
-      ? edificadoData.beliefs
-      : [
-          {
-            id: 1,
-            title: "Restauração",
-            description:
-              "Ferramentas profundas para curar áreas de conflito e reconectar casais que buscam uma nova jornada juntos.",
-          },
-          {
-            id: 2,
-            title: "Prevenção",
-            description:
-              "Cursos focados em noivos e recém-casados para iniciar a jornada no caminho certo, baseados em valores sólidos.",
-          },
-          {
-            id: 3,
-            title: "Legado Familiar",
-            description:
-              "Princípios aplicados à criação de filhos e finanças familiares estruturadas para durar por gerações.",
-          },
-        ];
+  const displayBeliefs = edificadoData?.beliefs || [];
 
-  // Garantir dados padrão caso o Firestore não tenha cursos
-  const defaultCourses = [
-    {
-      id: 1,
-      title: "Marido de Valor",
-      desc: "Pequenos grupos que se reúnem em lares para orar e estudar a Bíblia. Com o objetivo de restaurar famílias.",
-      tags: "Homens, Espiritualidade",
-    },
-    {
-      id: 2,
-      title: "Apascentando Filhos",
-      desc: "Estratégia voltada a pais. Fornece ferramentas práticas baseadas em princípios bíblicos para a educação cristã.",
-      tags: "Pais, Crianças",
-    },
-    {
-      id: 3,
-      title: "Esposa Sábia",
-      desc: "Curso voltado ao alinhamento financeiro e emocional do casal. Elimina ruídos de comunicação e constrói união.",
-      tags: "Mulheres, Finanças",
-    },
-  ];
-
-  const homeCoursesList =
-    homeData?.courses && homeData.courses.length > 0
-      ? homeData.courses
-      : defaultCourses;
+  const homeCoursesList = homeData?.courses || [];
   const globalCoursesList = coursesData?.cursos || [];
 
   // Combinar listas: cursos criados/editados no painel global ("cursos") vêm sempre em primeiro, com os mais recentes primeiro
@@ -363,10 +325,29 @@ export default function Home({
   const displayCtaButtonText =
     homeData?.ctaButtonText || "Encontre um Grupo Perto de Você";
 
-  const displayBloggers =
-    homeData?.bloggers && homeData.bloggers.length > 0
-      ? homeData.bloggers
-      : _bloggers;
+  const {
+    generosityBadge = "",
+    generosityTitle1 = "",
+    generosityTitle2 = "",
+    generositySubtitle = "",
+    generosityPixTitle = "",
+    generosityPixSubtitle = "",
+    generosityPixKey = "",
+    generosityOtherFormsTitle = "",
+    generosityOtherFormsSubtitle = "",
+    generosityOtherFormsBtnText = "",
+    generosityOtherFormsBtnLink = "",
+    appDownloadBgColor = "",
+    appDownloadTitle = "",
+    appDownloadFeature1 = "",
+    appDownloadFeature2 = "",
+    appDownloadFeature3 = "",
+    appDownloadFeature4 = "",
+    appDownloadPlayStoreUrl = "",
+    appDownloadAppStoreUrl = "",
+    appDownloadImage = "",
+  } = homeData || {};
+  const displayBloggers = homeData?.bloggers || [];
 
   if (isDataLoading) {
     return (
@@ -626,7 +607,7 @@ export default function Home({
             </div>
           </div>
 
-          {(!homeData?.newsItems || !homeData.newsItems.some((n: any) => !!n.title)) ? (
+          {(!homeData) ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Fallback to original hardcoded content if no config found */}
               <div className="lg:col-span-2 relative rounded-xl overflow-hidden group cursor-pointer aspect-video">
@@ -672,9 +653,9 @@ export default function Home({
               {/* Main Configured News */}
               {homeData.newsItems[0] && homeData.newsItems[0].title && (
                 <a
-                  href={homeData.newsItems[0].linkUrl || "#"}
-                  target={homeData.newsItems[0].linkUrl?.startsWith("http") ? "_blank" : undefined}
-                  className="lg:col-span-2 relative rounded-xl overflow-hidden group cursor-pointer aspect-video shadow-lg bg-black block"
+                  href={formatUrl(homeData.newsItems[0].linkUrl)}
+                  target={formatUrl(homeData.newsItems[0].linkUrl).startsWith("http") ? "_blank" : undefined}
+                  className="lg:col-span-2 relative rounded-xl overflow-hidden group cursor-pointer aspect-[16/10] sm:aspect-video lg:aspect-auto lg:h-full shadow-lg bg-black block"
                 >
                   <div className="absolute inset-0 z-0">
                     {homeData.newsItems[0].imageUrl ? (
@@ -705,6 +686,11 @@ export default function Home({
                       <span className="text-xs font-bold opacity-90 drop-shadow-md">
                         {homeData.newsItems[0].date}
                       </span>
+                      {homeData.newsItems[0].credits && (
+                        <span className="text-xs font-medium opacity-80 border-l border-white/50 pl-3 drop-shadow-md">
+                          Fonte: {homeData.newsItems[0].credits}
+                        </span>
+                      )}
                     </div>
 
                     <div className="mt-3 text-white bg-[#701620] hover:bg-[#851b27] px-6 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 pointer-events-auto transition shadow-lg">
@@ -716,13 +702,20 @@ export default function Home({
 
               {/* Side Configured News */}
               <div className="flex flex-col gap-6">
-                {(homeData.newsItems || []).slice(1, 3).map((news: any, idx: number) => {
-                  if (!news.title && !news.imageUrl) return null;
+                {[1, 2].map((idx) => {
+                  const news = homeData.newsItems[idx];
+                  if (!news || (!news.title && !news.imageUrl)) {
+                    return (
+                      <div key={`empty-${idx}`} className="relative rounded-xl overflow-hidden aspect-[16/10] sm:aspect-video flex-1 border-2 border-dashed border-gray-300 bg-gray-100/50 flex flex-col items-center justify-center opacity-70">
+                        <span className="text-gray-400 font-medium text-sm">Espaço para novas publicações</span>
+                      </div>
+                    );
+                  }
                   return (
                     <a
                       key={idx}
-                      href={news.linkUrl || "#"}
-                      target={news.linkUrl?.startsWith("http") ? "_blank" : undefined}
+                      href={formatUrl(news.linkUrl)}
+                      target={formatUrl(news.linkUrl).startsWith("http") ? "_blank" : undefined}
                       className="relative rounded-xl overflow-hidden group cursor-pointer aspect-[16/10] sm:aspect-video flex-1 shadow-md bg-black block"
                     >
                       <div className="absolute inset-0 z-0">
@@ -754,6 +747,11 @@ export default function Home({
                           <span className="text-[10px] font-bold opacity-90 drop-shadow-md">
                             {news.date}
                           </span>
+                          {news.credits && (
+                            <span className="text-[10px] font-medium opacity-80 border-l border-white/50 pl-2 drop-shadow-md">
+                              Fonte: {news.credits}
+                            </span>
+                          )}
                         </div>
                         
                         <div className="flex items-center text-white bg-[#701620]/80 rounded-full px-3 py-1 mt-1 text-xs font-bold gap-1 group-hover:bg-[#851b27] transition-colors pointer-events-auto">
@@ -761,6 +759,85 @@ export default function Home({
                         </div>
                       </div>
                     </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Older News Section: Render items after the first 3 */}
+          {homeData?.newsItems && homeData.newsItems.length > 3 && (
+            <div className="mt-16 w-full lg:w-2/3">
+              <h3 className="text-xl md:text-2xl font-bold text-[#142340] mb-6 flex items-center gap-4">
+                Notícias Antigas
+                <div className="h-px bg-gray-300 flex-grow"></div>
+              </h3>
+              
+              <div className="flex flex-col gap-6">
+                {homeData.newsItems.slice(3).map((news: any, idx: number) => {
+                  if (!news.title && !news.imageUrl) return null;
+                  return (
+                    <div key={idx} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col sm:flex-row h-auto sm:h-56 hover:shadow-md transition-shadow group">
+                      <div className="w-full sm:w-2/5 md:w-1/3 shrink-0 relative overflow-hidden">
+                        {news.imageUrl ? (
+                          <img src={news.imageUrl} alt={news.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        ) : (
+                          <div className="w-full h-full bg-gray-200"></div>
+                        )}
+                      </div>
+                      
+                      <div className="p-5 md:p-6 flex flex-col flex-1 relative">
+                        <button className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                          <MoreVertical size={20} />
+                        </button>
+                        
+                        <div className="flex items-center gap-3 mb-3">
+                          {news.category && (
+                            <span className="text-[10px] sm:text-xs font-bold bg-[#e11d48] text-white px-3 py-1 rounded-full whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px] inline-block">
+                              {news.category}
+                            </span>
+                          )}
+                          <div className="flex items-center text-gray-500 text-xs sm:text-sm font-medium gap-1.5">
+                            <Calendar size={14} />
+                            <span>{news.date || "Atualizado"}</span>
+                          </div>
+                          {news.credits && (
+                            <div className="flex items-center text-gray-400 text-xs sm:text-sm font-medium border-l border-gray-300 pl-3">
+                              Fonte: {news.credits}
+                            </div>
+                          )}
+                        </div>
+
+                        <h4 className="text-lg md:text-xl font-bold text-[#1e3a8a] mb-2 leading-tight line-clamp-1">
+                          {news.title}
+                        </h4>
+                        
+                        {news.description && (
+                          <p className="text-gray-500 text-sm md:text-base line-clamp-2 md:line-clamp-3 mb-4">
+                            {news.description}
+                          </p>
+                        )}
+
+                        <div className="mt-auto flex justify-between items-center w-full">
+                          <a 
+                            href={formatUrl(news.linkUrl)}
+                            target={formatUrl(news.linkUrl).startsWith("http") ? "_blank" : undefined}
+                            className="bg-[#3b82f6] hover:bg-[#2563eb] text-white text-sm font-bold py-2 px-5 rounded-full transition-colors inline-flex"
+                          >
+                            Continue lendo
+                          </a>
+                          
+                          <div className="flex items-center text-gray-500 gap-1 opacity-70">
+                            <div className="relative p-1">
+                              <MessageCircle size={24} strokeWidth={1.5} />
+                              <span className="absolute top-0 right-0 bg-[#1e293b] text-white text-[9px] font-bold h-4 w-4 rounded-full flex items-center justify-center transform translate-x-1 -translate-y-1">
+                                {Math.floor(Math.random() * 8)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -810,7 +887,7 @@ export default function Home({
             className="flex overflow-x-auto gap-6 pb-6 snap-x snap-mandatory scrollbar-hide"
             style={{ msOverflowStyle: "none", scrollbarWidth: "none" }}
           >
-            {(homeData?.videos && homeData.videos.length > 0 ? homeData.videos : _videos).map((vid: any, idx: number) => (
+            {((homeData !== null) ? (homeData.videos || []) : _videos).map((vid: any, idx: number) => (
               <div
                 key={vid.id || idx}
                 className="snap-start shrink-0 w-[280px] md:w-[320px] group cursor-pointer"
@@ -848,7 +925,7 @@ export default function Home({
           </div>
 
           <div className="flex overflow-x-auto pb-8 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-5 gap-4 lg:gap-6 snap-x snap-mandatory scrollbar-hide">
-            {homeData?.eventos && homeData.eventos.length > 0 ? (
+            {(homeData !== null) ? (
               homeData.eventos.map((evt: any, idx: number) => {
                 const bgColor = evt.theme === "brown" ? "#5d4633" : (evt.theme || "#5d4633");
                 return (
@@ -1136,17 +1213,17 @@ export default function Home({
       <section className="bg-[#fafafa] py-24 px-6 font-sans">
         <div className="max-w-4xl mx-auto flex flex-col items-center">
           <div className="inline-block px-5 py-1.5 rounded-full bg-[#efefef] text-gray-500 text-[11px] font-bold uppercase tracking-widest mb-8">
-            {homeData?.generosityBadge || "Generosidade"}
+            {generosityBadge}
           </div>
 
           <h2 className="text-4xl md:text-[3.2rem] font-extrabold text-black text-center leading-[1.1] tracking-tight mb-8">
-            {homeData?.generosityTitle1 || "Adoração através da"}
+            {generosityTitle1}
             <br />
-            {homeData?.generosityTitle2 || "contribuição."}
+            {generosityTitle2}
           </h2>
 
           <p className="text-gray-500 text-lg md:text-[19px] text-center max-w-3xl mb-16 font-light leading-relaxed px-4 whitespace-pre-line">
-            {homeData?.generositySubtitle || "\"Cada um contribua segundo propôs no seu coração; não com tristeza, ou por necessidade; porque Deus ama ao que dá com alegria.\""}
+            {generositySubtitle}
           </p>
 
           <div className="w-full max-w-4xl bg-white rounded-[1.75rem] p-8 md:p-14 shadow-[0_8px_30px_rgb(0,0,0,0.03)] grid md:grid-cols-2 gap-8 md:gap-16 items-center relative overflow-hidden">
@@ -1156,23 +1233,23 @@ export default function Home({
             {/* Left Column (PIX) */}
             <div className="relative z-10">
               <h3 className="text-[1.75rem] font-bold text-black mb-2 leading-tight">
-                {homeData?.generosityPixTitle || "Faça um PIX"}
+                {generosityPixTitle}
               </h3>
               <p className="text-gray-500 mb-8 text-[15px]">
-                {homeData?.generosityPixSubtitle || "Use a chave CNPJ para ofertar com segurança."}
+                {generosityPixSubtitle}
               </p>
 
               <div className="relative w-full mb-3">
                 <input
                   type="text"
                   readOnly
-                  value={homeData?.generosityPixKey || "32795249000127"}
+                  value={generosityPixKey}
                   className="w-full bg-[#fafafa] border border-[#f0f0f0] text-black font-bold rounded-xl py-4 flex items-center px-4 pr-12 focus:outline-none text-[15px]"
                 />
                 <button
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   onClick={() =>
-                    navigator.clipboard.writeText(homeData?.generosityPixKey || "32795249000127")
+                    navigator.clipboard.writeText(generosityPixKey)
                   }
                   title="Copiar Chave PIX"
                 >
@@ -1191,10 +1268,10 @@ export default function Home({
                   <Smartphone size={28} strokeWidth={1.5} />
                 </div>
                 <h3 className="text-white font-bold text-lg mb-3">
-                  {homeData?.generosityOtherFormsTitle || "Outras Formas"}
+                  {generosityOtherFormsTitle}
                 </h3>
                 <p className="text-gray-400/90 text-[13px] mb-8 leading-relaxed max-w-[240px]">
-                  {homeData?.generosityOtherFormsSubtitle || "Para transferências bancárias ou ofertas específicas, entre em contato com nossa tesouraria."}
+                  {generosityOtherFormsSubtitle}
                 </p>
                 <a
                   href={
@@ -1208,7 +1285,7 @@ export default function Home({
                   rel="noopener noreferrer"
                   className="w-full bg-white text-black font-bold py-3.5 rounded-xl hover:bg-gray-100 transition-colors text-[14px]"
                 >
-                  {homeData?.generosityOtherFormsBtnText || "Falar no WhatsApp"}
+                  {generosityOtherFormsBtnText}
                 </a>
               </div>
             </div>
@@ -1221,7 +1298,7 @@ export default function Home({
         <div className="max-w-[70rem] mx-auto flex flex-col md:flex-row items-center gap-12 md:gap-8">
           <div className="flex-1 text-white md:pr-10 lg:pl-10">
             <h2 className="text-3xl md:text-[2.2rem] font-bold leading-[1.2] mb-12 max-w-md whitespace-pre-line">
-              {homeData?.appDownloadTitle || "Baixe nosso aplicativo e\ntenha a igreja 24 horas com\nvocê."}
+              {appDownloadTitle}
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-10 mb-14">
@@ -1252,7 +1329,7 @@ export default function Home({
                 </div>
                 <div>
                   <h4 className="text-[16px] leading-tight mb-2 whitespace-pre-line">
-                    {homeData?.appDownloadFeature1 || "Receba conteúdos\nexclusivos."}
+                    {appDownloadFeature1}
                   </h4>
                   <div className="w-4 h-[2px] bg-white mt-3"></div>
                 </div>
@@ -1277,7 +1354,7 @@ export default function Home({
                 </div>
                 <div>
                   <h4 className="text-[16px] leading-tight mb-2 whitespace-pre-line">
-                    {homeData?.appDownloadFeature2 || "Tenha a Bíblia no\nseu bolso."}
+                    {appDownloadFeature2}
                   </h4>
                   <div className="w-4 h-[2px] bg-white mt-3"></div>
                 </div>
@@ -1289,7 +1366,7 @@ export default function Home({
                 </div>
                 <div>
                   <h4 className="text-[16px] leading-tight mb-2 whitespace-pre-line">
-                    {homeData?.appDownloadFeature3 || "Faça contribuições\npelo aplicativo."}
+                    {appDownloadFeature3}
                   </h4>
                   <div className="w-4 h-[2px] bg-white mt-3"></div>
                 </div>
@@ -1325,7 +1402,7 @@ export default function Home({
                 </div>
                 <div>
                   <h4 className="text-[16px] leading-tight mb-2 whitespace-pre-line">
-                    {homeData?.appDownloadFeature4 || "Faça inscrições\nnos eventos."}
+                    {appDownloadFeature4}
                   </h4>
                   <div className="w-4 h-[2px] bg-white mt-3"></div>
                 </div>
@@ -1333,7 +1410,7 @@ export default function Home({
             </div>
 
             <div className="flex flex-wrap gap-4">
-              <a href={homeData?.appDownloadPlayStoreUrl || "#"} target={homeData?.appDownloadPlayStoreUrl && homeData.appDownloadPlayStoreUrl !== "#" ? "_blank" : undefined} rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
+              <a href={appDownloadPlayStoreUrl} target={homeData?.appDownloadPlayStoreUrl && homeData.appDownloadPlayStoreUrl !== "#" ? "_blank" : undefined} rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
                 <img
                   src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
                   alt="Get it on Google Play"
@@ -1341,7 +1418,7 @@ export default function Home({
                 />
               </a>
               <a
-                href={homeData?.appDownloadAppStoreUrl || "#"}
+                href={appDownloadAppStoreUrl}
                 target={homeData?.appDownloadAppStoreUrl && homeData.appDownloadAppStoreUrl !== "#" ? "_blank" : undefined}
                 rel="noopener noreferrer"
                 className="hover:opacity-80 transition-opacity bg-black rounded-xl overflow-hidden flex items-center px-1"
@@ -1448,7 +1525,7 @@ export default function Home({
 
                 <div className="w-full h-[180px] rounded-xl overflow-hidden mb-3 relative">
                   <img
-                    src={homeData?.appDownloadImage || "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80"}
+                    src={appDownloadImage}
                     alt="Mountain"
                     className="w-full h-full object-cover"
                   />
