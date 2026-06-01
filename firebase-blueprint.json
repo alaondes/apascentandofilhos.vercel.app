@@ -1,0 +1,180 @@
+{
+  "entities": {
+    "User": {
+      "title": "Líder / Usuário",
+      "description": "Perfil do líder no sistema",
+      "type": "object",
+      "properties": {
+        "nome": { "type": "string", "description": "Nome completo" },
+        "cpf": { "type": "string", "description": "CPF formatado" },
+        "email": { "type": "string", "format": "email" },
+        "celular": { "type": "string" },
+        "telefone": { "type": "string" },
+        "cep": { "type": "string" },
+        "rua": { "type": "string" },
+        "numero": { "type": "string" },
+        "complemento": { "type": "string" },
+        "bairro": { "type": "string" },
+        "cidade": { "type": "string" },
+        "estado": { "type": "string" },
+        "igreja": { "type": "string" },
+        "cursosMinistrados": { "type": "array", "items": { "type": "string" } },
+        "treinamentoConcluido": { "type": "boolean" },
+        "role": { "type": "string", "enum": ["leader", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["nome", "cpf", "email", "celular", "role"]
+    },
+    "Group": {
+      "title": "Grupo de Estudo",
+      "description": "Turma ou grupo de mentoria",
+      "type": "object",
+      "properties": {
+        "liderId": { "type": "string", "description": "UID do líder responsável" },
+        "curso": { "type": "string" },
+        "dataInicio": { "type": "string" },
+        "diaSemana": { "type": "string" },
+        "horario": { "type": "string" },
+        "local": { "type": "string" },
+        "vagas": { "type": "number" },
+        "lideresAuxiliares": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["liderId", "curso", "dataInicio", "local"]
+    },
+    "Report": {
+      "title": "Relatório",
+      "description": "Relatório semanal de atividades do grupo",
+      "type": "object",
+      "properties": {
+        "groupId": { "type": "string" },
+        "liderId": { "type": "string" },
+        "dataReuniao": { "type": "string" },
+        "horarioInicio": { "type": "string" },
+        "horarioTermino": { "type": "string" },
+        "licao": { "type": "array", "items": { "type": "string" } },
+        "valorOferta": { "type": "string" },
+        "observacoesGerais": { "type": "string" },
+        "casaisReport": { 
+          "type": "array", 
+          "items": { 
+            "type": "object",
+            "properties": {
+              "nome": { "type": "string" },
+              "status": { "type": "string" },
+              "observacao": { "type": "string" }
+            }
+          } 
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["groupId", "liderId", "dataReuniao", "licao"]
+    },
+    "Material": {
+      "title": "Material",
+      "description": "Itens disponíveis para pedido (livros, brindes, etc)",
+      "type": "object",
+      "properties": {
+        "nome": { "type": "string" },
+        "cod": { "type": "number" },
+        "preco": { "type": "number" },
+        "categoria": { "type": "string" },
+        "emoji": { "type": "string" },
+        "desc": { "type": "string" },
+        "cores": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["nome", "preco", "categoria"]
+    },
+    "Order": {
+      "title": "Pedido de Material",
+      "description": "Pedido feito por um líder",
+      "type": "object",
+      "properties": {
+        "liderId": { "type": "string" },
+        "nomeLider": { "type": "string" },
+        "emailLider": { "type": "string" },
+        "grupoNome": { "type": "string" },
+        "cidadeEstado": { "type": "string" },
+        "observacoes": { "type": "string" },
+        "itens": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "materialId": { "type": "string" },
+              "nome": { "type": "string" },
+              "qty": { "type": "number" },
+              "precoUnitario": { "type": "number" },
+              "cor": { "type": "string" }
+            }
+          }
+        },
+        "total": { "type": "number" },
+        "status": { "type": "string", "enum": ["Pendente", "Processando", "Enviado", "Cancelado"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["liderId", "nomeLider", "emailLider", "itens", "total", "status"]
+    },
+    "CourseForm": {
+      "title": "Formulário de Inscrição Customizado",
+      "description": "Campos dinâmicos para o formulário de um curso",
+      "type": "object",
+      "properties": {
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "label": { "type": "string" },
+              "type": { "type": "string", "enum": ["text", "number", "email", "tel", "select", "checkbox"] },
+              "required": { "type": "boolean" },
+              "options": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "CourseRegistration": {
+      "title": "Inscrição de Curso",
+      "description": "Inscrição realizada por um usuário para um curso específico",
+      "type": "object",
+      "properties": {
+        "courseTitle": { "type": "string" },
+        "formData": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["courseTitle", "formData"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Coleção de perfis de usuários/líderes"
+    },
+    "groups/{groupId}": {
+      "schema": "Group",
+      "description": "Grupos cadastrados pelos líderes"
+    },
+    "reports/{reportId}": {
+      "schema": "Report",
+      "description": "Relatórios enviados pelos líderes"
+    },
+    "materials/{materialId}": {
+      "schema": "Material",
+      "description": "Catálogo de materiais disponíveis"
+    },
+    "orders/{orderId}": {
+      "schema": "Order",
+      "description": "Pedidos de materiais realizados"
+    },
+    "course_forms/{formId}": {
+      "schema": "CourseForm",
+      "description": "Esquemas customizados dos formulários de inscrições por curso"
+    },
+    "course_registrations/{regId}": {
+      "schema": "CourseRegistration",
+      "description": "Registros de inscrições nos cursos públicos"
+    }
+  }
+}

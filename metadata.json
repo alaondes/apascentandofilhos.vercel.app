@@ -1,0 +1,8 @@
+{
+  "name": "ApascentandoFilhos",
+  "description": "Ministério dedicado a fortalecer casamentos e famílias através de ensinamentos bíblicos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

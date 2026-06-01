@@ -1,0 +1,75 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isAdmin() { return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    
+    // --- Validation Helpers ---
+    function isValidUser(data) {
+      return data.keys().hasAll(['nome', 'cpf', 'email', 'celular', 'role']) 
+        && data.nome is string && data.nome.size() <= 200
+        && data.cpf is string && data.cpf.size() <= 20
+        && data.email is string && data.email.size() <= 150
+        && data.celular is string && data.celular.size() <= 20
+        && data.role in ['leader', 'admin'];
+    }
+
+    function isValidGroup(data) {
+      return data.keys().hasAll(['liderId', 'curso', 'dataInicio', 'local'])
+        && data.liderId is string && data.liderId == request.auth.uid
+        && data.curso is string && data.curso.size() <= 100
+        && data.dataInicio is string && data.dataInicio.size() <= 50
+        && data.local is string && data.local.size() <= 300;
+    }
+
+    function isValidReport(data) {
+      return data.keys().hasAll(['liderId', 'tipo', 'status'])
+        && data.liderId is string && data.liderId == request.auth.uid
+        && data.tipo is string && data.tipo.size() <= 100
+        && data.status in ['Pendente', 'Aprovado'];
+    }
+
+    // --- Rules ---
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly(['nome', 'celular', 'telefone', 'cep', 'rua', 'numero', 'complemento', 'bairro', 'cidade', 'estado', 'igreja', 'cursosMinistrados', 'treinamentoConcluido']);
+      allow delete: if false; // Users cannot delete themselves
+    }
+
+    match /groups/{groupId} {
+      allow get: if isSignedIn() && (isOwner(existing().liderId) || isAdmin());
+      allow list: if isSignedIn(); // We check resource.data.liderId in app, but here we can restrict
+      allow create: if isSignedIn() && isValidGroup(incoming()) && isValidId(groupId);
+      allow update: if isSignedIn() && isOwner(existing().liderId) && isValidGroup(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly(['curso', 'dataInicio', 'diaSemana', 'horario', 'local', 'vagas', 'lideresAuxiliares']);
+      allow delete: if isSignedIn() && isOwner(existing().liderId);
+    }
+
+    match /reports/{reportId} {
+      allow get: if isSignedIn() && (isOwner(existing().liderId) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.liderId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidReport(incoming()) && isValidId(reportId);
+      allow update: if isAdmin(); // Only admins update report status
+      allow delete: if isAdmin();
+    }
+    
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+  }
+}

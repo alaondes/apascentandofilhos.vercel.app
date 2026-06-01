@@ -1,0 +1,196 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isSuperAdmin() { 
+      return isSignedIn() && 
+             (request.auth.token.email == 'alaondez@gmail.com' || 
+              request.auth.token.email == 'alaondez@gmail.com'); 
+    }
+    function getUserData() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) 
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data 
+        : (exists(/databases/$(database)/documents/membros/$(request.auth.uid)) 
+           ? get(/databases/$(database)/documents/membros/$(request.auth.uid)).data 
+           : {});
+    }
+
+    function checkRole(roleStr1, roleStr2) {
+      let data = getUserData();
+      let roleVal = data.keys().hasAll(['role']) ? data.role : '';
+      let permVal = data.keys().hasAll(['permissao']) ? data.permissao : '';
+      let papelVal = data.keys().hasAll(['papel']) ? data.papel : '';
+      // Simple string comparison for now. A user could have multiple permissions in an array but we assume string for simplicity or check if string matches.
+      return roleVal == roleStr1 || roleVal == roleStr2 || 
+             permVal == roleStr1 || permVal == roleStr2 || 
+             papelVal == roleStr1 || papelVal == roleStr2 ||
+             (roleVal is list && (roleStr1 in roleVal || roleStr2 in roleVal)) ||
+             (permVal is list && (roleStr1 in permVal || roleStr2 in permVal)) ||
+             (papelVal is list && (roleStr1 in papelVal || roleStr2 in papelVal));
+    }
+
+    function isAdmin() { 
+      return isSuperAdmin() || (isSignedIn() && checkRole('admin', 'admin')); 
+    }
+    function isMembro() {
+      return isSignedIn() && checkRole('membro', 'member');
+    }
+    function isEditor() {
+      return isSignedIn() && checkRole('editor', 'editor');
+    }
+    function isColunista() {
+      return isSignedIn() && checkRole('colunista', 'columnist');
+    }
+    function isSecretary() {
+      return isSignedIn() && checkRole('secretary', 'secretaria');
+    }
+    function isFinancial() {
+      return isSignedIn() && checkRole('financial', 'financeiro');
+    }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    
+    // --- Validation Helpers ---
+    function isValidUser(data) {
+      return data.keys().hasAll(['nome', 'cpf', 'email', 'celular', 'role']) 
+        && data.nome is string && data.nome.size() <= 200
+        && data.cpf is string && data.cpf.size() <= 20
+        && data.email is string && data.email.size() <= 150
+        && data.celular is string && data.celular.size() <= 20
+        && data.role in ['leader', 'admin'];
+    }
+
+    function isValidGroup(data) {
+      return data.keys().hasAll(['liderId', 'curso', 'dataInicio', 'local'])
+        && data.liderId is string && data.liderId == request.auth.uid
+        && data.curso is string && data.curso.size() <= 100
+        && data.dataInicio is string && data.dataInicio.size() <= 50
+        && data.local is string && data.local.size() <= 300;
+    }
+
+    function isValidReport(data) {
+      return data.keys().hasAll(['groupId', 'liderId', 'dataReuniao', 'horarioInicio', 'horarioTermino', 'licao', 'valorOferta', 'observacoesGerais', 'casaisReport', 'createdAt'])
+        && data.keys().size() == 10
+        && data.liderId == request.auth.uid
+        && data.groupId is string && data.groupId.size() <= 128
+        && data.dataReuniao is string && data.dataReuniao.size() <= 50
+        && data.licao is list && data.licao.size() <= 20
+        && data.casaisReport is list && data.casaisReport.size() <= 100
+        && data.createdAt == request.time;
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['liderId', 'nomeLider', 'emailLider', 'itens', 'total', 'status', 'createdAt'])
+        && data.liderId == request.auth.uid
+        && data.itens is list && data.itens.size() <= 50
+        && data.total is number && data.total >= 0
+        && data.status in ['Pendente', 'Processando', 'Enviado', 'Cancelado']
+        && data.createdAt == request.time;
+    }
+
+    // --- Rules ---
+
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if (isOwner(userId) && (!incoming().keys().hasAny(['role', 'status']) || (incoming().role == 'leader' && incoming().status == 'ativo') || (incoming().role == 'member' && incoming().status == 'pendente_aprovacao') || (incoming().role == 'membro' && incoming().status == 'pendente_aprovacao'))) || isAdmin() || isSecretary();
+      allow update: if isSignedIn();
+      allow delete: if isAdmin() || isSecretary();
+    }
+
+    match /membros/{membroId} {
+      allow create: if true;
+      allow read: if isSignedIn();
+      allow update, delete: if isAdmin() || isSecretary();
+    }
+
+    match /groups/{groupId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() || isSecretary();
+      allow delete: if isSignedIn() && (isOwner(existing().liderId) || isAdmin() || isSecretary());
+    }
+
+    match /reports/{reportId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() || isSecretary();
+      allow delete: if isAdmin() || isSecretary();
+    }
+
+    match /materials/{materialId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || isFinancial();
+      allow delete: if isAdmin() || isFinancial();
+    }
+    
+    match /support_tickets/{ticketId} {
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
+      allow read: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin() || isSecretary());
+      allow update: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin() || isSecretary());
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin() || isSecretary());
+    }
+
+    match /contact_messages/{messageId} {
+      allow create: if true; // anyone can send a contact message
+      allow read, update, delete: if isAdmin() || isSecretary();
+    }
+
+    match /notifications/{notificationId} {
+      allow get, list: if isSignedIn();
+      allow update: if isSignedIn() && (existing().targetUserId == request.auth.uid || existing().targetType == 'all' || isAdmin() || isSecretary());
+      allow create, delete: if isAdmin() || isSecretary();
+    }
+
+    match /content/{contentId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /course_forms/{formId} {
+      allow read: if true;
+      allow write: if isAdmin() || isEditor();
+    }
+
+    match /course_registrations/{regId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin() || isEditor() || isSecretary() || (isSignedIn() && existing().assignedLeaderId == request.auth.uid);
+    }
+
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /custom_roles/{roleId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || isSecretary();
+    }
+
+    match /artigos/{artigoId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /member_notes/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+  }
+}

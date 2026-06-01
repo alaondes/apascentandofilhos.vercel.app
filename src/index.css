@@ -1,0 +1,134 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Barlow:wght@400;600;700;800&display=swap");
+@import "tailwindcss";
+
+:root {
+  --color-primary-base: #1a6496;
+  --color-primary-dark: #0d2b42;
+  --color-primary-light: #2d8dc3;
+  --color-primary-bg: #eaf4fb;
+  --color-text-main: #222;
+  --color-text-muted: #6b7c93;
+  --color-bg-main: #f0f4f8;
+  --color-footer-bg: #1a3a52;
+  --color-footer-text: #ffffff;
+}
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Barlow", sans-serif;
+
+  --color-primary-base: var(--color-primary-base);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-primary-light: var(--color-primary-light);
+  --color-primary-bg: var(--color-primary-bg);
+  --color-border-color: #e2eaf3;
+  --color-text-main: var(--color-text-main);
+  --color-text-muted: var(--color-text-muted);
+  --color-bg-main: var(--color-bg-main);
+  --color-footer-bg: var(--color-footer-bg);
+  --color-footer-text: var(--color-footer-text);
+  --color-success: #1e8f5a;
+  --color-danger: #c0392b;
+  --color-warning: #f5a623;
+}
+
+@layer base {
+  body {
+    @apply font-sans bg-bg-main text-text-main;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  body::-webkit-scrollbar {
+    display: none;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-serif;
+  }
+}
+
+@layer components {
+  .page-header {
+    @apply bg-gradient-to-br from-primary-base to-primary-light pt-[52px] px-6 pb-[44px] text-center text-white;
+  }
+
+  .page-header h1 {
+    @apply font-serif text-[2.2rem] font-extrabold tracking-wide mb-2.5 flex items-center justify-center gap-2.5;
+  }
+
+  .page-header p {
+    @apply text-[1.05rem] opacity-90 max-w-[540px] mx-auto;
+  }
+
+  .form-row {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-4.5 mb-0;
+  }
+
+  .form-row.cols-3 {
+    @apply sm:grid-cols-3;
+  }
+
+  .form-group {
+    @apply mb-4.5;
+  }
+
+  .form-group label {
+    @apply block text-[0.82rem] font-semibold text-[#333] mb-1.5 flex items-center gap-1.5;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    @apply w-full px-3.5 py-2.5 border-[1.5px] border-border-color rounded-xl text-[0.88rem] font-sans outline-none transition-all bg-white text-text-main;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    @apply border-primary-base shadow-[0_0_0_3px_rgba(26,100,150,0.1)];
+  }
+
+  .form-group input:read-only {
+    @apply bg-[#f7f9fb] text-text-muted cursor-not-allowed;
+  }
+
+  .form-group textarea {
+    @apply resize-y min-h-[80px];
+  }
+
+  .req {
+    @apply text-danger;
+  }
+
+  .btn-primary {
+    @apply px-6 py-3 bg-primary-base text-white rounded-xl font-bold transition-all hover:opacity-90 active:scale-95 cursor-pointer;
+  }
+
+  .btn-outline {
+    @apply px-6 py-3 border-[1.5px] border-primary-base text-primary-base rounded-xl font-bold transition-all hover:bg-primary-bg active:scale-95 cursor-pointer;
+  }
+
+  .section-container {
+    @apply max-w-7xl mx-auto px-6 py-20;
+  }
+
+  .card {
+    @apply bg-white p-8 rounded-2xl shadow-[0_4px_28px_rgba(0,0,0,0.1)] border-none transition-all;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
