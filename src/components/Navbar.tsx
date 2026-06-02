@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Menu, X, LayoutDashboard, ShieldCheck, ChevronDown } from "lucide-react";
+import { Menu, X, LayoutDashboard, ShieldCheck, ChevronDown, LogIn } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useFirebase } from "../context/FirebaseContext";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
@@ -162,15 +162,15 @@ export default function Navbar() {
                 to="/dashboard"
                 className="btn-primary py-2 px-6 shadow-md hover:-translate-y-0.5 flex items-center gap-2"
               >
-                <LayoutDashboard size={18} /> Painel de Controle
+                <LogIn size={18} /> Entrar
               </NavLink>
             </div>
           ) : (
             <NavLink
               to="/login"
-              className="btn-primary py-2 px-6 shadow-md hover:-translate-y-0.5"
+              className="btn-primary py-2 px-6 shadow-md hover:-translate-y-0.5 flex items-center gap-2"
             >
-              Painel de Controle
+              <LogIn size={18} /> Entrar
             </NavLink>
           )}
         </div>
@@ -228,12 +228,12 @@ export default function Navbar() {
                   to="/dashboard"
                   className="btn-primary flex items-center justify-center gap-2"
                 >
-                  <LayoutDashboard size={18} /> Painel de Controle
+                  <LogIn size={18} /> Entrar
                 </NavLink>
               </div>
             ) : (
-              <NavLink to="/login" className="btn-primary text-center mt-4">
-                Painel de Controle
+              <NavLink to="/login" className="btn-primary flex items-center justify-center gap-2 mt-4">
+                <LogIn size={18} /> Entrar
               </NavLink>
             )}
           </motion.div>

@@ -1294,18 +1294,21 @@ const renderIconSelector = (curso: any, idx: number) => {
 const innerContent = (
   <>
     {activeContent === "inicio" ? (
-      <div className="space-y-10">
-        <div className="flex items-center justify-between border-b pb-4">
-          <h3 className="text-xl font-black text-primary-dark">
-            Editar Página Início
-          </h3>
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#e2eaf3] shadow-sm">
+          <div>
+            <h3 className="text-2xl font-black text-[#2D6A9F] tracking-tight">
+              Página Início
+            </h3>
+            <p className="text-sm text-gray-500 font-medium mt-1">Gerencie todo o conteúdo que aparece na página principal do site</p>
+          </div>
           <button
             onClick={handleSaveHome}
             disabled={isLoading}
-            className="flex items-center gap-2 px-6 py-2.5 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition"
+            className="flex items-center justify-center gap-2 px-8 py-3 bg-[#2D6A9F] text-white rounded-xl font-bold text-sm hover:bg-[#245785] shadow-md disabled:bg-gray-400 transition"
           >
             {isLoading ? (
-              <Loader2 className="animate-spin" />
+              <Loader2 className="animate-spin" size={18} />
             ) : (
               <Save size={18} />
             )}
@@ -1314,24 +1317,24 @@ const innerContent = (
         </div>
 
         {/* Sub-tabs Navigation */}
-        <div className="flex flex-wrap gap-2 p-1 bg-[#f0f4f8] border border-[#e2eaf3] rounded-xl w-full xl:max-w-full">
+        <div className="flex flex-wrap gap-2 p-2 bg-white border border-[#e2eaf3] shadow-sm rounded-2xl w-full">
           {[
-            { id: "hero", label: "Carrossel de Banners", icon: "Image" },
+            { id: "hero", label: "Hero Banners", icon: "Image" },
             { id: "colunistas", label: "Colunistas", icon: "Users" },
             { id: "noticias", label: "Notícias", icon: "FileText" },
             { id: "videos", label: "Vídeos", icon: "Video" },
             { id: "eventos", label: "Eventos", icon: "Calendar" },
-            { id: "missao", label: "Obra Missionária", icon: "Heart" },
+            { id: "missao", label: "Missões", icon: "Heart" },
             { id: "generosidade", label: "Generosidade", icon: "Gift" },
-            { id: "app", label: "Download App", icon: "Smartphone" }
+            { id: "app", label: "Aplicativo", icon: "Smartphone" }
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setInicioSubTab(tab.id as any)}
-              className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all flex justify-center items-center gap-2 whitespace-nowrap ${
+              className={`px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
                 inicioSubTab === tab.id
-                  ? "bg-white text-primary-base shadow-sm border border-[#e2eaf3]"
-                  : "text-gray-500 hover:text-primary-base hover:bg-gray-100"
+                  ? "bg-[#2D6A9F] text-white shadow-md drop-shadow-sm"
+                  : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-[#2D6A9F] border border-transparent hover:border-[#c8d8e8]"
               }`}
             >
               {tab.label}
@@ -1355,52 +1358,100 @@ const innerContent = (
                 {(homeData.slides || []).map((slide: any, idx: number) => (
                   <div
                     key={slide.id ? `slide-${slide.id}` : `idx-${idx}`}
-                    className="border border-[#c8d8e8] rounded-2xl bg-white shadow-sm overflow-hidden"
+                    className="border border-[#c8d8e8] rounded-2xl bg-white shadow-sm overflow-hidden flex flex-col transition-all hover:shadow-md"
                   >
                     {/* Card Header matching image style */}
-                    <div className="p-5 border-b border-[#e2eaf3] flex justify-between items-center bg-[#fcfdfe]">
+                    <div className="p-4 md:p-5 border-b border-[#e2eaf3] flex justify-between items-center bg-[#fcfdfe]">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 border border-[#c8d8e8] rounded-xl flex justify-center items-center text-[#2D6A9F] bg-white shadow-sm">
                           <ImageIcon size={18} strokeWidth={2.5} />
                         </div>
-                        <h3 className="font-bold text-[#2D6A9F] text-lg">{idx + 1}. Configuração do Slide</h3>
+                        <h3 className="font-bold text-[#2D6A9F] text-base md:text-lg">Banner #{idx + 1}</h3>
                       </div>
-                      <button
-                        onClick={() => setSlideToDelete(idx)}
-                        className="text-gray-400 hover:text-red-500 transition border border-transparent hover:border-red-100 hover:bg-red-50 p-2 rounded-lg"
-                        type="button"
-                        title="Excluir slide"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                      
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg border border-[#e2eaf3] mr-1 md:mr-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (idx === 0) return;
+                              setHomeData((prev: any) => {
+                                const slides = [...(prev.slides || [])];
+                                const temp = slides[idx];
+                                slides[idx] = slides[idx - 1];
+                                slides[idx - 1] = temp;
+                                return { ...prev, slides };
+                              });
+                            }}
+                            disabled={idx === 0}
+                            className="p-1.5 text-gray-500 hover:text-[#2D6A9F] hover:bg-white rounded disabled:opacity-30 disabled:hover:bg-transparent transition"
+                            title="Mover para Cima"
+                          >
+                            <ChevronUp size={16} strokeWidth={2.5} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (idx === (homeData.slides || []).length - 1) return;
+                              setHomeData((prev: any) => {
+                                const slides = [...(prev.slides || [])];
+                                const temp = slides[idx];
+                                slides[idx] = slides[idx + 1];
+                                slides[idx + 1] = temp;
+                                return { ...prev, slides };
+                              });
+                            }}
+                            disabled={idx === (homeData.slides || []).length - 1}
+                            className="p-1.5 text-gray-500 hover:text-[#2D6A9F] hover:bg-white rounded disabled:opacity-30 disabled:hover:bg-transparent transition"
+                            title="Mover para Baixo"
+                          >
+                            <ChevronDown size={16} strokeWidth={2.5} />
+                          </button>
+                        </div>
+
+                        <button
+                          onClick={() => setSlideToDelete(idx)}
+                          className="text-gray-400 hover:text-red-500 transition border border-transparent hover:border-red-100 hover:bg-red-50 p-2 rounded-lg group"
+                          type="button"
+                          title="Excluir banner"
+                        >
+                          <Trash2 size={18} className="group-hover:scale-110 transition-transform" />
+                        </button>
+                      </div>
                     </div>
 
                     {/* Card Body */}
                     <div className="p-6">
-                      <div className="grid md:grid-cols-2 gap-8">
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
-                              Imagem (Max 5MB) *
-                            </label>
-                            <div className="flex gap-2">
-                              <input
-                                type="text"
-                                className="flex-1 p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
-                                placeholder="URL da Imagem"
-                                value={slide.url || ""}
-                                onChange={(e) => {
-                                  const newUrl = e.target.value;
-                                  setHomeData((prev) => ({
-                                    ...prev,
-                                    slides: prev.slides.map((s, i) =>
-                                      i === idx ? { ...s, url: newUrl } : s,
-                                    ),
-                                  }));
-                                }}
-                              />
-                              <label className="shrink-0 cursor-pointer px-4 bg-[#f8fafc] border border-[#c8d8e8] rounded-xl text-[#2D6A9F] hover:bg-[#eef4f9] transition flex items-center gap-2 text-[11px] font-bold uppercase overflow-hidden">
-                                <Upload size={14} /> Upload
+                      <div className="grid lg:grid-cols-12 gap-8">
+                        
+                        {/* Imagem do Banner (Left/Top) */}
+                        <div className="lg:col-span-5 flex flex-col gap-3 max-w-full">
+                          <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                            Imagem do Banner (1920x600)
+                          </label>
+                          <div className="relative w-full aspect-[21/9] rounded-xl overflow-hidden bg-gray-50 border-2 border-dashed border-[#c8d8e8] group flex flex-col items-center justify-center text-center">
+                            {slide.url ? (
+                              <>
+                                <img
+                                  src={slide.url}
+                                  alt="Preview"
+                                  className="absolute inset-0 w-full h-full object-cover"
+                                />
+                                <label className="absolute inset-0 bg-[#2D6A9F]/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-center items-center cursor-pointer text-white text-sm font-bold gap-2">
+                                  <Upload size={24} />
+                                  Trocar Imagem
+                                  <input
+                                    type="file"
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={(e) => handleImageUpload(e, idx, "home")}
+                                  />
+                                </label>
+                              </>
+                            ) : (
+                              <label className="absolute inset-0 flex flex-col justify-center items-center cursor-pointer text-[#2D6A9F] hover:bg-[#2D6A9F]/5 transition-colors gap-2">
+                                <ImageIcon size={28} className="text-[#2D6A9F]/50" />
+                                <span className="text-xs font-bold uppercase px-4">Adicionar Imagem</span>
                                 <input
                                   type="file"
                                   className="hidden"
@@ -1408,50 +1459,65 @@ const innerContent = (
                                   onChange={(e) => handleImageUpload(e, idx, "home")}
                                 />
                               </label>
-                            </div>
-                            {slide.url && (
-                              <div className="pt-2 border-t border-[#e2eaf3] mt-4">
-                                <img
-                                  src={slide.url}
-                                  alt="Preview"
-                                  className="h-24 w-full object-cover rounded-lg border border-[#e2eaf3] shadow-sm"
-                                />
-                              </div>
                             )}
                           </div>
+                          
+                          <div className="pt-2">
+                            <input
+                              type="text"
+                              className="w-full p-2.5 text-xs text-gray-500 border border-[#c8d8e8] rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all placeholder:text-gray-400"
+                              placeholder="Ou cole a URL da imagem aqui..."
+                              value={slide.url || ""}
+                              onChange={(e) => {
+                                const newUrl = e.target.value;
+                                setHomeData((prev: any) => ({
+                                  ...prev,
+                                  slides: prev.slides.map((s: any, i: number) =>
+                                    i === idx ? { ...s, url: newUrl } : s,
+                                  ),
+                                }));
+                              }}
+                            />
+                          </div>
                         </div>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+
+                        {/* Conteudo de Texto (Right/Bottom) */}
+                        <div className="lg:col-span-7 flex flex-col justify-center gap-5">
+                          <div className="space-y-2 relative group focus-within:z-10">
+                            <div className="absolute -left-2 top-0 bottom-0 w-1 bg-[#2D6A9F] rounded-r opacity-50 group-focus-within:opacity-100 transition-opacity"></div>
+                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-2 block">
                               Título Principal *
                             </label>
                             <input
                               type="text"
-                              className="w-full p-3 border border-[#c8d8e8] rounded-xl font-bold text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                              className="w-full p-3.5 border border-[#c8d8e8] rounded-xl font-black text-lg text-gray-800 bg-gray-50 focus:bg-white focus:border-[#2D6A9F] focus:ring-2 focus:ring-[#2D6A9F]/10 outline-none transition-all"
+                              placeholder="Ex: Novo Slide"
                               value={slide.title || ""}
                               onChange={(e) => {
                                 const newTitle = e.target.value;
-                                setHomeData((prev) => ({
+                                setHomeData((prev: any) => ({
                                   ...prev,
-                                  slides: prev.slides.map((s, i) =>
+                                  slides: prev.slides.map((s: any, i: number) =>
                                     i === idx ? { ...s, title: newTitle } : s,
                                   ),
                                 }));
                               }}
                             />
                           </div>
-                          <div className="space-y-2">
-                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                          <div className="space-y-2 relative group focus-within:z-10">
+                            <div className="absolute -left-2 top-0 bottom-0 w-1 bg-[#2D6A9F] rounded-r opacity-50 group-focus-within:opacity-100 transition-opacity"></div>
+                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-2 block">
                               Subtítulo / Texto de Apoio *
                             </label>
                             <textarea
-                              className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm h-24 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all resize-none"
+                              className="w-full p-3.5 border border-[#c8d8e8] rounded-xl text-sm text-gray-600 bg-gray-50 focus:bg-white focus:border-[#2D6A9F] focus:ring-2 focus:ring-[#2D6A9F]/10 outline-none transition-all h-[96px] resize-none"
+                              placeholder="Escreva um texto de apoio aqui..."
                               value={slide.subtitle || ""}
                               onChange={(e) => {
                                 const newSubtitle = e.target.value;
-                                setHomeData((prev) => ({
+                                setHomeData((prev: any) => ({
                                   ...prev,
-                                  slides: prev.slides.map((s, i) =>
+                                  slides: prev.slides.map((s: any, i: number) =>
                                     i === idx ? { ...s, subtitle: newSubtitle } : s,
                                   ),
                                 }));
@@ -1459,6 +1525,7 @@ const innerContent = (
                             />
                           </div>
                         </div>
+                        
                       </div>
                     </div>
                   </div>
@@ -1467,9 +1534,12 @@ const innerContent = (
 
               <button
                 onClick={addSlide}
-                className="w-full py-4 border-2 border-dashed border-[#2D6A9F] text-[#2D6A9F] rounded-2xl font-bold text-sm hover:bg-[#2D6A9F]/5 transition-colors"
+                className="w-full py-5 border-2 border-dashed border-[#c8d8e8] bg-gray-50 text-gray-500 rounded-2xl font-bold text-sm hover:border-[#2D6A9F] hover:bg-[#2D6A9F]/5 hover:text-[#2D6A9F] transition-all flex items-center justify-center gap-2 group shadow-sm drop-shadow-sm"
               >
-                + Adicionar Novo Slide ao Carrossel
+                <div className="p-1.5 bg-white rounded-full group-hover:bg-[#2D6A9F] group-hover:text-white transition-colors border border-[#e2eaf3] group-hover:border-[#2D6A9F]">
+                  <Plus size={18} strokeWidth={3} />
+                </div>
+                <span>Adicionar Novo Banner</span>
               </button>
             
               {/* Footer Section */}
@@ -2689,18 +2759,21 @@ const innerContent = (
 
       </div>
     ) : activeContent === "quem_somos" ? (
-      <div className="space-y-10">
-        <div className="flex items-center justify-between border-b pb-4">
-          <h3 className="text-xl font-black text-primary-dark">
-            Editar Página Quem Somos
-          </h3>
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#e2eaf3] shadow-sm">
+          <div>
+            <h3 className="text-2xl font-black text-[#2D6A9F] tracking-tight">
+              Página Quem Somos
+            </h3>
+            <p className="text-sm text-gray-500 font-medium mt-1">Gerencie a história, princípios e liderança da igreja</p>
+          </div>
           <button
             onClick={handleSaveAbout}
             disabled={isLoading}
-            className="flex items-center gap-2 px-6 py-2.5 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition"
+            className="flex items-center justify-center gap-2 px-8 py-3 bg-[#2D6A9F] text-white rounded-xl font-bold text-sm hover:bg-[#245785] shadow-md disabled:bg-gray-400 transition"
           >
             {isLoading ? (
-              <Loader2 className="animate-spin" />
+              <Loader2 className="animate-spin" size={18} />
             ) : (
               <Save size={18} />
             )}
@@ -2709,19 +2782,19 @@ const innerContent = (
         </div>
 
         {/* Sub-tabs Navigation */}
-        <div className="flex flex-wrap gap-2 p-1 bg-[#f0f4f8] border border-[#e2eaf3] rounded-xl w-full xl:max-w-full">
+        <div className="flex flex-wrap gap-2 p-2 bg-white border border-[#e2eaf3] shadow-sm rounded-2xl w-full">
           {[
-            { id: "historia", label: "Cabeçalho (Hero) e Nossa História", icon: "BookOpen" },
-            { id: "principios", label: "Princípios (Missão, Visão e Valores)", icon: "Star" },
-            { id: "ministerio", label: "Ministério (Liderança e Apoio)", icon: "Users" }
+            { id: "historia", label: "Nossa História", icon: "BookOpen" },
+            { id: "principios", label: "Princípios e Valores", icon: "Star" },
+            { id: "ministerio", label: "Equipe Ministerial", icon: "Users" }
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setQuemSomosSubTab(tab.id as any)}
-              className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all flex justify-center items-center gap-2 whitespace-nowrap ${
+              className={`px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
                 quemSomosSubTab === tab.id
-                  ? "bg-white text-primary-base shadow-sm border border-[#e2eaf3]"
-                  : "text-gray-500 hover:text-primary-base hover:bg-gray-100"
+                  ? "bg-[#2D6A9F] text-white shadow-md drop-shadow-sm"
+                  : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-[#2D6A9F] border border-transparent hover:border-[#c8d8e8]"
               }`}
             >
               {tab.label}
@@ -3200,41 +3273,42 @@ const innerContent = (
         )}
       </div>
     ) : activeContent === "edificado_matrimonio" ? (
-      <div className="aba-edificado-matrimonio space-y-10">
-        <div className="flex flex-col gap-4 border-b pb-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-black text-primary-dark">
-              Configurações: Conteúdo Edificado Matrimônio
+      <div className="aba-edificado-matrimonio space-y-6 animate-fade-in">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#e2eaf3] shadow-sm">
+          <div>
+            <h3 className="text-2xl font-black text-[#2D6A9F] tracking-tight">
+              Edificado Matrimônio
             </h3>
-            <button
-              onClick={handleSaveEdificadoMatrimonio}
-              disabled={isLoading}
-              className="flex items-center gap-2 px-6 py-2.5 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-md disabled:bg-gray-400 transition transform active:scale-95"
-            >
-              {isLoading ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                <Save size={18} />
-              )}
-              {edificadoSubTab === "cursos_editor" ? "Salvar Lista de Cursos" : "Salvar Conteúdo Edificado"}
-            </button>
+            <p className="text-sm text-gray-500 font-medium mt-1">Gerencie banners, crenças e treinamentos desta página especial</p>
           </div>
+          <button
+            onClick={handleSaveEdificadoMatrimonio}
+            disabled={isLoading}
+            className="flex items-center justify-center gap-2 px-8 py-3 bg-[#2D6A9F] text-white rounded-xl font-bold text-sm hover:bg-[#245785] shadow-md disabled:bg-gray-400 transition transform active:scale-95"
+          >
+            {isLoading ? (
+              <Loader2 className="animate-spin" size={18} />
+            ) : (
+              <Save size={18} />
+            )}
+            {edificadoSubTab === "cursos_editor" ? "Salvar Lista de Cursos" : "Salvar Conteúdo"}
+          </button>
         </div>
 
-        <div className="flex flex-wrap gap-2 p-1 bg-[#f0f4f8] border border-[#e2eaf3] rounded-xl w-full xl:max-w-full mb-2">
+        <div className="flex flex-wrap gap-2 p-2 bg-white border border-[#e2eaf3] shadow-sm rounded-2xl w-full">
           {[
-            { id: "hero", label: "Carrossel de Banners (Hero)" },
+            { id: "hero", label: "Banners" },
             { id: "crencas", label: "No que Acreditamos" },
-            { id: "cursos_editor", label: "Editar Lista de Treinamentos" },
+            { id: "cursos_editor", label: "Treinamentos" },
             { id: "cta", label: "Rodapé (CTA)" }
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setEdificadoSubTab(tab.id as any)}
-              className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all flex justify-center items-center gap-2 whitespace-nowrap ${
+              className={`px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
                 edificadoSubTab === tab.id
-                  ? "bg-white text-primary-base shadow-sm border border-[#e2eaf3]"
-                  : "text-gray-500 hover:text-primary-base hover:bg-gray-100"
+                  ? "bg-[#2D6A9F] text-white shadow-md drop-shadow-sm"
+                  : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-[#2D6A9F] border border-transparent hover:border-[#c8d8e8]"
               }`}
             >
               {tab.label}
@@ -3796,18 +3870,21 @@ const innerContent = (
         )}
       </div>
     ) : activeContent === "login" ? (
-      <div className="aba-login space-y-10 animate-fade-in">
-        <div className="flex items-center justify-between border-b pb-4">
-          <h3 className="text-xl font-black text-primary-dark">
-            Editar Conteúdo de Login
-          </h3>
+      <div className="aba-login space-y-6 animate-fade-in">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#e2eaf3] shadow-sm">
+          <div>
+            <h3 className="text-2xl font-black text-[#2D6A9F] tracking-tight">
+              Página de Login
+            </h3>
+            <p className="text-sm text-gray-500 font-medium mt-1">Configure o visual e os textos da tela de login do aplicativo</p>
+          </div>
           <button
             onClick={handleSaveLeaderRegistration}
             disabled={isLoading}
-            className="flex items-center gap-2 px-6 py-2.5 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition"
+            className="flex items-center justify-center gap-2 px-8 py-3 bg-[#2D6A9F] text-white rounded-xl font-bold text-sm hover:bg-[#245785] shadow-md disabled:bg-gray-400 transition"
           >
             {isLoading ? (
-              <Loader2 className="animate-spin" />
+              <Loader2 className="animate-spin" size={18} />
             ) : (
               <Save size={18} />
             )}
@@ -3897,50 +3974,49 @@ const innerContent = (
 </div>
       </div>
     ) : activeContent === "cursos" ? (
-      <div className="aba-gestao-cursos space-y-6">
-        <div className="flex items-center justify-between border-b pb-4">
+      <div className="aba-gestao-cursos space-y-6 animate-fade-in">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#e2eaf3] shadow-sm">
           <div>
-            <h3 className="text-xl font-black text-primary-dark">
-              Editar Página de Cursos
+            <h3 className="text-2xl font-black text-[#2D6A9F] tracking-tight">
+              Página de Cursos
             </h3>
-            <p className="text-xs text-gray-500">Configure a estrutura da página e gerencie seus treinamentos</p>
+            <p className="text-sm text-gray-500 font-medium mt-1">Configure a estrutura da página e gerencie seus treinamentos</p>
           </div>
           <button
             onClick={handleSaveCursos}
             disabled={isLoading}
-            className="flex items-center gap-2 px-6 py-2.5 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition"
+            className="flex items-center justify-center gap-2 px-8 py-3 bg-[#2D6A9F] text-white rounded-xl font-bold text-sm hover:bg-[#245785] shadow-md disabled:bg-gray-400 transition"
           >
             {isLoading ? (
-              <Loader2 className="animate-spin" />
+              <Loader2 className="animate-spin" size={18} />
             ) : (
               <Save size={18} />
             )}
-            Salvar Configuração de Cursos
+            Salvar Configurações
           </button>
         </div>
 
         {/* Sub-tabs Navigation */}
-        <div className="flex gap-2 p-1 bg-gray-100 rounded-xl w-fit">
-          <button
-            onClick={() => setCoursesSubTab("geral")}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-              coursesSubTab === "geral"
-                ? "bg-white text-primary-base shadow-sm"
-                : "text-gray-500 hover:text-primary-base"
-            }`}
-          >
-            <Settings size={14} /> Estrutura da Página
-          </button>
-          <button
-            onClick={() => setCoursesSubTab("editor")}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-              coursesSubTab === "editor"
-                ? "bg-white text-primary-base shadow-sm"
-                : "text-gray-500 hover:text-primary-base"
-            }`}
-          >
-            <Grid size={14} /> Gestão Visual de Cursos
-          </button>
+        <div className="flex flex-wrap gap-2 p-2 bg-white border border-[#e2eaf3] shadow-sm rounded-2xl w-full md:w-fit">
+          {[
+            { id: "geral", label: "Estrutura da Página", icon: "Settings" },
+            { id: "editor", label: "Gestão Visual de Cursos", icon: "Grid" }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setCoursesSubTab(tab.id as any)}
+              className={`px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+                coursesSubTab === tab.id
+                  ? "bg-[#2D6A9F] text-white shadow-md drop-shadow-sm"
+                  : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-[#2D6A9F] border border-transparent hover:border-[#c8d8e8]"
+              }`}
+            >
+              <span className="flex items-center justify-center -ml-1">
+                {/* Visual align */}
+              </span>
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {coursesSubTab === "geral" ? (
@@ -4411,18 +4487,21 @@ const innerContent = (
 
       </div>
     ) : activeContent === "contatos" ? (
-      <div className="space-y-10">
-        <div className="flex items-center justify-between border-b pb-4">
-          <h3 className="text-xl font-black text-primary-dark">
-            Editar Página Contatos
-          </h3>
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#e2eaf3] shadow-sm">
+          <div>
+            <h3 className="text-2xl font-black text-[#2D6A9F] tracking-tight">
+              Página Contatos
+            </h3>
+            <p className="text-sm text-gray-500 font-medium mt-1">Gerencie as informações de contato, mapa e redes sociais</p>
+          </div>
           <button
             onClick={handleSaveContact}
             disabled={isLoading}
-            className="flex items-center gap-2 px-6 py-2.5 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition"
+            className="flex items-center justify-center gap-2 px-8 py-3 bg-[#2D6A9F] text-white rounded-xl font-bold text-sm hover:bg-[#245785] shadow-md disabled:bg-gray-400 transition"
           >
             {isLoading ? (
-              <Loader2 className="animate-spin" />
+              <Loader2 className="animate-spin" size={18} />
             ) : (
               <Save size={18} />
             )}
@@ -4614,12 +4693,15 @@ const innerContent = (
         </div>
       </div>
     ) : activeContent === "aparencia" ? (
-      <div className="space-y-10">
-        <div className="flex items-center justify-between border-b pb-4">
-          <h3 className="text-xl font-black text-primary-dark">
-            Editar Aparência e Cores
-          </h3>
-          <div className="flex items-center gap-3">
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#e2eaf3] shadow-sm">
+          <div>
+            <h3 className="text-2xl font-black text-[#2D6A9F] tracking-tight">
+              Aparência e Cores
+            </h3>
+            <p className="text-sm text-gray-500 font-medium mt-1">Personalize a identidade visual e as cores do aplicativo</p>
+          </div>
+          <div className="flex items-center gap-3 w-full md:w-auto">
             <button
               onClick={() => {
                 setThemeData({
@@ -4635,21 +4717,21 @@ const innerContent = (
                 });
               }}
               disabled={isLoading}
-              className="flex items-center gap-2 px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-bold text-sm hover:bg-gray-200 shadow-sm border border-gray-300 disabled:opacity-50 transition"
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 shadow-sm border border-[#c8d8e8] hover:text-[#2D6A9F] hover:border-[#2D6A9F] disabled:opacity-50 transition drop-shadow-sm"
             >
               Restaurar Padrão
             </button>
             <button
               onClick={handleSaveTheme}
               disabled={isLoading}
-              className="flex items-center gap-2 px-6 py-2.5 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition"
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-3 bg-[#2D6A9F] text-white rounded-xl font-bold text-sm hover:bg-[#245785] shadow-md disabled:bg-gray-400 transition"
             >
               {isLoading ? (
-                <Loader2 className="animate-spin" />
+                <Loader2 className="animate-spin" size={18} />
               ) : (
                 <Save size={18} />
               )}
-              Salvar Alterações
+              Salvar Cores
             </button>
           </div>
         </div>
@@ -5018,18 +5100,21 @@ const innerContent = (
 </div>
       </div>
     ) : activeContent === "header_logo" ? (
-      <div className="space-y-10 animate-fade-in">
-        <div className="flex items-center justify-between border-b pb-4">
-          <h3 className="text-xl font-black text-primary-dark">
-            Editar Logo e Título do Topo (Navbar)
-          </h3>
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#e2eaf3] shadow-sm">
+          <div>
+            <h3 className="text-2xl font-black text-[#2D6A9F] tracking-tight">
+              Logo e Menu (Navbar)
+            </h3>
+            <p className="text-sm text-gray-500 font-medium mt-1">Configure o logotipo principal e os links de navegação do topo</p>
+          </div>
           <button
             onClick={handleSaveHeaderLogo}
             disabled={isLoading}
-            className="flex items-center gap-2 px-6 py-2.5 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition"
+            className="flex items-center justify-center gap-2 px-8 py-3 bg-[#2D6A9F] text-white rounded-xl font-bold text-sm hover:bg-[#245785] shadow-md disabled:bg-gray-400 transition"
           >
             {isLoading ? (
-              <Loader2 className="animate-spin" />
+              <Loader2 className="animate-spin" size={18} />
             ) : (
               <Save size={18} />
             )}
@@ -5353,18 +5438,21 @@ const innerContent = (
 </div>
       </div>
     ) : activeContent === "footer" ? (
-      <div className="space-y-10 animate-fade-in">
-        <div className="flex items-center justify-between border-b pb-4">
-          <h3 className="text-xl font-black text-primary-dark">
-            Editar Conteúdo do Rodapé
-          </h3>
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#e2eaf3] shadow-sm">
+          <div>
+            <h3 className="text-2xl font-black text-[#2D6A9F] tracking-tight">
+              Conteúdo do Rodapé
+            </h3>
+            <p className="text-sm text-gray-500 font-medium mt-1">Gerencie os links e informações institucionais do final da página</p>
+          </div>
           <button
             onClick={handleSaveFooter}
             disabled={isLoading}
-            className="flex items-center gap-2 px-6 py-2.5 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition"
+            className="flex items-center justify-center gap-2 px-8 py-3 bg-[#2D6A9F] text-white rounded-xl font-bold text-sm hover:bg-[#245785] shadow-md disabled:bg-gray-400 transition"
           >
             {isLoading ? (
-              <Loader2 className="animate-spin" />
+              <Loader2 className="animate-spin" size={18} />
             ) : (
               <Save size={18} />
             )}
