@@ -71,6 +71,7 @@ export default function ColunistaPanelComponent({
   const [isSaving, setIsSaving] = useState(false);
   const [mensagem, setMensagem] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteConfirmA, setDeleteConfirmA] = useState<string | null>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -148,13 +149,18 @@ export default function ColunistaPanelComponent({
   };
 
   const deleteArtigo = async (id: string) => {
-    if (window.confirm("Deseja realmente excluir este artigo?")) {
-      try {
-        await deleteDoc(doc(db, "artigos", id));
-        fetchArtigos();
-      } catch (error) {
-        console.error("Erro ao deletar:", error);
-      }
+    setDeleteConfirmA(id);
+  };
+
+  const confirmDeleteArtigoAction = async () => {
+    if (!deleteConfirmA) return;
+    try {
+      await deleteDoc(doc(db, "artigos", deleteConfirmA));
+      fetchArtigos();
+      setDeleteConfirmA(null);
+    } catch (error) {
+      console.error("Erro ao deletar:", error);
+      setDeleteConfirmA(null);
     }
   };
 
@@ -563,13 +569,39 @@ export default function ColunistaPanelComponent({
     return <GerenciarColunistasHome />;
   }
 
-  return null;
+  return (
+    <>
+      {deleteConfirmA && (
+        <div className="fixed inset-0 bg-primary-dark/40 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
+          <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl p-6 text-center">
+            <h3 className="text-xl font-bold text-primary-dark mb-2">Excluir Artigo</h3>
+            <p className="text-gray-500 text-sm mb-6">Deseja realmente excluir este artigo?</p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => setDeleteConfirmA(null)}
+                className="px-6 py-2.5 font-bold text-gray-500 hover:bg-gray-100 rounded-xl transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDeleteArtigoAction}
+                className="px-6 py-2.5 font-bold text-white bg-red-500 hover:bg-red-600 rounded-xl shadow-lg shadow-red-500/30 transition"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
 export function GerenciarColunistasHome() {
   const [bloggers, setBloggers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleteConfirmB, setDeleteConfirmB] = useState<number | null>(null);
 
   const recompressBase64 = (base64Str: string): Promise<string> => {
     return new Promise((resolve) => {
@@ -742,11 +774,15 @@ export function GerenciarColunistasHome() {
   };
 
   const removeBlogger = (index: number) => {
-    if (window.confirm("Excluir este colunista da home?")) {
-      const newBloggers = [...bloggers];
-      newBloggers.splice(index, 1);
-      setBloggers(newBloggers);
-    }
+    setDeleteConfirmB(index);
+  };
+  
+  const confirmRemoveBloggerAction = () => {
+    if (deleteConfirmB === null) return;
+    const newBloggers = [...bloggers];
+    newBloggers.splice(deleteConfirmB, 1);
+    setBloggers(newBloggers);
+    setDeleteConfirmB(null);
   };
 
   if (loading)
@@ -1086,6 +1122,29 @@ export function GerenciarColunistasHome() {
           <PlusCircle size={20} className="group-hover:scale-110 transition-transform" />
           ADICIONAR NOVO COLUNISTA / BLOG À HOME
         </button>
+
+        {deleteConfirmB !== null && (
+          <div className="fixed inset-0 bg-primary-dark/40 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
+            <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl p-6 text-center">
+              <h3 className="text-xl font-bold text-primary-dark mb-2">Excluir Colunista</h3>
+              <p className="text-gray-500 text-sm mb-6">Deseja remover este colunista da home?</p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => setDeleteConfirmB(null)}
+                  className="px-6 py-2.5 font-bold text-gray-500 hover:bg-gray-100 rounded-xl transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmRemoveBloggerAction}
+                  className="px-6 py-2.5 font-bold text-white bg-red-500 hover:bg-red-600 rounded-xl shadow-lg shadow-red-500/30 transition"
+                >
+                  Remover
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="pt-6 border-t border-[#e2eaf3] flex justify-end">
           <button

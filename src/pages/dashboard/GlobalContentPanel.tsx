@@ -129,15 +129,18 @@ export default function GlobalContentPanel({
     footerText: "#ffffff",
   });
 
+  const [inicioSubTab, setInicioSubTab] = useState<"hero" | "colunistas" | "noticias" | "videos" | "eventos" | "missao" | "generosidade" | "app">("hero");
+  const [quemSomosSubTab, setQuemSomosSubTab] = useState<"historia" | "principios" | "ministerio">("historia");
   const [isLoading, setIsLoading] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState<number | null>(null);
+  const [genericDeleteConfirm, setGenericDeleteConfirm] = useState<{message: string, action: () => void} | null>(null);
   const [beliefToDelete, setBeliefToDelete] = useState<number | null>(null);
   const [slideToDelete, setSlideToDelete] = useState<number | null>(null);
   const [coursePageCourseToDelete, setCoursePageCourseToDelete] = useState<
     number | null
   >(null);
   const [coursesSubTab, setCoursesSubTab] = useState<"geral" | "editor" | "leader">("geral");
-  const [edificadoSubTab, setEdificadoSubTab] = useState<"geral" | "cursos_editor" | "cta">("geral");
+  const [edificadoSubTab, setEdificadoSubTab] = useState<"hero" | "crencas" | "cursos_editor" | "cta">("hero");
   const [editingCourseIndex, setEditingCourseIndex] = useState<number | null>(null);
   const [editingEdificadoCourseIndex, setEditingEdificadoCourseIndex] = useState<number | null>(null);
   const [principleToDelete, setPrincipleToDelete] = useState<number | null>(
@@ -423,7 +426,7 @@ export default function GlobalContentPanel({
     logoUrl?: string;
     title?: string;
     subtitle?: string;
-    links?: { name: string; path: string }[];
+    links?: { name: string; path: string; subLinks?: { name: string; path: string }[] }[];
   }>({
     logoUrl: "/logo.png",
     title: "MINISTÉRIO",
@@ -1310,6 +1313,34 @@ const innerContent = (
           </button>
         </div>
 
+        {/* Sub-tabs Navigation */}
+        <div className="flex flex-wrap gap-2 p-1 bg-[#f0f4f8] border border-[#e2eaf3] rounded-xl w-full xl:max-w-full">
+          {[
+            { id: "hero", label: "Carrossel de Banners", icon: "Image" },
+            { id: "colunistas", label: "Colunistas", icon: "Users" },
+            { id: "noticias", label: "Notícias", icon: "FileText" },
+            { id: "videos", label: "Vídeos", icon: "Video" },
+            { id: "eventos", label: "Eventos", icon: "Calendar" },
+            { id: "missao", label: "Obra Missionária", icon: "Heart" },
+            { id: "generosidade", label: "Generosidade", icon: "Gift" },
+            { id: "app", label: "Download App", icon: "Smartphone" }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setInicioSubTab(tab.id as any)}
+              className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all flex justify-center items-center gap-2 whitespace-nowrap ${
+                inicioSubTab === tab.id
+                  ? "bg-white text-primary-base shadow-sm border border-[#e2eaf3]"
+                  : "text-gray-500 hover:text-primary-base hover:bg-gray-100"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {inicioSubTab === "hero" && (
+        <div className="animate-fade-in space-y-6">
         {/* Carousel Section */}
         <div className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl space-y-6">
           <h4 className="font-bold text-primary-base mb-2 flex items-center gap-2">
@@ -1425,11 +1456,19 @@ const innerContent = (
         
 <div className="pt-6 mt-4 border-t border-[#e2eaf3] flex justify-end"><button onClick={handleSaveHome} disabled={isLoading} className="flex items-center gap-2 px-6 py-2 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition">{isLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Salvar Configuração</button></div>
 </div>
+</div>
+        )}
 
+        {inicioSubTab === "colunistas" && (
+        <div className="animate-fade-in space-y-6">
 <GerenciarColunistasHome />
 <div className="h-4" />
 <ColunistaPanelComponent activeTab="colunista_meus_artigos" />
+        </div>
+        )}
 
+        {inicioSubTab === "noticias" && (
+        <div className="animate-fade-in space-y-6">
         {/* News Section Config */}
         <div className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl shadow-sm my-6">
           <h4 className="font-bold text-primary-dark mb-5 flex items-center gap-2">
@@ -1478,9 +1517,11 @@ const innerContent = (
               <div key={idx} className="bg-gray-50 border border-gray-200 p-4 rounded-xl flex gap-4 relative">
                 <button
                   onClick={() => {
-                    const newItems = [...homeData.newsItems];
-                    newItems.splice(idx, 1);
-                    setHomeData({ ...homeData, newsItems: newItems });
+                    setGenericDeleteConfirm({ message: "Tem certeza que deseja excluir esta notícia?", action: () => {
+                      const newItems = [...(homeData.newsItems || [])];
+                      newItems.splice(idx, 1);
+                      setHomeData({ ...homeData, newsItems: newItems });
+                    } });
                   }}
                   className="absolute -top-3 -right-3 bg-red-500 text-white p-2 rounded-full shadow-lg hover:bg-red-600 z-10"
                   title="Excluir Notícia"
@@ -1495,7 +1536,7 @@ const innerContent = (
                         className="w-full p-2 border border-[#c8d8e8] rounded-lg text-sm" 
                         value={newsItem.title || ""} 
                         onChange={(e) => {
-                          const newItems = [...homeData.newsItems];
+                          const newItems = [...(homeData.newsItems || [])];
                           newItems[idx].title = e.target.value;
                           setHomeData({...homeData, newsItems: newItems});
                         }}
@@ -1508,7 +1549,7 @@ const innerContent = (
                         placeholder="Ex: NOVO, BLOG"
                         value={newsItem.category || ""} 
                         onChange={(e) => {
-                          const newItems = [...homeData.newsItems];
+                          const newItems = [...(homeData.newsItems || [])];
                           newItems[idx].category = e.target.value;
                           setHomeData({...homeData, newsItems: newItems});
                         }}
@@ -1522,7 +1563,7 @@ const innerContent = (
                       placeholder="Breve resumo..."
                       value={newsItem.description || ""} 
                       onChange={(e) => {
-                        const newItems = [...homeData.newsItems];
+                        const newItems = [...(homeData.newsItems || [])];
                         newItems[idx].description = e.target.value;
                         setHomeData({...homeData, newsItems: newItems});
                       }}
@@ -1536,7 +1577,7 @@ const innerContent = (
                         placeholder="Ex: 29/05/2026"
                         value={newsItem.date || ""} 
                         onChange={(e) => {
-                          const newItems = [...homeData.newsItems];
+                          const newItems = [...(homeData.newsItems || [])];
                           newItems[idx].date = e.target.value;
                           setHomeData({...homeData, newsItems: newItems});
                         }}
@@ -1549,7 +1590,7 @@ const innerContent = (
                         placeholder="Ex: https://..."
                         value={newsItem.linkUrl || ""} 
                         onChange={(e) => {
-                          const newItems = [...homeData.newsItems];
+                          const newItems = [...(homeData.newsItems || [])];
                           newItems[idx].linkUrl = e.target.value;
                           setHomeData({...homeData, newsItems: newItems});
                         }}
@@ -1562,8 +1603,8 @@ const innerContent = (
                         placeholder="Ex: Nome do Site"
                         value={newsItem.credits || ""} 
                         onChange={(e) => {
-                          const newItems = [...homeData.newsItems];
-                          newItems[idx].credits = e.target.value;
+                          const newItems = [...(homeData.newsItems || [])];
+                          (newItems[idx] as any).credits = e.target.value;
                           setHomeData({...homeData, newsItems: newItems});
                         }}
                       />
@@ -1578,7 +1619,7 @@ const innerContent = (
                       <img src={newsItem.imageUrl} className="w-full h-full object-cover" alt="" />
                       <button 
                         onClick={() => {
-                          const newItems = [...homeData.newsItems];
+                          const newItems = [...(homeData.newsItems || [])];
                           newItems[idx].imageUrl = "";
                           setHomeData({...homeData, newsItems: newItems});
                         }}
@@ -1602,7 +1643,7 @@ const innerContent = (
                               if (!file) return;
                               try {
                                  const base64 = await compressImage(file);
-                                 const newItems = [...homeData.newsItems];
+                                 const newItems = [...(homeData.newsItems || [])];
                                  newItems[idx].imageUrl = base64;
                                  setHomeData({...homeData, newsItems: newItems});
                               } catch(err) {
@@ -1621,7 +1662,7 @@ const innerContent = (
                         onChange={(e) => {
                           const val = e.target.value;
                           if (val) {
-                            const newItems = [...homeData.newsItems];
+                            const newItems = [...(homeData.newsItems || [])];
                             newItems[idx].imageUrl = val;
                             setHomeData({...homeData, newsItems: newItems});
                           }
@@ -1640,7 +1681,11 @@ const innerContent = (
             </button>
           </div>
         </div>
+        </div>
+        )}
 
+        {inicioSubTab === "videos" && (
+        <div className="animate-fade-in space-y-6">
         {/* Videos Section */}
         <div className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl shadow-sm mb-6">
           <div className="flex items-center justify-between border-b border-[#e2eaf3] pb-4 mb-4">
@@ -1681,12 +1726,12 @@ const innerContent = (
               >
                 <button
                   onClick={() => {
-                    if(window.confirm("Excluir este vídeo?")) {
+                    setGenericDeleteConfirm({ message: "Excluir este vídeo?", action: () => {
                       setHomeData((prev: any) => ({
                         ...prev,
                         videos: prev.videos.filter((_: any, i: number) => i !== idx)
                       }));
-                    }
+                    } });
                   }}
                   className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition"
                   type="button"
@@ -1794,7 +1839,11 @@ const innerContent = (
             </div>
           </div>
         </div>
+        </div>
+        )}
 
+        {inicioSubTab === "eventos" && (
+        <div className="animate-fade-in space-y-6">
         {/* Eventos Section */}
         <div className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl shadow-sm mb-6">
           <div className="flex items-center justify-between border-b border-[#e2eaf3] pb-4 mb-4">
@@ -1840,9 +1889,11 @@ const innerContent = (
                     <span className="font-bold text-primary-dark">Evento #{idx + 1}</span>
                     <button
                       onClick={() => {
-                        const newEventos = [...homeData.eventos];
-                        newEventos.splice(idx, 1);
-                        setHomeData({ ...homeData, eventos: newEventos });
+                        setGenericDeleteConfirm({ message: "Tem certeza que deseja excluir este evento?", action: () => {
+                          const newEventos = [...(homeData.eventos || [])];
+                          newEventos.splice(idx, 1);
+                          setHomeData({ ...homeData, eventos: newEventos });
+                        } });
                       }}
                       className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg transition-colors"
                       title="Remover Evento"
@@ -1858,7 +1909,7 @@ const innerContent = (
                         type="text"
                         value={evt.title || ""}
                         onChange={(e) => {
-                          const newEventos = [...homeData.eventos];
+                          const newEventos = [...(homeData.eventos || [])];
                           newEventos[idx].title = e.target.value;
                           setHomeData({ ...homeData, eventos: newEventos });
                         }}
@@ -1872,7 +1923,7 @@ const innerContent = (
                         type="text"
                         value={evt.subtitle || ""}
                         onChange={(e) => {
-                          const newEventos = [...homeData.eventos];
+                          const newEventos = [...(homeData.eventos || [])];
                           newEventos[idx].subtitle = e.target.value;
                           setHomeData({ ...homeData, eventos: newEventos });
                         }}
@@ -1886,7 +1937,7 @@ const innerContent = (
                       <textarea
                         value={evt.description || ""}
                         onChange={(e) => {
-                          const newEventos = [...homeData.eventos];
+                          const newEventos = [...(homeData.eventos || [])];
                           newEventos[idx].description = e.target.value;
                           setHomeData({ ...homeData, eventos: newEventos });
                         }}
@@ -1901,7 +1952,7 @@ const innerContent = (
                         type="text"
                         value={evt.badge || ""}
                         onChange={(e) => {
-                          const newEventos = [...homeData.eventos];
+                          const newEventos = [...(homeData.eventos || [])];
                           newEventos[idx].badge = e.target.value;
                           setHomeData({ ...homeData, eventos: newEventos });
                         }}
@@ -1917,7 +1968,7 @@ const innerContent = (
                           type="color"
                           value={evt.theme === "brown" ? "#5d4633" : (evt.theme || "#5d4633")}
                           onChange={(e) => {
-                            const newEventos = [...homeData.eventos];
+                            const newEventos = [...(homeData.eventos || [])];
                             newEventos[idx].theme = e.target.value;
                             setHomeData({ ...homeData, eventos: newEventos });
                           }}
@@ -1933,7 +1984,7 @@ const innerContent = (
                         type="text"
                         value={evt.linkText || "SAIBA MAIS"}
                         onChange={(e) => {
-                          const newEventos = [...homeData.eventos];
+                          const newEventos = [...(homeData.eventos || [])];
                           newEventos[idx].linkText = e.target.value;
                           setHomeData({ ...homeData, eventos: newEventos });
                         }}
@@ -1948,7 +1999,7 @@ const innerContent = (
                         type="text"
                         value={evt.linkUrl || ""}
                         onChange={(e) => {
-                          const newEventos = [...homeData.eventos];
+                          const newEventos = [...(homeData.eventos || [])];
                           newEventos[idx].linkUrl = e.target.value;
                           setHomeData({ ...homeData, eventos: newEventos });
                         }}
@@ -1970,7 +2021,7 @@ const innerContent = (
                             try {
                               const reader = new FileReader();
                               reader.onload = (ev) => {
-                                const newEventos = [...homeData.eventos];
+                                const newEventos = [...(homeData.eventos || [])];
                                 newEventos[idx].imageUrl = ev.target?.result as string;
                                 setHomeData({ ...homeData, eventos: newEventos });
                               };
@@ -1985,7 +2036,7 @@ const innerContent = (
                            <div className="flex items-center gap-3">
                              <img src={evt.imageUrl} alt="preview" className="h-10 w-16 object-cover rounded shadow-sm border border-gray-200" />
                              <button className="text-red-500 text-xs font-bold hover:text-red-700 bg-red-50 px-3 py-1.5 rounded-lg" onClick={() => {
-                               const newEventos = [...homeData.eventos];
+                               const newEventos = [...(homeData.eventos || [])];
                                newEventos[idx].imageUrl = "";
                                setHomeData({ ...homeData, eventos: newEventos });
                              }}>Remover</button>
@@ -2021,7 +2072,11 @@ const innerContent = (
             </div>
           </div>
         </div>
+        </div>
+        )}
 
+        {inicioSubTab === "missao" && (
+        <div className="animate-fade-in space-y-6">
         {/* Mission Section */}
         <div className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl shadow-sm mb-6">
           <h4 className="font-bold text-primary-dark mb-5 flex items-center gap-2">
@@ -2177,9 +2232,11 @@ const innerContent = (
                     
                     <button
                        onClick={() => {
-                         let newImgs = [...(homeData.missionImages || [])];
-                         newImgs.splice(idx, 1);
-                         setHomeData({ ...homeData, missionImages: newImgs });
+                         setGenericDeleteConfirm({ message: "Tem certeza que deseja excluir esta imagem?", action: () => {
+                           let newImgs = [...(homeData.missionImages || [])];
+                           newImgs.splice(idx, 1);
+                           setHomeData({ ...homeData, missionImages: newImgs });
+                         } });
                        }}
                        className="text-[10px] font-bold text-red-500 hover:text-red-700 uppercase"
                     >
@@ -2206,7 +2263,11 @@ const innerContent = (
             </div>
           </div>
         </div>
+        </div>
+        )}
 
+        {inicioSubTab === "generosidade" && (
+        <div className="animate-fade-in space-y-6">
         {/* Generosity Section */}
         <div className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl shadow-sm mb-6">
           <h4 className="font-bold text-primary-dark mb-5 flex items-center gap-2">
@@ -2326,7 +2387,11 @@ const innerContent = (
             </div>
           </div>
         </div>
+        </div>
+        )}
 
+        {inicioSubTab === "app" && (
+        <div className="animate-fade-in space-y-6">
         {/* App Download Section */}
         <div className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl shadow-sm mb-6">
           <h4 className="font-bold text-primary-dark mb-5 flex items-center gap-2">
@@ -2495,7 +2560,8 @@ const innerContent = (
             </div>
           </div>
         </div>
-
+        </div>
+        )}
 
       </div>
     ) : activeContent === "quem_somos" ? (
@@ -2518,6 +2584,29 @@ const innerContent = (
           </button>
         </div>
 
+        {/* Sub-tabs Navigation */}
+        <div className="flex flex-wrap gap-2 p-1 bg-[#f0f4f8] border border-[#e2eaf3] rounded-xl w-full xl:max-w-full">
+          {[
+            { id: "historia", label: "Cabeçalho (Hero) e Nossa História", icon: "BookOpen" },
+            { id: "principios", label: "Princípios (Missão, Visão e Valores)", icon: "Star" },
+            { id: "ministerio", label: "Ministério (Liderança e Apoio)", icon: "Users" }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setQuemSomosSubTab(tab.id as any)}
+              className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all flex justify-center items-center gap-2 whitespace-nowrap ${
+                quemSomosSubTab === tab.id
+                  ? "bg-white text-primary-base shadow-sm border border-[#e2eaf3]"
+                  : "text-gray-500 hover:text-primary-base hover:bg-gray-100"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {quemSomosSubTab === "historia" && (
+        <div className="animate-fade-in space-y-6">
         <div className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl space-y-6">
           <h4 className="font-bold text-primary-base mb-2 flex items-center gap-2">
             Cabeçalho (Hero)
@@ -2658,7 +2747,11 @@ const innerContent = (
             Salvar Alterações
           </button>
         </div>
+        </div>
+        )}
 
+        {quemSomosSubTab === "principios" && (
+        <div className="animate-fade-in space-y-6">
         <div className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl space-y-6">
           <h4 className="font-bold text-primary-base mb-2 flex items-center gap-2">
             Princípios (Missão, Visão e Valores)
@@ -2821,7 +2914,11 @@ const innerContent = (
             Salvar Alterações
           </button>
         </div>
+        </div>
+        )}
 
+        {quemSomosSubTab === "ministerio" && (
+        <div className="animate-fade-in space-y-6">
         <div className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl space-y-6">
           <h4 className="font-bold text-primary-base mb-2 flex items-center gap-2">
             Ministério (Liderança e Apoio)
@@ -2975,6 +3072,8 @@ const innerContent = (
             Salvar Alterações
           </button>
         </div>
+        </div>
+        )}
       </div>
     ) : activeContent === "edificado_matrimonio" ? (
       <div className="aba-edificado-matrimonio space-y-10">
@@ -2998,40 +3097,28 @@ const innerContent = (
           </div>
         </div>
 
-        <div className="flex gap-2 bg-[#f1f5f9] p-1 rounded-xl w-fit mb-2">
-          <button
-            onClick={() => setEdificadoSubTab("geral")}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-              edificadoSubTab === "geral"
-                ? "bg-white text-primary-base shadow-sm"
-                : "text-gray-500 hover:text-primary-base"
-            }`}
-          >
-            <Heart size={14} /> Estrutura da Página
-          </button>
-          <button
-            onClick={() => setEdificadoSubTab("cursos_editor")}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-              edificadoSubTab === "cursos_editor"
-                ? "bg-white text-primary-base shadow-sm"
-                : "text-gray-500 hover:text-primary-base"
-            }`}
-          >
-            <GraduationCap size={14} /> Editar Lista de Treinamentos
-          </button>
-          <button
-            onClick={() => setEdificadoSubTab("cta")}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-              edificadoSubTab === "cta"
-                ? "bg-white text-primary-base shadow-sm"
-                : "text-gray-500 hover:text-primary-base"
-            }`}
-          >
-            <Compass size={14} /> Rodapé (CTA)
-          </button>
+        <div className="flex flex-wrap gap-2 p-1 bg-[#f0f4f8] border border-[#e2eaf3] rounded-xl w-full xl:max-w-full mb-2">
+          {[
+            { id: "hero", label: "Carrossel de Banners (Hero)" },
+            { id: "crencas", label: "No que Acreditamos" },
+            { id: "cursos_editor", label: "Editar Lista de Treinamentos" },
+            { id: "cta", label: "Rodapé (CTA)" }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setEdificadoSubTab(tab.id as any)}
+              className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all flex justify-center items-center gap-2 whitespace-nowrap ${
+                edificadoSubTab === tab.id
+                  ? "bg-white text-primary-base shadow-sm border border-[#e2eaf3]"
+                  : "text-gray-500 hover:text-primary-base hover:bg-gray-100"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
-        {edificadoSubTab === "geral" ? (
+        {edificadoSubTab === "hero" && (
           <div className="animate-fade-in space-y-10">
 
           {/* Carousel Section */}
@@ -3266,6 +3353,11 @@ const innerContent = (
               Salvar Conteúdo Edificado
             </button>
           </div>
+          </div>
+        )}
+
+        {edificadoSubTab === "crencas" && (
+          <div className="animate-fade-in space-y-10">
 
           {/* Beliefs Section */}
           <div id="section-beliefs" className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl space-y-6 scroll-mt-6">
@@ -3426,7 +3518,9 @@ const innerContent = (
           </div>
 
         </div>
-        ) : edificadoSubTab === "cta" ? (
+        )}
+        
+        {edificadoSubTab === "cta" && (
           <div className="animate-fade-in space-y-10">
             {/* CTA Section Config */}
             <div id="section-cta" className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl space-y-6">
@@ -3483,7 +3577,9 @@ const innerContent = (
               </button>
             </div>
           </div>
-        ) : (
+        )}
+        
+        {edificadoSubTab === "cursos_editor" && (
           <div className="aba-gestao-cursos animate-fade-in space-y-6">
             <div className="bg-[#fcfdfe] border border-[#e2eaf3] rounded-2xl p-8 shadow-sm text-left">
               <div className="mb-8 space-y-4">
@@ -3802,7 +3898,7 @@ const innerContent = (
                           className="w-full h-32 object-cover rounded-lg border shadow-sm"
                         />
                         <button
-                          onClick={() => setCoursesData({ ...coursesData, heroImage: "" })}
+                          onClick={() => setGenericDeleteConfirm({ message: "Tem certeza que deseja remover esta imagem?", action: () => setCoursesData({ ...coursesData, heroImage: "" }) })}
                           className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <Trash2 size={12} />
@@ -3927,7 +4023,7 @@ const innerContent = (
                           className="w-full h-32 object-cover rounded-lg border shadow-sm"
                         />
                         <button
-                          onClick={() => setCoursesData({ ...coursesData, methodologyImage: "" })}
+                          onClick={() => setGenericDeleteConfirm({ message: "Tem certeza que deseja remover esta imagem?", action: () => setCoursesData({ ...coursesData, methodologyImage: "" }) })}
                           className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <Trash2 size={12} />
@@ -4936,74 +5032,181 @@ const innerContent = (
             
             <div className="space-y-3">
               {(headerLogoData.links || []).map((link, idx) => (
-                <div key={idx} className="flex items-center gap-3 bg-white border border-[#c8d8e8] p-3 rounded-xl shadow-sm group">
-                  <div className="flex flex-col gap-1">
+                <div key={idx} className="bg-white border border-[#c8d8e8] p-3 rounded-xl shadow-sm group">
+                  <div className="flex items-center gap-3">
+                    <div className="flex flex-col gap-1">
+                      <button
+                        type="button"
+                        disabled={idx === 0}
+                        onClick={() => {
+                          const newLinks = [...(headerLogoData.links || [])];
+                          [newLinks[idx - 1], newLinks[idx]] = [newLinks[idx], newLinks[idx - 1]];
+                          setHeaderLogoData({ ...headerLogoData, links: newLinks });
+                        }}
+                        className="text-gray-400 hover:text-primary-base disabled:opacity-30 p-1"
+                      >
+                        <ChevronUp size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={idx === (headerLogoData.links?.length || 0) - 1}
+                        onClick={() => {
+                          const newLinks = [...(headerLogoData.links || [])];
+                          [newLinks[idx], newLinks[idx + 1]] = [newLinks[idx + 1], newLinks[idx]];
+                          setHeaderLogoData({ ...headerLogoData, links: newLinks });
+                        }}
+                        className="text-gray-400 hover:text-primary-base disabled:opacity-30 p-1"
+                      >
+                        <ChevronDown size={14} />
+                      </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 flex-1">
+                      <div>
+                        <label className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Nome</label>
+                        <input
+                          type="text"
+                          className="w-full p-2 border border-[#c8d8e8] rounded-lg text-xs"
+                          value={link.name}
+                          onChange={(e) => {
+                            const newLinks = [...(headerLogoData.links || [])];
+                            newLinks[idx] = { ...newLinks[idx], name: e.target.value };
+                            setHeaderLogoData({ ...headerLogoData, links: newLinks });
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Caminho (URL)</label>
+                        <input
+                          type="text"
+                          className="w-full p-2 border border-[#c8d8e8] rounded-lg text-xs"
+                          value={link.path}
+                          onChange={(e) => {
+                            const newLinks = [...(headerLogoData.links || [])];
+                            newLinks[idx] = { ...newLinks[idx], path: e.target.value };
+                            setHeaderLogoData({ ...headerLogoData, links: newLinks });
+                          }}
+                        />
+                      </div>
+                    </div>
+                    
                     <button
                       type="button"
-                      disabled={idx === 0}
                       onClick={() => {
-                        const newLinks = [...(headerLogoData.links || [])];
-                        [newLinks[idx - 1], newLinks[idx]] = [newLinks[idx], newLinks[idx - 1]];
-                        setHeaderLogoData({ ...headerLogoData, links: newLinks });
+                        setGenericDeleteConfirm({ message: "Tem certeza que deseja excluir este link?", action: () => {
+                          const newLinks = [...(headerLogoData.links || [])];
+                          newLinks.splice(idx, 1);
+                          setHeaderLogoData({ ...headerLogoData, links: newLinks });
+                        } });
                       }}
-                      className="text-gray-400 hover:text-primary-base disabled:opacity-30 p-1"
+                      className="p-2 text-red-400 bg-red-50 hover:bg-red-500 hover:text-white rounded-lg transition-colors ml-2"
                     >
-                      <ChevronUp size={14} />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={idx === (headerLogoData.links?.length || 0) - 1}
-                      onClick={() => {
-                        const newLinks = [...(headerLogoData.links || [])];
-                        [newLinks[idx], newLinks[idx + 1]] = [newLinks[idx + 1], newLinks[idx]];
-                        setHeaderLogoData({ ...headerLogoData, links: newLinks });
-                      }}
-                      className="text-gray-400 hover:text-primary-base disabled:opacity-30 p-1"
-                    >
-                      <ChevronDown size={14} />
+                      <Trash2 size={16} />
                     </button>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-3 flex-1">
-                    <div>
-                      <label className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Nome</label>
-                      <input
-                        type="text"
-                        className="w-full p-2 border border-[#c8d8e8] rounded-lg text-xs"
-                        value={link.name}
-                        onChange={(e) => {
-                          const newLinks = [...(headerLogoData.links || [])];
-                          newLinks[idx] = { ...newLinks[idx], name: e.target.value };
-                          setHeaderLogoData({ ...headerLogoData, links: newLinks });
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Caminho (URL)</label>
-                      <input
-                        type="text"
-                        className="w-full p-2 border border-[#c8d8e8] rounded-lg text-xs"
-                        value={link.path}
-                        onChange={(e) => {
-                          const newLinks = [...(headerLogoData.links || [])];
-                          newLinks[idx] = { ...newLinks[idx], path: e.target.value };
-                          setHeaderLogoData({ ...headerLogoData, links: newLinks });
-                        }}
-                      />
-                    </div>
+                  {/* SubLinks */}
+                  <div className="mt-3 pl-8 ml-3 border-l-2 border-gray-100 flex flex-col gap-2">
+                    {link.subLinks && link.subLinks.length > 0 && (
+                      <div className="space-y-2 mb-2 pt-2">
+                        {link.subLinks.map((subLink: any, subIdx: number) => (
+                          <div key={subIdx} className="flex flex-col bg-gray-50 p-2 rounded-lg border border-gray-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-[10px] font-bold text-gray-500 uppercase flex items-center gap-1">
+                                <ChevronDown size={10} /> Sub-link {subIdx + 1}
+                              </span>
+                              <div className="flex gap-1 items-center">
+                                <button
+                                  type="button"
+                                  disabled={subIdx === 0}
+                                  onClick={() => {
+                                    const newLinks = [...(headerLogoData.links || [])];
+                                    const newSubLinks = [...(newLinks[idx].subLinks || [])];
+                                    [newSubLinks[subIdx - 1], newSubLinks[subIdx]] = [newSubLinks[subIdx], newSubLinks[subIdx - 1]];
+                                    newLinks[idx] = { ...newLinks[idx], subLinks: newSubLinks };
+                                    setHeaderLogoData({ ...headerLogoData, links: newLinks });
+                                  }}
+                                  className="text-gray-400 hover:text-primary-base disabled:opacity-30 p-1 bg-white border border-gray-200 rounded"
+                                >
+                                  <ChevronUp size={10} />
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={subIdx === (link.subLinks?.length || 0) - 1}
+                                  onClick={() => {
+                                    const newLinks = [...(headerLogoData.links || [])];
+                                    const newSubLinks = [...(newLinks[idx].subLinks || [])];
+                                    [newSubLinks[subIdx], newSubLinks[subIdx + 1]] = [newSubLinks[subIdx + 1], newSubLinks[subIdx]];
+                                    newLinks[idx] = { ...newLinks[idx], subLinks: newSubLinks };
+                                    setHeaderLogoData({ ...headerLogoData, links: newLinks });
+                                  }}
+                                  className="text-gray-400 hover:text-primary-base disabled:opacity-30 p-1 bg-white border border-gray-200 rounded"
+                                >
+                                  <ChevronDown size={10} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newLinks = [...(headerLogoData.links || [])];
+                                    const newSubLinks = [...(newLinks[idx].subLinks || [])];
+                                    newSubLinks.splice(subIdx, 1);
+                                    newLinks[idx] = { ...newLinks[idx], subLinks: newSubLinks };
+                                    setHeaderLogoData({ ...headerLogoData, links: newLinks });
+                                  }}
+                                  className="p-1 text-red-400 hover:text-red-600 bg-white border border-gray-200 rounded transition-colors"
+                                >
+                                  <Trash2 size={10} />
+                                </button>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <input
+                                type="text"
+                                className="w-full p-2 bg-white border border-gray-200 rounded text-xs"
+                                placeholder="Nome. Ex: MAF Kids"
+                                value={subLink.name}
+                                onChange={(e) => {
+                                  const newLinks = [...(headerLogoData.links || [])];
+                                  const newSubLinks = [...(newLinks[idx].subLinks || [])];
+                                  newSubLinks[subIdx] = { ...newSubLinks[subIdx], name: e.target.value };
+                                  newLinks[idx] = { ...newLinks[idx], subLinks: newSubLinks };
+                                  setHeaderLogoData({ ...headerLogoData, links: newLinks });
+                                }}
+                              />
+                              <input
+                                type="text"
+                                className="w-full p-2 bg-white border border-gray-200 rounded text-xs"
+                                placeholder="Caminho. Ex: /maf-kids"
+                                value={subLink.path}
+                                onChange={(e) => {
+                                  const newLinks = [...(headerLogoData.links || [])];
+                                  const newSubLinks = [...(newLinks[idx].subLinks || [])];
+                                  newSubLinks[subIdx] = { ...newSubLinks[subIdx], path: e.target.value };
+                                  newLinks[idx] = { ...newLinks[idx], subLinks: newSubLinks };
+                                  setHeaderLogoData({ ...headerLogoData, links: newLinks });
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newLinks = [...(headerLogoData.links || [])];
+                        newLinks[idx] = { 
+                          ...newLinks[idx], 
+                          subLinks: [...(newLinks[idx].subLinks || []), { name: "Novo Submenu", path: "/" }] 
+                        };
+                        setHeaderLogoData({ ...headerLogoData, links: newLinks });
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 w-fit text-gray-500 hover:text-primary-base hover:bg-primary-base/5 rounded text-[10px] font-bold transition-colors uppercase border border-dashed border-gray-300"
+                    >
+                      <Plus size={12} /> Adicionar Submenu
+                    </button>
                   </div>
-                  
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newLinks = [...(headerLogoData.links || [])];
-                      newLinks.splice(idx, 1);
-                      setHeaderLogoData({ ...headerLogoData, links: newLinks });
-                    }}
-                    className="p-2 text-red-400 bg-red-50 hover:bg-red-500 hover:text-white rounded-lg transition-colors ml-2"
-                  >
-                    <Trash2 size={16} />
-                  </button>
                 </div>
               ))}
             </div>
@@ -5201,6 +5404,36 @@ const innerContent = (
       </div>
     ) : null}
 
+    {/* modal de genericDeleteConfirm */}
+    {genericDeleteConfirm && (
+      <div className="fixed inset-0 bg-primary-dark/40 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
+        <div className="bg-white p-6 rounded-2xl shadow-xl max-w-sm w-full text-center">
+          <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Trash2 size={32} />
+          </div>
+          <h3 className="text-xl font-bold text-primary-dark mb-2">Excluir Item</h3>
+          <p className="text-sm text-gray-500 mb-6">{genericDeleteConfirm.message}</p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => setGenericDeleteConfirm(null)}
+              className="px-6 py-2 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-200 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => {
+                genericDeleteConfirm.action();
+                setGenericDeleteConfirm(null);
+              }}
+              className="px-6 py-2 bg-red-500 text-white rounded-xl font-bold text-sm hover:bg-red-600 shadow-lg shadow-red-500/30 transition"
+            >
+              Excluir
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    
     {/* Modal de Confirmação de Exclusão de Curso */}
     {courseToDelete !== null && (
       <div className="fixed inset-0 bg-primary-dark/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -5665,12 +5898,14 @@ const innerContent = (
                   <div className="pt-8 border-t flex gap-4">
                     <button
                       onClick={() => {
-                        setEdificadoMatrimonioData((prev) => ({
-                          ...prev,
-                          cursos: prev.cursos.filter((_, i) => i !== editingEdificadoCourseIndex)
-                        }));
-                        setEditingEdificadoCourseIndex(null);
-                        handleSaveEdificadoMatrimonio();
+                        setGenericDeleteConfirm({ message: "Tem certeza que deseja excluir este curso?", action: () => {
+                          setEdificadoMatrimonioData((prev) => ({
+                            ...prev,
+                            cursos: prev.cursos.filter((_, i) => i !== editingEdificadoCourseIndex)
+                          }));
+                          setEditingEdificadoCourseIndex(null);
+                          handleSaveEdificadoMatrimonio();
+                        } });
                       }}
                       className="flex-1 py-4 bg-red-50 text-red-600 rounded-2xl font-bold text-xs hover:bg-red-100 transition flex items-center justify-center gap-2"
                     >

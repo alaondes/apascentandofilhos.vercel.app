@@ -150,6 +150,8 @@ export default function AdminPanel() {
   const [editOrderData, setEditOrderData] = useState<any>({});
 
   // Delete confirm state
+  const [resetPasswordConfirm, setResetPasswordConfirm] = useState<string | null>(null);
+  const [deleteAnswerConfirm, setDeleteAnswerConfirm] = useState<any | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{
     collection: string;
     id: string;
@@ -688,6 +690,19 @@ export default function AdminPanel() {
     setDeleteConfirm({ collection: collectionName, id });
   };
 
+  const confirmDeleteAnswerAction = async () => {
+    if(!deleteAnswerConfirm) return;
+    await updateDoc(
+      doc(db, "support_tickets", deleteAnswerConfirm.id),
+      {
+        answer: null,
+        answeredAt: null,
+        status: "pending",
+      }
+    );
+    setDeleteAnswerConfirm(null);
+  };
+  
   const confirmDelete = async () => {
     if (!deleteConfirm) return;
     try {

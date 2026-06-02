@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Menu, X, LayoutDashboard, ShieldCheck } from "lucide-react";
+import { Menu, X, LayoutDashboard, ShieldCheck, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useFirebase } from "../context/FirebaseContext";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
@@ -111,24 +111,50 @@ export default function Navbar() {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-4 lg:gap-8">
-          {navLinks.map((link, idx) => (
-            <NavLink
-              key={`${link.path}-${idx}`}
-              to={link.path}
-              className={({ isActive }) =>
-                `text-sm font-bold transition-colors hover:opacity-70 ${
-                  isActive
-                    ? !isTransparent
-                      ? "text-primary-base"
-                      : "text-white border-b-2 border-white"
-                    : !isTransparent
-                      ? "text-primary-dark"
-                      : "text-white"
-                }`
-              }
-            >
-              {link.name}
-            </NavLink>
+          {navLinks.map((link: any, idx: number) => (
+            <div key={`${link.path}-${idx}`} className="relative group">
+              <NavLink
+                to={link.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-1 text-sm font-bold transition-colors hover:opacity-70 ${
+                    isActive
+                      ? !isTransparent
+                        ? "text-primary-base"
+                        : "text-white border-b-2 border-white"
+                      : !isTransparent
+                        ? "text-primary-dark"
+                        : "text-white"
+                  }`
+                }
+              >
+                {link.name}
+                {link.subLinks && link.subLinks.length > 0 && (
+                  <ChevronDown size={14} className="ml-0.5 opacity-70" />
+                )}
+              </NavLink>
+
+              {link.subLinks && link.subLinks.length > 0 && (
+                <div className="absolute top-full left-0 mt-0 w-48 bg-white border border-[#e2eaf3] rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 overflow-hidden">
+                  <div className="py-2">
+                    {link.subLinks.map((subLink: any, subIdx: number) => (
+                      <NavLink
+                        key={`${subLink.path}-${subIdx}`}
+                        to={subLink.path}
+                        className={({ isActive }) =>
+                          `block px-4 py-2 text-sm font-bold transition-colors ${
+                            isActive
+                              ? "bg-primary-base/10 text-primary-base"
+                              : "text-primary-dark hover:bg-gray-50 hover:text-primary-base"
+                          }`
+                        }
+                      >
+                        {subLink.name}
+                      </NavLink>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           ))}
           {user ? (
             <div className="flex items-center gap-3">
@@ -165,18 +191,35 @@ export default function Navbar() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="absolute top-full left-0 right-0 bg-white shadow-xl p-6 md:hidden flex flex-col gap-4 border-t border-[#e2eaf3]"
+            className="absolute top-full left-0 right-0 bg-white shadow-xl p-6 md:hidden flex flex-col gap-4 border-t border-[#e2eaf3] max-h-[80vh] overflow-y-auto"
           >
-            {navLinks.map((link, idx) => (
-              <NavLink
-                key={`${link.path}-${idx}`}
-                to={link.path}
-                className={({ isActive }) =>
-                  `text-lg font-bold py-2 border-b border-[#e2eaf3] ${isActive ? "text-primary-base" : "text-primary-dark"}`
-                }
-              >
-                {link.name}
-              </NavLink>
+            {navLinks.map((link: any, idx: number) => (
+              <div key={`${link.path}-${idx}`} className="flex flex-col border-b border-[#e2eaf3] pb-2">
+                <NavLink
+                  to={link.path}
+                  className={({ isActive }) =>
+                    `text-lg font-bold py-2 ${isActive ? "text-primary-base" : "text-primary-dark"}`
+                  }
+                >
+                  {link.name}
+                </NavLink>
+
+                {link.subLinks && link.subLinks.length > 0 && (
+                  <div className="flex flex-col pl-4 gap-2 mt-1">
+                    {link.subLinks.map((subLink: any, subIdx: number) => (
+                      <NavLink
+                        key={`${subLink.path}-${subIdx}`}
+                        to={subLink.path}
+                        className={({ isActive }) =>
+                          `text-base font-medium py-1.5 ${isActive ? "text-primary-base" : "text-gray-500"}`
+                        }
+                      >
+                        {subLink.name}
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
 
             {user ? (

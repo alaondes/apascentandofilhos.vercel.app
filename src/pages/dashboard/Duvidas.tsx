@@ -36,6 +36,7 @@ export default function Duvidas({ isEmbedded = false }: DuvidasProps) {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   const handleEdit = (ticket: any) => {
     setEditingId(ticket.id);
@@ -57,12 +58,18 @@ export default function Duvidas({ isEmbedded = false }: DuvidasProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Deseja realmente excluir esta dúvida?")) return;
+    setDeleteConfirm(id);
+  };
+  
+  const confirmDeleteAction = async () => {
+    if (!deleteConfirm) return;
     try {
-      await deleteDoc(doc(db, "support_tickets", id));
+      await deleteDoc(doc(db, "support_tickets", deleteConfirm));
+      setDeleteConfirm(null);
     } catch (error) {
       console.error("Erro ao excluir dúvida:", error);
       alert("Erro ao excluir.");
+      setDeleteConfirm(null);
     }
   };
 
@@ -274,5 +281,36 @@ export default function Duvidas({ isEmbedded = false }: DuvidasProps) {
     </div>
   );
 
-  return isEmbedded ? innerContent : <DashboardLayout>{innerContent}</DashboardLayout>;
+  return (
+    <>
+      {isEmbedded ? (
+        innerContent
+      ) : (
+        <DashboardLayout>{innerContent}</DashboardLayout>
+      )}
+
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-primary-dark/40 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
+          <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl p-6 text-center">
+            <h3 className="text-xl font-bold text-primary-dark mb-2">Excluir Dúvida</h3>
+            <p className="text-gray-500 text-sm mb-6">Deseja realmente excluir esta dúvida?</p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="px-6 py-2.5 font-bold text-gray-500 hover:bg-gray-100 rounded-xl transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDeleteAction}
+                className="px-6 py-2.5 font-bold text-white bg-red-500 hover:bg-red-600 rounded-xl shadow-lg shadow-red-500/30 transition"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }

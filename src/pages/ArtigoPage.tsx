@@ -166,7 +166,7 @@ export default function ArtigoPage() {
               if (paragraph.trim() === '') return null;
               
               return (
-                <p key={idx} className="mb-5 font-semibold text-[15px] leading-relaxed">
+                <p key={idx} className="mb-5 text-[15px] leading-relaxed">
                   {paragraph}
                 </p>
               );
