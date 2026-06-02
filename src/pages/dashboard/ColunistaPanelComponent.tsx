@@ -4,6 +4,7 @@ import {
   PlusCircle,
   Calendar,
   Trash2,
+  ArrowLeft,
   Tag,
   Loader2,
   Save,
@@ -793,22 +794,17 @@ export function GerenciarColunistasHome() {
     );
 
   return (
-    <div className="w-full h-full bg-white rounded-[14px] border-[1.5px] border-[#c8d8e8] shadow-sm p-6 overflow-y-auto">
-      <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary-base/10 rounded-lg">
-            <Layout className="text-primary-base" size={24} />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold font-serif text-primary-dark">
-              Gerenciar Colunistas da Home
-            </h2>
-            <p className="text-xs text-gray-500 font-medium">Configure banners and perfis que aparecem na home e nas páginas de colunas</p>
-          </div>
+    <div className="animate-fade-in space-y-6">
+      <div className="bg-[#f8fafc] border border-[#e2eaf3] rounded-2xl overflow-hidden shadow-sm">
+        <div className="bg-[#2D6A9F] text-white p-8 space-y-3 flex flex-col items-center justify-center text-center">
+          <h2 className="text-2xl font-black tracking-tight drop-shadow-sm">Colunistas</h2>
+          <p className="text-sm font-medium text-white/80 max-w-md">
+             Configure banners e perfis que aparecem na home e nas páginas de colunas
+          </p>
         </div>
-      </div>
 
-      <div className="space-y-8">
+        <div className="p-6 md:p-8 space-y-6">
+          <div className="space-y-8">
         {bloggers.map((blogger, idx) => (
           <div
             key={idx}
@@ -1146,11 +1142,17 @@ export function GerenciarColunistasHome() {
           </div>
         )}
 
-        <div className="pt-6 border-t border-[#e2eaf3] flex justify-end">
+        <div className="pt-6 mt-6 border-t border-[#e2eaf3] flex flex-col-reverse md:flex-row justify-between items-center gap-4">
+          <button 
+             onClick={() => {/* no-op for visual back */}} 
+             className="w-full md:w-auto px-8 py-3 bg-white border border-[#c8d8e8] text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition drop-shadow-sm flex items-center justify-center gap-2"
+          >
+             <ArrowLeft size={16} /> Voltar
+          </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold bg-primary-base text-white hover:bg-[#0d4f7a] transition-all shadow-lg shadow-primary-base/20 disabled:opacity-50"
+            className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-bold bg-[#2D6A9F] text-white hover:bg-[#245785] transition-all shadow-lg shadow-[#2D6A9F]/20 disabled:opacity-50"
           >
             {saving ? (
               <Loader2 size={16} className="animate-spin" />
@@ -1160,7 +1162,9 @@ export function GerenciarColunistasHome() {
             Salvar Alterações
           </button>
         </div>
+        </div>
       </div>
     </div>
+  </div>
   );
 }

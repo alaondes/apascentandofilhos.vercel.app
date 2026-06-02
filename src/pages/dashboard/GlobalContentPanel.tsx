@@ -1341,122 +1341,156 @@ const innerContent = (
 
         {inicioSubTab === "hero" && (
         <div className="animate-fade-in space-y-6">
-        {/* Carousel Section */}
-        <div className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl space-y-6">
-          <h4 className="font-bold text-primary-base mb-2 flex items-center gap-2">
-            Carrossel de Banners (Hero)
-          </h4>
-          <p className="text-xs text-gray-500 mb-4 italic">
-            Altere as imagens e textos que aparecem no topo do site oficial.
-          </p>
+          <div className="bg-[#f8fafc] border border-[#e2eaf3] rounded-2xl overflow-hidden shadow-sm">
+            {/* Header section matching image style */}
+            <div className="bg-[#2D6A9F] text-white p-8 space-y-3 flex flex-col items-center justify-center text-center">
+              <h2 className="text-2xl font-black tracking-tight drop-shadow-sm">Carrossel de Banners (Hero)</h2>
+              <p className="text-sm font-medium text-white/80 max-w-md">
+                Altere as imagens e textos que aparecem no topo do site oficial.
+              </p>
+            </div>
+            
+            <div className="p-6 md:p-8 space-y-6">
+              <div className="grid grid-cols-1 gap-6">
+                {(homeData.slides || []).map((slide: any, idx: number) => (
+                  <div
+                    key={slide.id ? `slide-${slide.id}` : `idx-${idx}`}
+                    className="border border-[#c8d8e8] rounded-2xl bg-white shadow-sm overflow-hidden"
+                  >
+                    {/* Card Header matching image style */}
+                    <div className="p-5 border-b border-[#e2eaf3] flex justify-between items-center bg-[#fcfdfe]">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 border border-[#c8d8e8] rounded-xl flex justify-center items-center text-[#2D6A9F] bg-white shadow-sm">
+                          <ImageIcon size={18} strokeWidth={2.5} />
+                        </div>
+                        <h3 className="font-bold text-[#2D6A9F] text-lg">{idx + 1}. Configuração do Slide</h3>
+                      </div>
+                      <button
+                        onClick={() => setSlideToDelete(idx)}
+                        className="text-gray-400 hover:text-red-500 transition border border-transparent hover:border-red-100 hover:bg-red-50 p-2 rounded-lg"
+                        type="button"
+                        title="Excluir slide"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
 
-          <div className="grid grid-cols-1 gap-4">
-            {(homeData.slides || []).map((slide: any, idx: number) => (
-              <div
-                key={slide.id ? `slide-${slide.id}` : `idx-${idx}`}
-                className="p-6 border border-[#e2eaf3] rounded-xl bg-white space-y-4 relative shadow-sm"
-              >
-                <button
-                  onClick={() => setSlideToDelete(idx)}
-                  className="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition"
-                  type="button"
-                  title="Excluir slide"
-                >
-                  <Trash2 size={16} />
-                </button>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] text-gray-400 font-bold uppercase">
-                      Imagem (Max 5MB)
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        className="flex-1 p-2 border border-[#c8d8e8] rounded-lg text-xs"
-                        placeholder="URL da Imagem"
-                        value={slide.url || ""}
-                        onChange={(e) => {
-                          const newUrl = e.target.value;
-                          setHomeData((prev) => ({
-                            ...prev,
-                            slides: prev.slides.map((s, i) =>
-                              i === idx ? { ...s, url: newUrl } : s,
-                            ),
-                          }));
-                        }}
-                      />
-                      <label className="shrink-0 cursor-pointer p-2 bg-[#f7fafd] border border-[#c8d8e8] rounded-lg text-primary-base hover:bg-primary-bg transition flex items-center gap-1 text-[10px] font-bold uppercase overflow-hidden">
-                        <Upload size={14} /> Upload
-                        <input
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(e, idx, "home")}
-                        />
-                      </label>
-                    </div>
-                    {slide.url && (
-                      <img
-                        src={slide.url}
-                        alt="Preview"
-                        className="h-16 w-full object-cover rounded mt-2 border shadow-sm"
-                      />
-                    )}
-                  </div>
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] text-gray-400 font-bold uppercase">
-                        Título
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full p-2 border border-[#c8d8e8] rounded-lg font-bold text-sm"
-                        value={slide.title || ""}
-                        onChange={(e) => {
-                          const newTitle = e.target.value;
-                          setHomeData((prev) => ({
-                            ...prev,
-                            slides: prev.slides.map((s, i) =>
-                              i === idx ? { ...s, title: newTitle } : s,
-                            ),
-                          }));
-                        }}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] text-gray-400 font-bold uppercase">
-                        Subtítulo
-                      </label>
-                      <textarea
-                        className="w-full p-2 border border-[#c8d8e8] rounded-lg text-xs h-16"
-                        value={slide.subtitle || ""}
-                        onChange={(e) => {
-                          const newSubtitle = e.target.value;
-                          setHomeData((prev) => ({
-                            ...prev,
-                            slides: prev.slides.map((s, i) =>
-                              i === idx ? { ...s, subtitle: newSubtitle } : s,
-                            ),
-                          }));
-                        }}
-                      />
+                    {/* Card Body */}
+                    <div className="p-6">
+                      <div className="grid md:grid-cols-2 gap-8">
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                              Imagem (Max 5MB) *
+                            </label>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                className="flex-1 p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                                placeholder="URL da Imagem"
+                                value={slide.url || ""}
+                                onChange={(e) => {
+                                  const newUrl = e.target.value;
+                                  setHomeData((prev) => ({
+                                    ...prev,
+                                    slides: prev.slides.map((s, i) =>
+                                      i === idx ? { ...s, url: newUrl } : s,
+                                    ),
+                                  }));
+                                }}
+                              />
+                              <label className="shrink-0 cursor-pointer px-4 bg-[#f8fafc] border border-[#c8d8e8] rounded-xl text-[#2D6A9F] hover:bg-[#eef4f9] transition flex items-center gap-2 text-[11px] font-bold uppercase overflow-hidden">
+                                <Upload size={14} /> Upload
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*"
+                                  onChange={(e) => handleImageUpload(e, idx, "home")}
+                                />
+                              </label>
+                            </div>
+                            {slide.url && (
+                              <div className="pt-2 border-t border-[#e2eaf3] mt-4">
+                                <img
+                                  src={slide.url}
+                                  alt="Preview"
+                                  className="h-24 w-full object-cover rounded-lg border border-[#e2eaf3] shadow-sm"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                              Título Principal *
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full p-3 border border-[#c8d8e8] rounded-xl font-bold text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                              value={slide.title || ""}
+                              onChange={(e) => {
+                                const newTitle = e.target.value;
+                                setHomeData((prev) => ({
+                                  ...prev,
+                                  slides: prev.slides.map((s, i) =>
+                                    i === idx ? { ...s, title: newTitle } : s,
+                                  ),
+                                }));
+                              }}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                              Subtítulo / Texto de Apoio *
+                            </label>
+                            <textarea
+                              className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm h-24 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all resize-none"
+                              value={slide.subtitle || ""}
+                              onChange={(e) => {
+                                const newSubtitle = e.target.value;
+                                setHomeData((prev) => ({
+                                  ...prev,
+                                  slides: prev.slides.map((s, i) =>
+                                    i === idx ? { ...s, subtitle: newSubtitle } : s,
+                                  ),
+                                }));
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <button
-            onClick={addSlide}
-            className="w-full py-3 border-2 border-dashed border-primary-base text-primary-base rounded-xl font-bold text-sm hover:bg-primary-bg transition"
-          >
-            + Adicionar Novo Slide ao Carrossel
-          </button>
-        
-<div className="pt-6 mt-4 border-t border-[#e2eaf3] flex justify-end"><button onClick={handleSaveHome} disabled={isLoading} className="flex items-center gap-2 px-6 py-2 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition">{isLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Salvar Configuração</button></div>
-</div>
-</div>
+              <button
+                onClick={addSlide}
+                className="w-full py-4 border-2 border-dashed border-[#2D6A9F] text-[#2D6A9F] rounded-2xl font-bold text-sm hover:bg-[#2D6A9F]/5 transition-colors"
+              >
+                + Adicionar Novo Slide ao Carrossel
+              </button>
+            
+              {/* Footer Section */}
+              <div className="pt-6 mt-2 border-t border-[#e2eaf3] flex flex-col-reverse md:flex-row justify-between items-center gap-4">
+                <button 
+                   onClick={() => {/* no-op for visual back */}} 
+                   className="w-full md:w-auto px-8 py-3 bg-white border border-[#c8d8e8] text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition drop-shadow-sm flex items-center justify-center gap-2"
+                >
+                   <ArrowLeft size={16} /> Voltar
+                </button>
+                <button 
+                   onClick={handleSaveHome} 
+                   disabled={isLoading} 
+                   className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-[#2D6A9F] text-white rounded-xl font-bold text-sm hover:bg-[#245785] shadow-md disabled:bg-gray-400 transition"
+                >
+                   {isLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Salvar Configuração
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
         )}
 
         {inicioSubTab === "colunistas" && (
@@ -1469,684 +1503,768 @@ const innerContent = (
 
         {inicioSubTab === "noticias" && (
         <div className="animate-fade-in space-y-6">
-        {/* News Section Config */}
-        <div className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl shadow-sm my-6">
-          <h4 className="font-bold text-primary-dark mb-5 flex items-center gap-2">
-            Seção de Notícias / Últimas Atualizações
-          </h4>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                Título da Seção
-              </label>
-              <input
-                type="text"
-                className="w-full p-3 border border-[#c8d8e8] rounded-xl font-bold text-primary-dark"
-                value={homeData.newsTitle || ""}
-                onChange={(e) =>
-                  setHomeData({ ...homeData, newsTitle: e.target.value })
-                }
-              />
+          <div className="bg-[#f8fafc] border border-[#e2eaf3] rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-[#2D6A9F] text-white p-8 space-y-3 flex flex-col items-center justify-center text-center">
+              <h2 className="text-2xl font-black tracking-tight drop-shadow-sm">Seção de Notícias</h2>
+              <p className="text-sm font-medium text-white/80 max-w-md">
+                Últimas Atualizações
+              </p>
             </div>
-            <div className="space-y-2">
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                Texto do Link
-              </label>
-              <input
-                type="text"
-                className="w-full p-3 border border-[#c8d8e8] rounded-xl text-primary-dark"
-                value={homeData.newsLinkText || ""}
-                onChange={(e) =>
-                  setHomeData({ ...homeData, newsLinkText: e.target.value })
-                }
-              />
-            </div>
-          </div>
-
-          <div className="mt-8 space-y-6">
-            <div className="flex justify-between items-center">
-              <h5 className="font-bold text-sm text-gray-600">Notícias</h5>
-              <button
-                onClick={addNewsItem}
-                className="bg-[#2d8dc3] text-white px-3 py-1 text-sm font-bold rounded-lg flex items-center gap-1 hover:bg-[#1a6496]"
-              >
-                <Plus size={16} /> Nova Notícia
-              </button>
-            </div>
-            {(homeData.newsItems || []).map((newsItem: any, idx: number) => (
-              <div key={idx} className="bg-gray-50 border border-gray-200 p-4 rounded-xl flex gap-4 relative">
-                <button
-                  onClick={() => {
-                    setGenericDeleteConfirm({ message: "Tem certeza que deseja excluir esta notícia?", action: () => {
-                      const newItems = [...(homeData.newsItems || [])];
-                      newItems.splice(idx, 1);
-                      setHomeData({ ...homeData, newsItems: newItems });
-                    } });
-                  }}
-                  className="absolute -top-3 -right-3 bg-red-500 text-white p-2 rounded-full shadow-lg hover:bg-red-600 z-10"
-                  title="Excluir Notícia"
-                >
-                  <Trash2 size={14} />
-                </button>
-                <div className="flex-1 space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Título</label>
-                      <input 
-                        className="w-full p-2 border border-[#c8d8e8] rounded-lg text-sm" 
-                        value={newsItem.title || ""} 
-                        onChange={(e) => {
-                          const newItems = [...(homeData.newsItems || [])];
-                          newItems[idx].title = e.target.value;
-                          setHomeData({...homeData, newsItems: newItems});
-                        }}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Categoria</label>
-                      <input 
-                        className="w-full p-2 border border-[#c8d8e8] rounded-lg text-sm" 
-                        placeholder="Ex: NOVO, BLOG"
-                        value={newsItem.category || ""} 
-                        onChange={(e) => {
-                          const newItems = [...(homeData.newsItems || [])];
-                          newItems[idx].category = e.target.value;
-                          setHomeData({...homeData, newsItems: newItems});
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase">Descrição (Subtítulo)</label>
-                    <input 
-                      className="w-full p-2 border border-[#c8d8e8] rounded-lg text-sm" 
-                      placeholder="Breve resumo..."
-                      value={newsItem.description || ""} 
-                      onChange={(e) => {
-                        const newItems = [...(homeData.newsItems || [])];
-                        newItems[idx].description = e.target.value;
-                        setHomeData({...homeData, newsItems: newItems});
-                      }}
-                    />
-                  </div>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Data</label>
-                      <input 
-                        className="w-full p-2 border border-[#c8d8e8] rounded-lg text-sm" 
-                        placeholder="Ex: 29/05/2026"
-                        value={newsItem.date || ""} 
-                        onChange={(e) => {
-                          const newItems = [...(homeData.newsItems || [])];
-                          newItems[idx].date = e.target.value;
-                          setHomeData({...homeData, newsItems: newItems});
-                        }}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Link URL</label>
-                      <input 
-                        className="w-full p-2 border border-[#c8d8e8] rounded-lg text-sm" 
-                        placeholder="Ex: https://..."
-                        value={newsItem.linkUrl || ""} 
-                        onChange={(e) => {
-                          const newItems = [...(homeData.newsItems || [])];
-                          newItems[idx].linkUrl = e.target.value;
-                          setHomeData({...homeData, newsItems: newItems});
-                        }}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-gray-500 uppercase">Créditos/Fonte</label>
-                      <input 
-                        className="w-full p-2 border border-[#c8d8e8] rounded-lg text-sm" 
-                        placeholder="Ex: Nome do Site"
-                        value={newsItem.credits || ""} 
-                        onChange={(e) => {
-                          const newItems = [...(homeData.newsItems || [])];
-                          (newItems[idx] as any).credits = e.target.value;
-                          setHomeData({...homeData, newsItems: newItems});
-                        }}
-                      />
-                    </div>
-                  </div>
+            
+            <div className="p-6 md:p-8 space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                    Título da Seção
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-3 border border-[#c8d8e8] rounded-xl font-bold text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                    value={homeData.newsTitle || ""}
+                    onChange={(e) =>
+                      setHomeData({ ...homeData, newsTitle: e.target.value })
+                    }
+                  />
                 </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                    Texto do Link
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-3 border border-[#c8d8e8] rounded-xl font-bold text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                    value={homeData.newsLinkText || ""}
+                    onChange={(e) =>
+                      setHomeData({ ...homeData, newsLinkText: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
 
-                <div className="w-56 shrink-0 space-y-2">
-                  <label className="text-[10px] font-bold text-gray-500 uppercase block text-center">Imagem</label>
-                  {newsItem.imageUrl ? (
-                    <div className="relative aspect-video rounded overflow-hidden">
-                      <img src={newsItem.imageUrl} className="w-full h-full object-cover" alt="" />
-                      <button 
-                        onClick={() => {
-                          const newItems = [...(homeData.newsItems || [])];
-                          newItems[idx].imageUrl = "";
-                          setHomeData({...homeData, newsItems: newItems});
-                        }}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 shadow"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="aspect-video bg-gray-200 rounded border-2 border-dashed border-gray-300 flex items-center justify-center">
-                        <label className="cursor-pointer text-gray-500 hover:text-primary-base flex flex-col items-center">
-                          <Upload size={16} />
-                          <span className="text-[10px] font-bold uppercase mt-1">Upload</span>
+              <div className="mt-8 space-y-6">
+                <div className="flex justify-between items-center">
+                  <h5 className="font-bold text-lg text-[#2D6A9F]">Notícias Cadastradas</h5>
+                  <button
+                    onClick={addNewsItem}
+                    className="bg-[#2D6A9F] text-white px-4 py-2 text-sm font-bold rounded-xl flex items-center gap-2 hover:bg-[#245785] transition-colors"
+                  >
+                    <Plus size={16} /> Nova Notícia
+                  </button>
+                </div>
+                {(homeData.newsItems || []).map((newsItem: any, idx: number) => (
+                  <div key={idx} className="border border-[#c8d8e8] rounded-2xl bg-white shadow-sm overflow-hidden flex gap-0 relative flex-col md:flex-row">
+                    <div className="flex-1 p-6 space-y-6">
+                      <div className="flex justify-between items-center border-b border-[#e2eaf3] pb-4 mb-2">
+                        <h4 className="font-bold text-[#2D6A9F] text-md">Notícia #{idx + 1}</h4>
+                        <button
+                          onClick={() => {
+                            setGenericDeleteConfirm({ message: "Tem certeza que deseja excluir esta notícia?", action: () => {
+                              const newItems = [...(homeData.newsItems || [])];
+                              newItems.splice(idx, 1);
+                              setHomeData({ ...homeData, newsItems: newItems });
+                            } });
+                          }}
+                          className="text-gray-400 hover:text-red-500 transition border border-transparent hover:border-red-100 hover:bg-red-50 p-2 rounded-lg"
+                          title="Excluir Notícia"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                      
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">Título</label>
                           <input 
-                            type="file" 
-                            className="hidden" 
-                            accept="image/*"
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-                              try {
-                                 const base64 = await compressImage(file);
-                                 const newItems = [...(homeData.newsItems || [])];
-                                 newItems[idx].imageUrl = base64;
-                                 setHomeData({...homeData, newsItems: newItems});
-                              } catch(err) {
-                                 console.error(err);
-                                 alert("Erro ao enviar imagem.");
+                            className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all" 
+                            value={newsItem.title || ""} 
+                            onChange={(e) => {
+                              const newItems = [...(homeData.newsItems || [])];
+                              newItems[idx].title = e.target.value;
+                              setHomeData({...homeData, newsItems: newItems});
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">Categoria</label>
+                          <input 
+                            className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all" 
+                            placeholder="Ex: NOVO, BLOG"
+                            value={newsItem.category || ""} 
+                            onChange={(e) => {
+                              const newItems = [...(homeData.newsItems || [])];
+                              newItems[idx].category = e.target.value;
+                              setHomeData({...homeData, newsItems: newItems});
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">Descrição (Subtítulo)</label>
+                        <input 
+                          className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all" 
+                          placeholder="Breve resumo..."
+                          value={newsItem.description || ""} 
+                          onChange={(e) => {
+                            const newItems = [...(homeData.newsItems || [])];
+                            newItems[idx].description = e.target.value;
+                            setHomeData({...homeData, newsItems: newItems});
+                          }}
+                        />
+                      </div>
+                      <div className="grid md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">Data</label>
+                          <input 
+                            className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all" 
+                            placeholder="Ex: 29/05/2026"
+                            value={newsItem.date || ""} 
+                            onChange={(e) => {
+                              const newItems = [...(homeData.newsItems || [])];
+                              newItems[idx].date = e.target.value;
+                              setHomeData({...homeData, newsItems: newItems});
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">Link URL</label>
+                          <input 
+                            className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all" 
+                            placeholder="Ex: https://..."
+                            value={newsItem.linkUrl || ""} 
+                            onChange={(e) => {
+                              const newItems = [...(homeData.newsItems || [])];
+                              newItems[idx].linkUrl = e.target.value;
+                              setHomeData({...homeData, newsItems: newItems});
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">Créditos/Fonte</label>
+                          <input 
+                            className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all" 
+                            placeholder="Ex: Nome do Site"
+                            value={newsItem.credits || ""} 
+                            onChange={(e) => {
+                              const newItems = [...(homeData.newsItems || [])];
+                              (newItems[idx] as any).credits = e.target.value;
+                              setHomeData({...homeData, newsItems: newItems});
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="md:w-64 md:border-l border-t md:border-t-0 border-[#e2eaf3] bg-[#f8fafc] p-6 space-y-4 flex flex-col items-center justify-center">
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Imagem / Capa</label>
+                      {newsItem.imageUrl ? (
+                        <div className="relative aspect-video rounded-xl overflow-hidden border border-[#c8d8e8] shadow-sm w-full">
+                          <img src={newsItem.imageUrl} className="w-full h-full object-cover" alt="" />
+                          <button 
+                            onClick={() => {
+                              const newItems = [...(homeData.newsItems || [])];
+                              newItems[idx].imageUrl = "";
+                              setHomeData({...homeData, newsItems: newItems});
+                            }}
+                            className="absolute top-2 right-2 bg-red-500 text-white rounded-lg p-1.5 shadow"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-3 w-full">
+                          <div className="aspect-video bg-white rounded-xl border-2 border-dashed border-[#c8d8e8] flex items-center justify-center hover:border-[#2D6A9F] transition-colors">
+                            <label className="cursor-pointer text-gray-400 hover:text-[#2D6A9F] flex flex-col items-center w-full h-full justify-center">
+                              <Upload size={20} />
+                              <span className="text-[10px] font-bold uppercase mt-2">Upload File</span>
+                              <input 
+                                type="file" 
+                                className="hidden" 
+                                accept="image/*"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  try {
+                                     const base64 = await compressImage(file);
+                                     const newItems = [...(homeData.newsItems || [])];
+                                     newItems[idx].imageUrl = base64;
+                                     setHomeData({...homeData, newsItems: newItems});
+                                  } catch(err) {
+                                     console.error(err);
+                                     alert("Erro ao enviar imagem.");
+                                  }
+                                }}
+                              />
+                            </label>
+                          </div>
+                          <div className="text-center text-[10px] text-gray-400 font-bold uppercase relative">
+                             <div className="absolute inset-x-0 top-1/2 h-px bg-[#e2eaf3] -z-10"></div>
+                             <span className="bg-[#f8fafc] px-2 text-[#2D6A9F]">ou</span>
+                          </div>
+                          <input 
+                            type="text" 
+                            className="w-full p-2.5 border border-[#c8d8e8] rounded-xl text-xs bg-white focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all" 
+                            placeholder="Link da imagem..."
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val) {
+                                const newItems = [...(homeData.newsItems || [])];
+                                newItems[idx].imageUrl = val;
+                                setHomeData({...homeData, newsItems: newItems});
                               }
                             }}
                           />
-                        </label>
-                      </div>
-                      <div className="text-center text-[10px] text-gray-400 font-bold uppercase">ou</div>
-                      <input 
-                        type="text" 
-                        className="w-full p-2 border border-[#c8d8e8] rounded-lg text-sm" 
-                        placeholder="Link da imagem..."
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (val) {
-                            const newItems = [...(homeData.newsItems || [])];
-                            newItems[idx].imageUrl = val;
-                            setHomeData({...homeData, newsItems: newItems});
-                          }
-                        }}
-                      />
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <div className="pt-6 mt-4 border-t border-[#e2eaf3] flex justify-end">
-            <button onClick={handleSaveHome} disabled={isLoading} className="flex items-center gap-2 px-6 py-2 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition">
-              {isLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Salvar Configuração
-            </button>
+              <div className="pt-6 mt-6 border-t border-[#e2eaf3] flex flex-col-reverse md:flex-row justify-between items-center gap-4">
+                <button 
+                   onClick={() => {/* no-op for visual back */}} 
+                   className="w-full md:w-auto px-8 py-3 bg-white border border-[#c8d8e8] text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition drop-shadow-sm flex items-center justify-center gap-2"
+                >
+                   <ArrowLeft size={16} /> Voltar
+                </button>
+                <button 
+                   onClick={handleSaveHome} 
+                   disabled={isLoading} 
+                   className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-[#2D6A9F] text-white rounded-xl font-bold text-sm hover:bg-[#245785] shadow-md disabled:bg-gray-400 transition"
+                >
+                   {isLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Salvar Configuração
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
         </div>
         )}
 
         {inicioSubTab === "videos" && (
         <div className="animate-fade-in space-y-6">
-        {/* Videos Section */}
-        <div className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl shadow-sm mb-6">
-          <div className="flex items-center justify-between border-b border-[#e2eaf3] pb-4 mb-4">
-            <div>
-              <h4 className="font-bold text-primary-dark flex items-center gap-2">
-                Vídeos Destacados
-              </h4>
-              <p className="text-xs text-gray-500 mt-1 italic">
+          <div className="bg-[#f8fafc] border border-[#e2eaf3] rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-[#2D6A9F] text-white p-8 space-y-3 flex flex-col items-center justify-center text-center">
+              <h2 className="text-2xl font-black tracking-tight drop-shadow-sm">Vídeos Destacados</h2>
+              <p className="text-sm font-medium text-white/80 max-w-md">
                 Gerencie os vídeos que aparecem na tela inicial. Use URLs de Embed de vídeo (Ex: Youtube Embed URL).
               </p>
             </div>
-            <button
-              onClick={() => {
-                setHomeData((prev: any) => ({
-                  ...prev,
-                  videos: [
-                    ...(prev.videos || []),
-                    {
-                      id: `v${Date.now()}`,
-                      title: "Novo Vídeo",
-                      thumbnail: "",
-                      url: ""
-                    }
-                  ]
-                }));
-              }}
-              className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition"
-            >
-              <Plus size={14} /> Adicionar Vídeo
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            {(homeData.videos || []).map((vid: any, idx: number) => (
-              <div
-                key={vid.id || idx}
-                className="p-6 border border-[#e2eaf3] rounded-xl bg-white space-y-4 relative shadow-sm"
-              >
+            
+            <div className="p-6 md:p-8 space-y-6">
+              <div className="flex justify-between items-center mb-2">
+                <h5 className="font-bold text-lg text-[#2D6A9F]">Vídeos Adicionados</h5>
                 <button
                   onClick={() => {
-                    setGenericDeleteConfirm({ message: "Excluir este vídeo?", action: () => {
-                      setHomeData((prev: any) => ({
-                        ...prev,
-                        videos: prev.videos.filter((_: any, i: number) => i !== idx)
-                      }));
-                    } });
+                    setHomeData((prev: any) => ({
+                      ...prev,
+                      videos: [
+                        ...(prev.videos || []),
+                        {
+                          id: `v${Date.now()}`,
+                          title: "Novo Vídeo",
+                          thumbnail: "",
+                          url: ""
+                        }
+                      ]
+                    }));
                   }}
-                  className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition"
-                  type="button"
+                  className="bg-[#2D6A9F] text-white px-4 py-2 text-sm font-bold rounded-xl flex items-center gap-2 hover:bg-[#245785] transition-colors"
                 >
-                  <Trash2 size={16} />
+                  <Plus size={16} /> Adicionar Vídeo
                 </button>
-                <div className="space-y-4 mr-8">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                        Título do Vídeo
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full p-3 border border-[#c8d8e8] rounded-xl"
-                        value={vid.title || ""}
-                        onChange={(e) => {
-                          const newVideos = [...(homeData.videos || [])];
-                          newVideos[idx].title = e.target.value;
-                          setHomeData({ ...homeData, videos: newVideos });
+              </div>
+
+              <div className="grid grid-cols-1 gap-6">
+                {(homeData.videos || []).map((vid: any, idx: number) => (
+                  <div
+                    key={vid.id || idx}
+                    className="border border-[#c8d8e8] rounded-2xl bg-white shadow-sm overflow-hidden"
+                  >
+                    <div className="p-5 border-b border-[#e2eaf3] flex justify-between items-center bg-[#fcfdfe]">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 border border-[#c8d8e8] rounded-xl flex justify-center items-center text-[#2D6A9F] bg-white shadow-sm">
+                          <ImageIcon size={18} strokeWidth={2.5} />
+                        </div>
+                        <h3 className="font-bold text-[#2D6A9F] text-lg">Vídeo #{idx + 1}</h3>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setGenericDeleteConfirm({ message: "Excluir este vídeo?", action: () => {
+                            setHomeData((prev: any) => ({
+                              ...prev,
+                              videos: prev.videos.filter((_: any, i: number) => i !== idx)
+                            }));
+                          } });
                         }}
-                      />
+                        className="text-gray-400 hover:text-red-500 transition border border-transparent hover:border-red-100 hover:bg-red-50 p-2 rounded-lg"
+                        type="button"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </div>
-                    <div className="space-y-2">
-                      <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                        URL do Vídeo (Embed)
-                      </label>
-                      <input
-                        type="url"
-                        className="w-full p-3 border border-[#c8d8e8] rounded-xl"
-                        placeholder="https://www.youtube.com/embed/..."
-                        value={vid.url || ""}
-                        onChange={(e) => {
-                          const newVideos = [...(homeData.videos || [])];
-                          newVideos[idx].url = e.target.value;
-                          setHomeData({ ...homeData, videos: newVideos });
-                        }}
-                      />
+                    
+                    <div className="p-6">
+                      <div className="grid md:grid-cols-2 gap-8">
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                              Título do Vídeo *
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full p-3 border border-[#c8d8e8] rounded-xl font-bold text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                              value={vid.title || ""}
+                              onChange={(e) => {
+                                const newVideos = [...(homeData.videos || [])];
+                                newVideos[idx].title = e.target.value;
+                                setHomeData({ ...homeData, videos: newVideos });
+                              }}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                              URL do Vídeo (Embed) *
+                            </label>
+                            <input
+                              type="url"
+                              className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                              placeholder="https://www.youtube.com/embed/..."
+                              value={vid.url || ""}
+                              onChange={(e) => {
+                                const newVideos = [...(homeData.videos || [])];
+                                newVideos[idx].url = e.target.value;
+                                setHomeData({ ...homeData, videos: newVideos });
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                              Imagem de Capa (URL ou Upload)
+                            </label>
+                            <div className="flex gap-2">
+                              <input
+                                type="url"
+                                className="flex-1 p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                                placeholder="https://exemplo.com/imagem.jpg"
+                                value={vid.thumbnail || ""}
+                                onChange={(e) => {
+                                  const newVideos = [...(homeData.videos || [])];
+                                  newVideos[idx].thumbnail = e.target.value;
+                                  setHomeData({ ...homeData, videos: newVideos });
+                                }}
+                              />
+                              <label className="shrink-0 cursor-pointer px-4 bg-[#f8fafc] border border-[#c8d8e8] rounded-xl text-[#2D6A9F] hover:bg-[#eef4f9] transition flex items-center gap-2 text-[11px] font-bold uppercase overflow-hidden">
+                                <Upload size={14} /> Upload
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    if (file.size > 5 * 1024 * 1024) return alert("Máximo 5MB");
+                                    try {
+                                      const base64String = await compressImage(file);
+                                      const newVideos = [...(homeData.videos || [])];
+                                      newVideos[idx].thumbnail = base64String;
+                                      setHomeData({ ...homeData, videos: newVideos });
+                                    } catch (error) {
+                                      console.error("Failed to compress image", error);
+                                    }
+                                  }}
+                                />
+                              </label>
+                            </div>
+                            {vid.thumbnail && (
+                              <div className="pt-2 border-t border-[#e2eaf3] mt-4">
+                                <img src={vid.thumbnail} alt="Thumbnail preview" className="h-24 w-full object-cover rounded-lg border border-[#e2eaf3] shadow-sm" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                      Imagem de Capa (URL ou Upload)
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="url"
-                        className="flex-1 p-3 border border-[#c8d8e8] rounded-xl"
-                        placeholder="https://exemplo.com/imagem.jpg"
-                        value={vid.thumbnail || ""}
-                        onChange={(e) => {
-                          const newVideos = [...(homeData.videos || [])];
-                          newVideos[idx].thumbnail = e.target.value;
-                          setHomeData({ ...homeData, videos: newVideos });
-                        }}
-                      />
-                      <label className="shrink-0 cursor-pointer px-4 py-3 bg-[#f7fafd] border border-[#c8d8e8] rounded-xl text-primary-base hover:bg-primary-bg transition flex items-center gap-1 text-[11px] font-bold uppercase overflow-hidden">
-                        <Upload size={14} /> Upload
-                        <input
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            if (file.size > 5 * 1024 * 1024) return alert("Máximo 5MB");
-                            try {
-                              const base64String = await compressImage(file);
-                              const newVideos = [...(homeData.videos || [])];
-                              newVideos[idx].thumbnail = base64String;
-                              setHomeData({ ...homeData, videos: newVideos });
-                            } catch (error) {
-                              console.error("Failed to compress image", error);
-                            }
-                          }}
-                        />
-                      </label>
-                    </div>
-                    {vid.thumbnail && (
-                      <img src={vid.thumbnail} alt="Thumbnail preview" className="h-16 w-32 object-cover rounded mt-2 border shadow-sm" />
-                    )}
-                  </div>
+                ))}
+              </div>
+              {(!homeData.videos || homeData.videos.length === 0) && (
+                <div className="text-center py-6 text-gray-500 text-sm italic border-2 border-dashed border-[#e2eaf3] rounded-2xl">
+                  Nenhum vídeo customizado cadastrado. O site exibirá os vídeos padrão.
                 </div>
+              )}
+              
+              <div className="pt-6 mt-6 border-t border-[#e2eaf3] flex flex-col-reverse md:flex-row justify-between items-center gap-4">
+                <button 
+                   onClick={() => {/* no-op for visual back */}} 
+                   className="w-full md:w-auto px-8 py-3 bg-white border border-[#c8d8e8] text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition drop-shadow-sm flex items-center justify-center gap-2"
+                >
+                   <ArrowLeft size={16} /> Voltar
+                </button>
+                <button 
+                   onClick={handleSaveHome} 
+                   disabled={isLoading} 
+                   className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-[#2D6A9F] text-white rounded-xl font-bold text-sm hover:bg-[#245785] shadow-md disabled:bg-gray-400 transition"
+                >
+                   {isLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Salvar Configuração
+                </button>
               </div>
-            ))}
-            {(!homeData.videos || homeData.videos.length === 0) && (
-              <div className="text-center py-6 text-gray-500 text-sm italic">
-                Nenhum vídeo customizado cadastrado. O site exibirá os vídeos padrão.
-              </div>
-            )}
-            
-            <div className="pt-4 border-t border-[#e2eaf3] flex justify-end">
-              <button
-                onClick={handleSaveHome}
-                disabled={isLoading}
-                className="flex items-center gap-2 px-6 py-2 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition"
-              >
-                {isLoading ? (
-                  <Loader2 className="animate-spin" size={16} />
-                ) : (
-                  <Save size={16} />
-                )}
-                Salvar Configuração
-              </button>
             </div>
           </div>
-        </div>
         </div>
         )}
 
         {inicioSubTab === "eventos" && (
         <div className="animate-fade-in space-y-6">
-        {/* Eventos Section */}
-        <div className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl shadow-sm mb-6">
-          <div className="flex items-center justify-between border-b border-[#e2eaf3] pb-4 mb-4">
-            <div>
-              <h4 className="font-bold text-primary-dark flex items-center gap-2">
-                Nossos Eventos
-              </h4>
-              <p className="text-xs text-gray-500 mt-1 italic">
+          <div className="bg-[#f8fafc] border border-[#e2eaf3] rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-[#2D6A9F] text-white p-8 space-y-3 flex flex-col items-center justify-center text-center">
+              <h2 className="text-2xl font-black tracking-tight drop-shadow-sm">Nossos Eventos</h2>
+              <p className="text-sm font-medium text-white/80 max-w-md">
                 Gerencie os cards de eventos que aparecem na tela inicial.
               </p>
             </div>
-            <button
-              onClick={() => {
-                setHomeData((prev: any) => ({
-                  ...prev,
-                  eventos: [
-                    ...(prev.eventos || []),
-                    {
-                      id: `evt${Date.now()}`,
-                      title: "Novo Evento",
-                      subtitle: "",
-                      description: "",
-                      badge: "",
-                      linkText: "SAIBA MAIS",
-                      linkUrl: "",
-                      imageUrl: "",
-                      theme: "brown"
-                    }
-                  ]
-                }));
-              }}
-              className="px-4 py-2 bg-primary-base/10 text-primary-base font-bold rounded-lg text-sm hover:bg-primary-base hover:text-white transition"
-            >
-              + Adicionar Evento
-            </button>
-          </div>
+            
+            <div className="p-6 md:p-8 space-y-6">
+              <div className="flex justify-between items-center mb-2">
+                <h5 className="font-bold text-lg text-[#2D6A9F]">Eventos Cadastrados</h5>
+                <button
+                  onClick={() => {
+                    setHomeData((prev: any) => ({
+                      ...prev,
+                      eventos: [
+                        ...(prev.eventos || []),
+                        {
+                          id: `evt${Date.now()}`,
+                          title: "Novo Evento",
+                          subtitle: "",
+                          description: "",
+                          badge: "",
+                          linkText: "SAIBA MAIS",
+                          linkUrl: "",
+                          imageUrl: "",
+                          theme: "brown"
+                        }
+                      ]
+                    }));
+                  }}
+                  className="bg-[#2D6A9F] text-white px-4 py-2 text-sm font-bold rounded-xl flex items-center gap-2 hover:bg-[#245785] transition-colors"
+                >
+                  <Plus size={16} /> Adicionar Evento
+                </button>
+              </div>
 
-          <div className="space-y-4">
-            {(homeData.eventos || []).map((evt: any, idx: number) => (
-              <div key={evt.id || idx} className="p-4 border border-[#e2eaf3] rounded-xl bg-white shadow-sm flex items-start gap-4">
-                <div className="flex-1 space-y-3">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="font-bold text-primary-dark">Evento #{idx + 1}</span>
-                    <button
-                      onClick={() => {
-                        setGenericDeleteConfirm({ message: "Tem certeza que deseja excluir este evento?", action: () => {
-                          const newEventos = [...(homeData.eventos || [])];
-                          newEventos.splice(idx, 1);
-                          setHomeData({ ...homeData, eventos: newEventos });
-                        } });
-                      }}
-                      className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg transition-colors"
-                      title="Remover Evento"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div className="col-span-2">
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Título</label>
-                      <input
-                        type="text"
-                        value={evt.title || ""}
-                        onChange={(e) => {
-                          const newEventos = [...(homeData.eventos || [])];
-                          newEventos[idx].title = e.target.value;
-                          setHomeData({ ...homeData, eventos: newEventos });
-                        }}
-                        className="w-full p-2 text-sm border border-[#c8d8e8] rounded-lg font-bold"
-                        placeholder="Ex: EBD"
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Subtítulo / Linha 2</label>
-                      <input
-                        type="text"
-                        value={evt.subtitle || ""}
-                        onChange={(e) => {
-                          const newEventos = [...(homeData.eventos || [])];
-                          newEventos[idx].subtitle = e.target.value;
-                          setHomeData({ ...homeData, eventos: newEventos });
-                        }}
-                        className="w-full p-2 text-sm border border-[#c8d8e8] rounded-lg"
-                        placeholder="Ex: Escola Bíblica Dominical"
-                      />
-                    </div>
-                    
-                    <div className="col-span-4">
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Descrição</label>
-                      <textarea
-                        value={evt.description || ""}
-                        onChange={(e) => {
-                          const newEventos = [...(homeData.eventos || [])];
-                          newEventos[idx].description = e.target.value;
-                          setHomeData({ ...homeData, eventos: newEventos });
-                        }}
-                        className="w-full p-2 text-sm border border-[#c8d8e8] rounded-lg h-16"
-                        placeholder="Breve descrição sobre o evento..."
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Badge / Categoria</label>
-                      <input
-                        type="text"
-                        value={evt.badge || ""}
-                        onChange={(e) => {
-                          const newEventos = [...(homeData.eventos || [])];
-                          newEventos[idx].badge = e.target.value;
-                          setHomeData({ ...homeData, eventos: newEventos });
-                        }}
-                        className="w-full p-2 text-xs border border-[#c8d8e8] rounded-lg"
-                        placeholder="Ex: Cursos Online"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Cor do Card</label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={evt.theme === "brown" ? "#5d4633" : (evt.theme || "#5d4633")}
-                          onChange={(e) => {
+              <div className="grid grid-cols-1 gap-6">
+                {(homeData.eventos || []).map((evt: any, idx: number) => (
+                  <div key={evt.id || idx} className="border border-[#c8d8e8] rounded-2xl bg-white shadow-sm overflow-hidden text-left">
+                    <div className="p-5 border-b border-[#e2eaf3] flex justify-between items-center bg-[#fcfdfe]">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 border border-[#c8d8e8] rounded-xl flex justify-center items-center text-[#2D6A9F] bg-white shadow-sm">
+                          <Compass size={18} strokeWidth={2.5} />
+                        </div>
+                        <h3 className="font-bold text-[#2D6A9F] text-lg">Evento #{idx + 1}</h3>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setGenericDeleteConfirm({ message: "Tem certeza que deseja excluir este evento?", action: () => {
                             const newEventos = [...(homeData.eventos || [])];
-                            newEventos[idx].theme = e.target.value;
+                            newEventos.splice(idx, 1);
                             setHomeData({ ...homeData, eventos: newEventos });
-                          }}
-                          className="w-10 h-10 rounded border border-[#c8d8e8] cursor-pointer"
-                        />
-                        <span className="text-xs font-mono text-gray-500 uppercase">{evt.theme === "brown" ? "#5D4633" : (evt.theme || "#5D4633")}</span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Texto do Botão</label>
-                      <input
-                        type="text"
-                        value={evt.linkText || "SAIBA MAIS"}
-                        onChange={(e) => {
-                          const newEventos = [...(homeData.eventos || [])];
-                          newEventos[idx].linkText = e.target.value;
-                          setHomeData({ ...homeData, eventos: newEventos });
+                          } });
                         }}
-                        className="w-full p-2 text-xs border border-[#c8d8e8] rounded-lg"
-                        placeholder="Ex: SAIBA MAIS"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">URL do Botão</label>
-                      <input
-                        type="text"
-                        value={evt.linkUrl || ""}
-                        onChange={(e) => {
-                          const newEventos = [...(homeData.eventos || [])];
-                          newEventos[idx].linkUrl = e.target.value;
-                          setHomeData({ ...homeData, eventos: newEventos });
-                        }}
-                        className="w-full p-2 text-xs border border-[#c8d8e8] rounded-lg"
-                        placeholder="Ex: https://..."
-                      />
+                        className="text-gray-400 hover:text-red-500 transition border border-transparent hover:border-red-100 hover:bg-red-50 p-2 rounded-lg"
+                        title="Remover Evento"
+                        type="button"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </div>
                     
-                    <div className="col-span-4">
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Imagem Fundo/Perfil (Base64) - Opcional</label>
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            if (file.size > 5 * 1024 * 1024) return alert("Máximo 5MB");
-                            try {
-                              const reader = new FileReader();
-                              reader.onload = (ev) => {
+                    <div className="p-6">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div className="col-span-2">
+                          <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 mb-1 block">Título *</label>
+                          <input
+                            type="text"
+                            value={evt.title || ""}
+                            onChange={(e) => {
+                              const newEventos = [...(homeData.eventos || [])];
+                              newEventos[idx].title = e.target.value;
+                              setHomeData({ ...homeData, eventos: newEventos });
+                            }}
+                            className="w-full p-3 text-sm border border-[#c8d8e8] rounded-xl font-bold bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                            placeholder="Ex: EBD"
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 mb-1 block">Subtítulo / Linha 2</label>
+                          <input
+                            type="text"
+                            value={evt.subtitle || ""}
+                            onChange={(e) => {
+                              const newEventos = [...(homeData.eventos || [])];
+                              newEventos[idx].subtitle = e.target.value;
+                              setHomeData({ ...homeData, eventos: newEventos });
+                            }}
+                            className="w-full p-3 text-sm border border-[#c8d8e8] rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                            placeholder="Ex: Escola Bíblica Dominical"
+                          />
+                        </div>
+                        
+                        <div className="col-span-4">
+                          <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 mb-1 block">Descrição *</label>
+                          <textarea
+                            value={evt.description || ""}
+                            onChange={(e) => {
+                              const newEventos = [...(homeData.eventos || [])];
+                              newEventos[idx].description = e.target.value;
+                              setHomeData({ ...homeData, eventos: newEventos });
+                            }}
+                            className="w-full p-3 text-sm border border-[#c8d8e8] rounded-xl h-24 resize-none bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                            placeholder="Breve descrição sobre o evento..."
+                          />
+                        </div>
+
+                        <div className="col-span-2 md:col-span-1">
+                          <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 mb-1 block">Badge / Categoria</label>
+                          <input
+                            type="text"
+                            value={evt.badge || ""}
+                            onChange={(e) => {
+                              const newEventos = [...(homeData.eventos || [])];
+                              newEventos[idx].badge = e.target.value;
+                              setHomeData({ ...homeData, eventos: newEventos });
+                            }}
+                            className="w-full p-3 text-sm border border-[#c8d8e8] rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                            placeholder="Ex: Cursos Online"
+                          />
+                        </div>
+
+                        <div className="col-span-2 md:col-span-1">
+                          <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 mb-1 block">Cor do Card</label>
+                          <div className="flex items-center gap-3 p-1.5 border border-[#c8d8e8] rounded-xl bg-gray-50">
+                            <input
+                              type="color"
+                              value={evt.theme === "brown" ? "#5d4633" : (evt.theme || "#5d4633")}
+                              onChange={(e) => {
                                 const newEventos = [...(homeData.eventos || [])];
-                                newEventos[idx].imageUrl = ev.target?.result as string;
+                                newEventos[idx].theme = e.target.value;
                                 setHomeData({ ...homeData, eventos: newEventos });
-                              };
-                              reader.readAsDataURL(file);
-                            } catch (error) {
-                              console.error("Failed to read image", error);
-                            }
-                          }}
-                          className="text-xs flex-1 file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:bg-primary-50 file:text-primary-base file:font-bold hover:file:bg-primary-100 cursor-pointer"
-                        />
-                        {evt.imageUrl && (
-                           <div className="flex items-center gap-3">
-                             <img src={evt.imageUrl} alt="preview" className="h-10 w-16 object-cover rounded shadow-sm border border-gray-200" />
-                             <button className="text-red-500 text-xs font-bold hover:text-red-700 bg-red-50 px-3 py-1.5 rounded-lg" onClick={() => {
-                               const newEventos = [...(homeData.eventos || [])];
-                               newEventos[idx].imageUrl = "";
-                               setHomeData({ ...homeData, eventos: newEventos });
-                             }}>Remover</button>
-                           </div>
-                        )}
+                              }}
+                              className="w-10 h-10 rounded-lg border-none cursor-pointer p-0 bg-transparent"
+                            />
+                            <span className="text-sm font-mono font-bold text-gray-600 uppercase">{evt.theme === "brown" ? "#5D4633" : (evt.theme || "#5D4633")}</span>
+                          </div>
+                        </div>
+
+                        <div className="col-span-2 md:col-span-1">
+                          <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 mb-1 block">Texto do Botão</label>
+                          <input
+                            type="text"
+                            value={evt.linkText || "SAIBA MAIS"}
+                            onChange={(e) => {
+                              const newEventos = [...(homeData.eventos || [])];
+                              newEventos[idx].linkText = e.target.value;
+                              setHomeData({ ...homeData, eventos: newEventos });
+                            }}
+                            className="w-full p-3 text-sm border border-[#c8d8e8] rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                            placeholder="Ex: SAIBA MAIS"
+                          />
+                        </div>
+
+                        <div className="col-span-2 md:col-span-1">
+                          <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 mb-1 block">URL do Botão</label>
+                          <input
+                            type="text"
+                            value={evt.linkUrl || ""}
+                            onChange={(e) => {
+                              const newEventos = [...(homeData.eventos || [])];
+                              newEventos[idx].linkUrl = e.target.value;
+                              setHomeData({ ...homeData, eventos: newEventos });
+                            }}
+                            className="w-full p-3 text-sm border border-[#c8d8e8] rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                            placeholder="Ex: https://..."
+                          />
+                        </div>
+                        
+                        <div className="col-span-4 pt-4 border-t border-[#e2eaf3] mt-2">
+                          <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 mb-3 block">Imagem Fundo/Perfil (Opcional) *</label>
+                          <div className="flex items-center gap-4">
+                            <label className="cursor-pointer px-5 py-3 bg-[#f8fafc] border border-[#c8d8e8] rounded-xl text-[#2D6A9F] hover:bg-[#eef4f9] transition flex items-center gap-2 text-[11px] font-bold uppercase overflow-hidden">
+                              <Upload size={14} /> Upload Imagem
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  if (file.size > 5 * 1024 * 1024) return alert("Máximo 5MB");
+                                  try {
+                                    const reader = new FileReader();
+                                    reader.onload = (ev) => {
+                                      const newEventos = [...(homeData.eventos || [])];
+                                      newEventos[idx].imageUrl = ev.target?.result as string;
+                                      setHomeData({ ...homeData, eventos: newEventos });
+                                    };
+                                    reader.readAsDataURL(file);
+                                  } catch (error) {
+                                    console.error("Failed to read image", error);
+                                  }
+                                }}
+                                className="hidden"
+                              />
+                            </label>
+                            {evt.imageUrl && (
+                               <div className="flex items-center gap-4 bg-gray-50 p-2 pr-4 rounded-xl border border-[#c8d8e8]">
+                                 <img src={evt.imageUrl} alt="preview" className="h-12 w-20 object-cover rounded-lg shadow-sm border border-[#e2eaf3]" />
+                                 <button className="text-red-500 text-xs font-bold hover:text-red-700 bg-red-100/50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1" onClick={() => {
+                                   const newEventos = [...(homeData.eventos || [])];
+                                   newEventos[idx].imageUrl = "";
+                                   setHomeData({ ...homeData, eventos: newEventos });
+                                 }}>
+                                   <Trash2 size={12}/> Remover
+                                 </button>
+                               </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-
                   </div>
+                ))}
+              </div>
+              
+              {(!homeData.eventos || homeData.eventos.length === 0) && (
+                <div className="text-center py-6 text-gray-500 text-sm italic border-2 border-dashed border-[#e2eaf3] rounded-2xl">
+                  Nenhum evento customizado. O site exibirá os eventos padrão.
                 </div>
+              )}
+              
+              <div className="pt-6 mt-6 border-t border-[#e2eaf3] flex flex-col-reverse md:flex-row justify-between items-center gap-4">
+                <button 
+                   onClick={() => {/* no-op for visual back */}} 
+                   className="w-full md:w-auto px-8 py-3 bg-white border border-[#c8d8e8] text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition drop-shadow-sm flex items-center justify-center gap-2"
+                >
+                   <ArrowLeft size={16} /> Voltar
+                </button>
+                <button 
+                   onClick={handleSaveHome} 
+                   disabled={isLoading} 
+                   className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-[#2D6A9F] text-white rounded-xl font-bold text-sm hover:bg-[#245785] shadow-md disabled:bg-gray-400 transition"
+                >
+                   {isLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Salvar Configuração
+                </button>
               </div>
-            ))}
-            
-            {(!homeData.eventos || homeData.eventos.length === 0) && (
-              <div className="text-center py-8 text-gray-500 text-sm italic border border-dashed border-gray-300 rounded-xl bg-gray-50">
-                Nenhum evento customizado. O site exibirá os 5 eventos padrão.
-              </div>
-            )}
-            
-            <div className="pt-4 border-t border-[#e2eaf3] flex justify-end">
-              <button
-                onClick={handleSaveHome}
-                disabled={isLoading}
-                className="flex items-center gap-2 px-6 py-2 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition"
-              >
-                {isLoading ? (
-                  <Loader2 className="animate-spin" size={16} />
-                ) : (
-                  <Save size={16} />
-                )}
-                Salvar Configuração
-              </button>
             </div>
           </div>
-        </div>
         </div>
         )}
 
         {inicioSubTab === "missao" && (
         <div className="animate-fade-in space-y-6">
-        {/* Mission Section */}
-        <div className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl shadow-sm mb-6">
-          <h4 className="font-bold text-primary-dark mb-5 flex items-center gap-2">
-            Amamos a Obra Missionária
-          </h4>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                  Título Linha 1
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-3 border border-[#c8d8e8] rounded-xl font-bold"
-                  value={homeData.missionTitle1 || ""}
-                  onChange={(e) =>
-                    setHomeData({ ...homeData, missionTitle1: e.target.value })
-                  }
-                  placeholder="Amamos a obra"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                  Título Linha 2 (Laranja)
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-3 border border-[#c8d8e8] rounded-xl font-bold"
-                  value={homeData.missionTitle2 || ""}
-                  onChange={(e) =>
-                    setHomeData({ ...homeData, missionTitle2: e.target.value })
-                  }
-                  placeholder="missionária!"
-                />
-              </div>
+          <div className="bg-[#f8fafc] border border-[#e2eaf3] rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-[#2D6A9F] text-white p-8 space-y-3 flex flex-col items-center justify-center text-center">
+              <h2 className="text-2xl font-black tracking-tight drop-shadow-sm">Amamos a Obra Missionária</h2>
+              <p className="text-sm font-medium text-white/80 max-w-md">
+                Gerencie as informações e imagens da seção de missões da tela inicial.
+              </p>
             </div>
-
-            <div className="pt-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                  Imagens da Missão
-                </label>
-                <button
-                  onClick={() => {
-                    setHomeData({
-                      ...homeData,
-                      missionImages: [
-                        ...(homeData.missionImages || []),
-                        { imageUrl: "", linkUrl: "" }
-                      ]
-                    });
-                  }}
-                  className="flex items-center gap-1.5 text-xs font-bold text-primary-base hover:text-primary-dark transition-colors bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-lg"
-                >
-                  Adicionar Imagem
-                </button>
+            
+            <div className="p-6 md:p-8 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-2xl border border-[#c8d8e8] shadow-sm">
+                <div className="space-y-2">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 mb-1 block">
+                    Título Linha 1 *
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-3 text-sm border border-[#c8d8e8] rounded-xl font-bold bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                    value={homeData.missionTitle1 || ""}
+                    onChange={(e) =>
+                      setHomeData({ ...homeData, missionTitle1: e.target.value })
+                    }
+                    placeholder="Amamos a obra"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 mb-1 block">
+                    Título Linha 2 (Laranja) *
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-3 text-sm border border-[#c8d8e8] rounded-xl font-bold bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                    value={homeData.missionTitle2 || ""}
+                    onChange={(e) =>
+                      setHomeData({ ...homeData, missionTitle2: e.target.value })
+                    }
+                    placeholder="missionária!"
+                  />
+                </div>
               </div>
-              <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                {(homeData.missionImages || []).map((imgObj: any, idx: number) => {
-                  const imgUrl = typeof imgObj === 'string' ? imgObj : imgObj?.imageUrl;
-                  const linkUrl = typeof imgObj === 'string' ? '' : (imgObj?.linkUrl || '');
-                  
-                  return (
-                  <div key={idx} className="relative flex flex-col gap-2">
-                    <div className="aspect-square border-2 border-dashed border-gray-300 rounded-xl overflow-hidden group relative">
-                    {imgUrl ? (
-                      <>
-                        <img src={imgUrl} alt={`Missão ${idx + 1}`} className="w-full h-full object-cover" />
-                        <label className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-center items-center cursor-pointer text-white text-xs font-bold gap-2">
-                          Trocar
+
+              <div className="pt-6 border-t border-[#e2eaf3] space-y-6">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div>
+                    <h5 className="font-bold text-lg text-[#2D6A9F]">Imagens da Missão</h5>
+                    <p className="text-xs text-gray-500">Adicione imagens que representam as ações missionárias.</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setHomeData({
+                        ...homeData,
+                        missionImages: [
+                          ...(homeData.missionImages || []),
+                          { imageUrl: "", linkUrl: "" }
+                        ]
+                      });
+                    }}
+                    className="bg-[#2D6A9F] text-white px-4 py-2 text-sm font-bold rounded-xl flex items-center gap-2 hover:bg-[#245785] transition-colors whitespace-nowrap"
+                  >
+                    <Plus size={16} /> Adicionar Imagem
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {(homeData.missionImages || []).map((imgObj: any, idx: number) => {
+                    const imgUrl = typeof imgObj === 'string' ? imgObj : imgObj?.imageUrl;
+                    const linkUrl = typeof imgObj === 'string' ? '' : (imgObj?.linkUrl || '');
+                    
+                    return (
+                    <div key={idx} className="relative flex flex-col gap-3 p-4 bg-white border border-[#c8d8e8] rounded-2xl shadow-sm">
+                      <div className="aspect-square border-2 border-dashed border-[#c8d8e8] rounded-xl overflow-hidden group relative bg-gray-50">
+                      {imgUrl ? (
+                        <>
+                          <img src={imgUrl} alt={`Missão ${idx + 1}`} className="w-full h-full object-cover" />
+                          <label className="absolute inset-0 bg-[#2D6A9F]/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-center items-center cursor-pointer text-white text-xs font-bold gap-2">
+                            <Upload size={20} />
+                            Trocar Imagem
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const reader = new FileReader();
+                                  reader.onload = (ev) => {
+                                    let newImgs = [...(homeData.missionImages || [])];
+                                    if (typeof newImgs[idx] === 'string') {
+                                       newImgs[idx] = { imageUrl: ev.target?.result as string, linkUrl: '' };
+                                    } else {
+                                       newImgs[idx] = { ...newImgs[idx], imageUrl: ev.target?.result as string };
+                                    }
+                                    setHomeData({ ...homeData, missionImages: newImgs });
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                            />
+                          </label>
+                        </>
+                      ) : (
+                        <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer text-[#2D6A9F] hover:bg-[#2D6A9F] hover:text-white transition-colors">
+                          <Upload size={24} className="mb-2" />
+                          <span className="text-[10px] font-bold uppercase transition-colors">Nova Imagem</span>
                           <input
                             type="file"
                             accept="image/*"
@@ -2169,397 +2287,403 @@ const innerContent = (
                             }}
                           />
                         </label>
-                      </>
-                    ) : (
-                      <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer text-gray-400 hover:text-primary-base hover:bg-primary-50 transition-colors">
-                        <Upload size={24} className="mb-2" />
-                        <span className="text-[10px] font-bold uppercase">Nova Imagem</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
+                      )}
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <input 
+                          type="text" 
+                          placeholder="Título (opcional)" 
+                          className="w-full text-xs p-2.5 border border-[#c8d8e8] rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                          value={typeof imgObj === 'string' ? '' : (imgObj?.title || '')}
                           onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onload = (ev) => {
-                                let newImgs = [...(homeData.missionImages || [])];
-                                if (typeof newImgs[idx] === 'string') {
-                                   newImgs[idx] = { imageUrl: ev.target?.result as string, linkUrl: '' };
-                                } else {
-                                   newImgs[idx] = { ...newImgs[idx], imageUrl: ev.target?.result as string };
-                                }
-                                setHomeData({ ...homeData, missionImages: newImgs });
-                              };
-                              reader.readAsDataURL(file);
+                            let newImgs = [...(homeData.missionImages || [])];
+                            if (typeof newImgs[idx] === 'string') {
+                               newImgs[idx] = { imageUrl: newImgs[idx], title: e.target.value };
+                            } else {
+                               newImgs[idx] = { ...newImgs[idx], title: e.target.value };
                             }
+                            setHomeData({ ...homeData, missionImages: newImgs });
                           }}
                         />
-                      </label>
-                    )}
+                        <input 
+                          type="text" 
+                          placeholder="URL do Link (opcional)" 
+                          className="w-full text-xs p-2.5 border border-[#c8d8e8] rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                          value={linkUrl}
+                          onChange={(e) => {
+                            let newImgs = [...(homeData.missionImages || [])];
+                            if (typeof newImgs[idx] === 'string') {
+                               newImgs[idx] = { imageUrl: newImgs[idx], linkUrl: e.target.value };
+                            } else {
+                               newImgs[idx] = { ...newImgs[idx], linkUrl: e.target.value };
+                            }
+                            setHomeData({ ...homeData, missionImages: newImgs });
+                          }}
+                        />
+                      </div>
+                      
+                      <button
+                         onClick={() => {
+                           setGenericDeleteConfirm({ message: "Tem certeza que deseja excluir esta imagem?", action: () => {
+                             let newImgs = [...(homeData.missionImages || [])];
+                             newImgs.splice(idx, 1);
+                             setHomeData({ ...homeData, missionImages: newImgs });
+                           } });
+                         }}
+                         className="w-full text-[10px] font-bold text-red-500 hover:text-red-700 uppercase bg-red-50 hover:bg-red-100 p-2 rounded-xl transition-colors mt-1"
+                      >
+                        Remover
+                      </button>
                     </div>
-                    
-                    <input 
-                      type="text" 
-                      placeholder="Título (opcional)" 
-                      className="w-full text-xs p-2 border border-[#c8d8e8] rounded-lg"
-                      value={typeof imgObj === 'string' ? '' : (imgObj?.title || '')}
-                      onChange={(e) => {
-                        let newImgs = [...(homeData.missionImages || [])];
-                        if (typeof newImgs[idx] === 'string') {
-                           newImgs[idx] = { imageUrl: newImgs[idx], title: e.target.value };
-                        } else {
-                           newImgs[idx] = { ...newImgs[idx], title: e.target.value };
-                        }
-                        setHomeData({ ...homeData, missionImages: newImgs });
-                      }}
-                    />
-                    <input 
-                      type="text" 
-                      placeholder="URL do Link" 
-                      className="w-full text-xs p-2 border border-[#c8d8e8] rounded-lg"
-                      value={linkUrl}
-                      onChange={(e) => {
-                        let newImgs = [...(homeData.missionImages || [])];
-                        if (typeof newImgs[idx] === 'string') {
-                           newImgs[idx] = { imageUrl: newImgs[idx], linkUrl: e.target.value };
-                        } else {
-                           newImgs[idx] = { ...newImgs[idx], linkUrl: e.target.value };
-                        }
-                        setHomeData({ ...homeData, missionImages: newImgs });
-                      }}
-                    />
-                    
-                    <button
-                       onClick={() => {
-                         setGenericDeleteConfirm({ message: "Tem certeza que deseja excluir esta imagem?", action: () => {
-                           let newImgs = [...(homeData.missionImages || [])];
-                           newImgs.splice(idx, 1);
-                           setHomeData({ ...homeData, missionImages: newImgs });
-                         } });
-                       }}
-                       className="text-[10px] font-bold text-red-500 hover:text-red-700 uppercase"
-                    >
-                      Remover
-                    </button>
-                  </div>
-                )})}
+                  )})}
+                </div>
+              </div>
+
+              <div className="pt-6 mt-6 border-t border-[#e2eaf3] flex flex-col-reverse md:flex-row justify-between items-center gap-4">
+                <button 
+                   onClick={() => {/* no-op for visual back */}} 
+                   className="w-full md:w-auto px-8 py-3 bg-white border border-[#c8d8e8] text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition drop-shadow-sm flex items-center justify-center gap-2"
+                >
+                   <ArrowLeft size={16} /> Voltar
+                </button>
+                <button 
+                   onClick={handleSaveHome} 
+                   disabled={isLoading} 
+                   className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-[#2D6A9F] text-white rounded-xl font-bold text-sm hover:bg-[#245785] shadow-md disabled:bg-gray-400 transition"
+                >
+                   {isLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Salvar Configuração
+                </button>
               </div>
             </div>
-
-            <div className="pt-4 border-t border-[#e2eaf3] flex justify-end mt-4">
-              <button
-                onClick={handleSaveHome}
-                disabled={isLoading}
-                className="flex items-center gap-2 px-6 py-2 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition"
-              >
-                {isLoading ? (
-                  <Loader2 className="animate-spin" size={16} />
-                ) : (
-                  <Save size={16} />
-                )}
-                Salvar Configuração
-              </button>
-            </div>
           </div>
-        </div>
         </div>
         )}
 
         {inicioSubTab === "generosidade" && (
         <div className="animate-fade-in space-y-6">
-        {/* Generosity Section */}
-        <div className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl shadow-sm mb-6">
-          <h4 className="font-bold text-primary-dark mb-5 flex items-center gap-2">
-            Generosidade
-          </h4>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                  Etiqueta
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-3 border border-[#c8d8e8] rounded-xl font-bold"
-                  value={homeData.generosityBadge || ""}
-                  onChange={(e) => setHomeData({ ...homeData, generosityBadge: e.target.value })}
-                  placeholder="Generosidade"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                  Linha Título 1
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-3 border border-[#c8d8e8] rounded-xl font-bold"
-                  value={homeData.generosityTitle1 || ""}
-                  onChange={(e) => setHomeData({ ...homeData, generosityTitle1: e.target.value })}
-                  placeholder="Adoração através da"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                  Linha Título 2
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-3 border border-[#c8d8e8] rounded-xl font-bold"
-                  value={homeData.generosityTitle2 || ""}
-                  onChange={(e) => setHomeData({ ...homeData, generosityTitle2: e.target.value })}
-                  placeholder="contribuição."
-                />
-              </div>
+          <div className="bg-[#f8fafc] border border-[#e2eaf3] rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-[#2D6A9F] text-white p-8 space-y-3 flex flex-col items-center justify-center text-center">
+              <h2 className="text-2xl font-black tracking-tight drop-shadow-sm">Generosidade</h2>
+              <p className="text-sm font-medium text-white/80 max-w-md">
+                Gerencie os textos e informações de contribuição, como PIX e WhatsApp.
+              </p>
             </div>
             
-            <div className="space-y-2">
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                Subtítulo (Opcional)
-              </label>
-              <textarea
-                className="w-full p-3 border border-[#c8d8e8] rounded-xl h-24"
-                value={homeData.generositySubtitle || ""}
-                onChange={(e) => setHomeData({ ...homeData, generositySubtitle: e.target.value })}
-                placeholder='"Cada um contribua..."'
-              />
-            </div>
+            <div className="p-6 md:p-8 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-2xl border border-[#c8d8e8] shadow-sm">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 mb-1 block">
+                      Etiqueta *
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full p-3 text-sm border border-[#c8d8e8] rounded-xl font-bold bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                      value={homeData.generosityBadge || ""}
+                      onChange={(e) => setHomeData({ ...homeData, generosityBadge: e.target.value })}
+                      placeholder="Generosidade"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 mb-1 block">
+                      Linha Título 1 *
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full p-3 text-sm border border-[#c8d8e8] rounded-xl font-bold bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                      value={homeData.generosityTitle1 || ""}
+                      onChange={(e) => setHomeData({ ...homeData, generosityTitle1: e.target.value })}
+                      placeholder="Adoração através da"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 mb-1 block">
+                      Linha Título 2 *
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full p-3 text-sm border border-[#c8d8e8] rounded-xl font-bold bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                      value={homeData.generosityTitle2 || ""}
+                      onChange={(e) => setHomeData({ ...homeData, generosityTitle2: e.target.value })}
+                      placeholder="contribuição."
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2 h-full flex flex-col items-start bg-gray-50/50 p-4 rounded-xl border border-[#e2eaf3]">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 block">
+                    Subtítulo / Descrição (Opcional)
+                  </label>
+                  <textarea
+                    className="w-full p-3 text-sm border border-[#c8d8e8] rounded-xl h-full min-h-[140px] resize-none bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                    value={homeData.generositySubtitle || ""}
+                    onChange={(e) => setHomeData({ ...homeData, generositySubtitle: e.target.value })}
+                    placeholder='"Cada um contribua..."'
+                  />
+                </div>
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              {/* Box PIX */}
-              <div className="border border-[#e2eaf3] p-4 rounded-xl">
-                <h5 className="font-bold text-sm mb-4">Informações do PIX</h5>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-500 uppercase">Título</label>
-                    <input type="text" className="w-full p-2 border border-[#c8d8e8] rounded-lg text-sm" value={homeData.generosityPixTitle || ""} onChange={(e) => setHomeData({ ...homeData, generosityPixTitle: e.target.value })} placeholder="Faça um PIX" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Box PIX */}
+                <div className="border border-[#c8d8e8] bg-white p-6 rounded-2xl shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-[#32BCAD]"></div>
+                  <h5 className="font-bold text-base mb-5 text-[#32BCAD] flex items-center gap-2">
+                    Opção PIX
+                  </h5>
+                  <div className="space-y-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 block">Título</label>
+                      <input type="text" className="w-full p-3 bg-gray-50 border border-[#c8d8e8] rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#32BCAD]/20 outline-none transition-all" value={homeData.generosityPixTitle || ""} onChange={(e) => setHomeData({ ...homeData, generosityPixTitle: e.target.value })} placeholder="Faça um PIX" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 block">Subtítulo</label>
+                      <input type="text" className="w-full p-3 bg-gray-50 border border-[#c8d8e8] rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#32BCAD]/20 outline-none transition-all" value={homeData.generosityPixSubtitle || ""} onChange={(e) => setHomeData({ ...homeData, generosityPixSubtitle: e.target.value })} placeholder="Use a chave CNPJ..." />
+                    </div>
+                    <div className="space-y-1 pt-2">
+                      <label className="text-[10px] text-[#32BCAD] font-bold uppercase tracking-widest pl-1 block">Chave PIX *</label>
+                      <input type="text" className="w-full p-3 bg-white border-2 border-[#32BCAD]/30 focus:border-[#32BCAD] rounded-xl text-lg font-mono font-bold tracking-wider outline-none transition-all text-gray-700" value={homeData.generosityPixKey || ""} onChange={(e) => setHomeData({ ...homeData, generosityPixKey: e.target.value })} placeholder="32795249000127" />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-500 uppercase">Subtítulo</label>
-                    <input type="text" className="w-full p-2 border border-[#c8d8e8] rounded-lg text-sm" value={homeData.generosityPixSubtitle || ""} onChange={(e) => setHomeData({ ...homeData, generosityPixSubtitle: e.target.value })} placeholder="Use a chave CNPJ..." />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-500 uppercase">Chave PIX</label>
-                    <input type="text" className="w-full p-2 border border-[#c8d8e8] rounded-lg text-sm font-bold" value={homeData.generosityPixKey || ""} onChange={(e) => setHomeData({ ...homeData, generosityPixKey: e.target.value })} placeholder="32795249000127" />
+                </div>
+
+                {/* Box Outras Formas */}
+                <div className="border border-[#c8d8e8] bg-white p-6 rounded-2xl shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-[#25D366]"></div>
+                  <h5 className="font-bold text-base mb-5 text-[#25D366] flex items-center gap-2">
+                    Outras Formas (WhatsApp)
+                  </h5>
+                  <div className="space-y-4 flex flex-col h-[calc(100%-2.5rem)]">
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 block">Título</label>
+                      <input type="text" className="w-full p-3 bg-gray-50 border border-[#c8d8e8] rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#25D366]/20 outline-none transition-all" value={homeData.generosityOtherFormsTitle || ""} onChange={(e) => setHomeData({ ...homeData, generosityOtherFormsTitle: e.target.value })} placeholder="Outras Formas" />
+                    </div>
+                    <div className="space-y-1 flex-1">
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 block">Subtítulo</label>
+                      <textarea className="w-full p-3 bg-gray-50 border border-[#c8d8e8] rounded-xl text-sm h-full min-h-[80px] resize-none focus:bg-white focus:ring-2 focus:ring-[#25D366]/20 outline-none transition-all" value={homeData.generosityOtherFormsSubtitle || ""} onChange={(e) => setHomeData({ ...homeData, generosityOtherFormsSubtitle: e.target.value })} placeholder="Para transferências bancárias..." />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 pt-2">
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-[#25D366] font-bold uppercase tracking-widest pl-1 block">Texto do Botão</label>
+                        <input type="text" className="w-full p-3 bg-white border border-[#25D366]/30 focus:border-[#25D366] rounded-xl text-sm font-bold outline-none transition-all text-gray-700" value={homeData.generosityOtherFormsBtnText || ""} onChange={(e) => setHomeData({ ...homeData, generosityOtherFormsBtnText: e.target.value })} placeholder="Falar no WhatsApp" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-[#25D366] font-bold uppercase tracking-widest pl-1 block whitespace-nowrap overflow-hidden text-ellipsis">Link / Número WhatsApp</label>
+                        <input type="text" className="w-full p-3 bg-white border-2 border-[#25D366]/30 focus:border-[#25D366] rounded-xl text-sm font-mono outline-none transition-all text-gray-700" value={homeData.generosityOtherFormsBtnLink || ""} onChange={(e) => setHomeData({ ...homeData, generosityOtherFormsBtnLink: e.target.value })} placeholder="Ex: 5511999999999" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Box Outras Formas */}
-              <div className="border border-[#e2eaf3] p-4 rounded-xl">
-                <h5 className="font-bold text-sm mb-4">Outras Formas (WhatsApp)</h5>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-500 uppercase">Título</label>
-                    <input type="text" className="w-full p-2 border border-[#c8d8e8] rounded-lg text-sm" value={homeData.generosityOtherFormsTitle || ""} onChange={(e) => setHomeData({ ...homeData, generosityOtherFormsTitle: e.target.value })} placeholder="Outras Formas" />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-500 uppercase">Subtítulo</label>
-                    <textarea className="w-full p-2 border border-[#c8d8e8] rounded-lg text-sm h-16" value={homeData.generosityOtherFormsSubtitle || ""} onChange={(e) => setHomeData({ ...homeData, generosityOtherFormsSubtitle: e.target.value })} placeholder="Para transferências bancárias..." />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-[11px] font-bold text-gray-500 uppercase">Texto do Botão</label>
-                      <input type="text" className="w-full p-2 border border-[#c8d8e8] rounded-lg text-sm" value={homeData.generosityOtherFormsBtnText || ""} onChange={(e) => setHomeData({ ...homeData, generosityOtherFormsBtnText: e.target.value })} placeholder="Falar no WhatsApp" />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-gray-500 uppercase">Link ou Número WhatsApp</label>
-                      <input type="text" className="w-full p-2 border border-[#c8d8e8] rounded-lg text-sm" value={homeData.generosityOtherFormsBtnLink || ""} onChange={(e) => setHomeData({ ...homeData, generosityOtherFormsBtnLink: e.target.value })} placeholder="Ex: 5511999999999" />
-                    </div>
-                  </div>
-                </div>
+              <div className="pt-6 mt-6 border-t border-[#e2eaf3] flex flex-col-reverse md:flex-row justify-between items-center gap-4">
+                <button 
+                   onClick={() => {/* no-op for visual back */}} 
+                   className="w-full md:w-auto px-8 py-3 bg-white border border-[#c8d8e8] text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition drop-shadow-sm flex items-center justify-center gap-2"
+                >
+                   <ArrowLeft size={16} /> Voltar
+                </button>
+                <button 
+                   onClick={handleSaveHome} 
+                   disabled={isLoading} 
+                   className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-[#2D6A9F] text-white rounded-xl font-bold text-sm hover:bg-[#245785] shadow-md disabled:bg-gray-400 transition"
+                >
+                   {isLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Salvar Configuração
+                </button>
               </div>
-            </div>
-
-            <div className="pt-4 border-t border-[#e2eaf3] flex justify-end mt-4">
-              <button
-                onClick={handleSaveHome}
-                disabled={isLoading}
-                className="flex items-center gap-2 px-6 py-2 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition"
-              >
-                {isLoading ? (
-                  <Loader2 className="animate-spin" size={16} />
-                ) : (
-                  <Save size={16} />
-                )}
-                Salvar Configuração
-              </button>
             </div>
           </div>
-        </div>
         </div>
         )}
 
         {inicioSubTab === "app" && (
         <div className="animate-fade-in space-y-6">
-        {/* App Download Section */}
-        <div className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl shadow-sm mb-6">
-          <h4 className="font-bold text-primary-dark mb-5 flex items-center gap-2">
-            Download do Aplicativo
-          </h4>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                Título Principal
-              </label>
-              <textarea
-                className="w-full p-3 border border-[#c8d8e8] rounded-xl font-bold h-24"
-                value={homeData.appDownloadTitle || ""}
-                onChange={(e) => setHomeData({ ...homeData, appDownloadTitle: e.target.value })}
-                placeholder="Baixe nosso aplicativo e..."
-              />
+          <div className="bg-[#f8fafc] border border-[#e2eaf3] rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-[#2D6A9F] text-white p-8 space-y-3 flex flex-col items-center justify-center text-center">
+              <h2 className="text-2xl font-black tracking-tight drop-shadow-sm">Download do Aplicativo</h2>
+              <p className="text-sm font-medium text-white/80 max-w-md">
+                Gerencie as informações e links da seção de download do app da igreja.
+              </p>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-              <div className="space-y-2">
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                  Recurso 1 (TV)
-                </label>
-                <textarea
-                  className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm h-16"
-                  value={homeData.appDownloadFeature1 || ""}
-                  onChange={(e) => setHomeData({ ...homeData, appDownloadFeature1: e.target.value })}
-                  placeholder="Receba conteúdos..."
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                  Recurso 2 (Bíblia)
-                </label>
-                <textarea
-                  className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm h-16"
-                  value={homeData.appDownloadFeature2 || ""}
-                  onChange={(e) => setHomeData({ ...homeData, appDownloadFeature2: e.target.value })}
-                  placeholder="Tenha a Bíblia..."
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                  Recurso 3 (Coração)
-                </label>
-                <textarea
-                  className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm h-16"
-                  value={homeData.appDownloadFeature3 || ""}
-                  onChange={(e) => setHomeData({ ...homeData, appDownloadFeature3: e.target.value })}
-                  placeholder="Faça contribuições..."
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                  Recurso 4 (Inscrições)
-                </label>
-                <textarea
-                  className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm h-16"
-                  value={homeData.appDownloadFeature4 || ""}
-                  onChange={(e) => setHomeData({ ...homeData, appDownloadFeature4: e.target.value })}
-                  placeholder="Faça inscrições..."
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-              <div className="space-y-2">
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                  Link Google Play
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm"
-                  value={homeData.appDownloadPlayStoreUrl || ""}
-                  onChange={(e) => setHomeData({ ...homeData, appDownloadPlayStoreUrl: e.target.value })}
-                  placeholder="https://play.google.com/..."
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                  Link App Store
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm"
-                  value={homeData.appDownloadAppStoreUrl || ""}
-                  onChange={(e) => setHomeData({ ...homeData, appDownloadAppStoreUrl: e.target.value })}
-                  placeholder="https://apps.apple.com/..."
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-              <div className="space-y-2">
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                  Cor de Fundo da Seção
-                </label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="color"
-                    className="w-12 h-12 p-1 border border-[#c8d8e8] rounded-xl cursor-pointer"
-                    value={homeData.appDownloadBgColor || "#7A8C66"}
-                    onChange={(e) => setHomeData({ ...homeData, appDownloadBgColor: e.target.value })}
-                  />
-                  <input
-                    type="text"
-                    className="flex-1 p-3 border border-[#c8d8e8] rounded-xl text-sm uppercase"
-                    value={homeData.appDownloadBgColor || "#7A8C66"}
-                    onChange={(e) => setHomeData({ ...homeData, appDownloadBgColor: e.target.value })}
-                    placeholder="#7A8C66"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                  Imagem do Celular (URL ou Upload)
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    className="flex-1 p-3 border border-[#c8d8e8] rounded-xl text-sm"
-                    value={homeData.appDownloadImage || "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80"}
-                    onChange={(e) => setHomeData({ ...homeData, appDownloadImage: e.target.value })}
-                    placeholder="URL da imagem..."
-                  />
-                  <label className="shrink-0 cursor-pointer p-3 bg-[#f7fafd] border border-[#c8d8e8] rounded-lg text-primary-base hover:bg-primary-bg transition flex items-center gap-1 text-[10px] font-bold uppercase overflow-hidden">
-                    <Upload size={14} /> Upload
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept="image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        if (file.size > 5 * 1024 * 1024) {
-                          alert("A imagem é muito grande. Escolha uma imagem de até 5MB.");
-                          return;
-                        }
-                        try {
-                          const base64String = await compressImage(file);
-                          setHomeData({ ...homeData, appDownloadImage: base64String });
-                        } catch (error) {
-                          console.error("Erro ao processar imagem", error);
-                          alert("Erro ao processar imagem.");
-                        }
-                      }}
-                    />
+            
+            <div className="p-6 md:p-8 space-y-6">
+              <div className="bg-white p-6 rounded-2xl border border-[#c8d8e8] shadow-sm space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 mb-1 block">
+                    Título Principal *
                   </label>
+                  <textarea
+                    className="w-full p-4 text-lg border border-[#c8d8e8] rounded-xl font-bold h-24 resize-none bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                    value={homeData.appDownloadTitle || ""}
+                    onChange={(e) => setHomeData({ ...homeData, appDownloadTitle: e.target.value })}
+                    placeholder="Baixe nosso aplicativo e..."
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 gap-y-6 pt-2">
+                  <div className="space-y-2 relative group">
+                    <div className="absolute -left-2 top-0 bottom-0 w-1 bg-[#2D6A9F] rounded-r opacity-50 group-focus-within:opacity-100 transition-opacity"></div>
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-2 mb-1 block">
+                      Recurso 1 (TV)
+                    </label>
+                    <textarea
+                      className="w-full p-3 text-sm border border-[#c8d8e8] rounded-xl h-20 resize-none bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                      value={homeData.appDownloadFeature1 || ""}
+                      onChange={(e) => setHomeData({ ...homeData, appDownloadFeature1: e.target.value })}
+                      placeholder="Receba conteúdos..."
+                    />
+                  </div>
+                  <div className="space-y-2 relative group">
+                    <div className="absolute -left-2 top-0 bottom-0 w-1 bg-[#2D6A9F] rounded-r opacity-50 group-focus-within:opacity-100 transition-opacity"></div>
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-2 mb-1 block">
+                      Recurso 2 (Bíblia)
+                    </label>
+                    <textarea
+                      className="w-full p-3 text-sm border border-[#c8d8e8] rounded-xl h-20 resize-none bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                      value={homeData.appDownloadFeature2 || ""}
+                      onChange={(e) => setHomeData({ ...homeData, appDownloadFeature2: e.target.value })}
+                      placeholder="Tenha a Bíblia..."
+                    />
+                  </div>
+                  <div className="space-y-2 relative group">
+                    <div className="absolute -left-2 top-0 bottom-0 w-1 bg-[#2D6A9F] rounded-r opacity-50 group-focus-within:opacity-100 transition-opacity"></div>
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-2 mb-1 block">
+                      Recurso 3 (Coração)
+                    </label>
+                    <textarea
+                      className="w-full p-3 text-sm border border-[#c8d8e8] rounded-xl h-20 resize-none bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                      value={homeData.appDownloadFeature3 || ""}
+                      onChange={(e) => setHomeData({ ...homeData, appDownloadFeature3: e.target.value })}
+                      placeholder="Faça contribuições..."
+                    />
+                  </div>
+                  <div className="space-y-2 relative group">
+                    <div className="absolute -left-2 top-0 bottom-0 w-1 bg-[#2D6A9F] rounded-r opacity-50 group-focus-within:opacity-100 transition-opacity"></div>
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-2 mb-1 block">
+                      Recurso 4 (Inscrições)
+                    </label>
+                    <textarea
+                      className="w-full p-3 text-sm border border-[#c8d8e8] rounded-xl h-20 resize-none bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                      value={homeData.appDownloadFeature4 || ""}
+                      onChange={(e) => setHomeData({ ...homeData, appDownloadFeature4: e.target.value })}
+                      placeholder="Faça inscrições..."
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="pt-4 border-t border-[#e2eaf3] flex justify-end mt-4">
-              <button
-                onClick={handleSaveHome}
-                disabled={isLoading}
-                className="flex items-center gap-2 px-6 py-2 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition"
-              >
-                {isLoading ? (
-                  <Loader2 className="animate-spin" size={16} />
-                ) : (
-                  <Save size={16} />
-                )}
-                Salvar Configuração
-              </button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                <div className="space-y-6 bg-white p-6 rounded-2xl border border-[#c8d8e8] shadow-sm">
+                  <h5 className="font-bold text-sm text-gray-600 border-b border-[#e2eaf3] pb-2">Links das Lojas</h5>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 mb-1 flex items-center gap-2">
+                        Link Google Play
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full p-3 text-sm border border-[#c8d8e8] rounded-xl bg-gray-50 focus:bg-white focus:border-[#3bcc8d] focus:ring-2 focus:ring-[#3bcc8d]/20 outline-none transition-all"
+                        value={homeData.appDownloadPlayStoreUrl || ""}
+                        onChange={(e) => setHomeData({ ...homeData, appDownloadPlayStoreUrl: e.target.value })}
+                        placeholder="https://play.google.com/..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 mb-1 flex items-center gap-2">
+                        Link App Store
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full p-3 text-sm border border-[#c8d8e8] rounded-xl bg-gray-50 focus:bg-white focus:border-[#007aff] focus:ring-2 focus:ring-[#007aff]/20 outline-none transition-all"
+                        value={homeData.appDownloadAppStoreUrl || ""}
+                        onChange={(e) => setHomeData({ ...homeData, appDownloadAppStoreUrl: e.target.value })}
+                        placeholder="https://apps.apple.com/..."
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-6 bg-white p-6 rounded-2xl border border-[#c8d8e8] shadow-sm">
+                  <h5 className="font-bold text-sm text-gray-600 border-b border-[#e2eaf3] pb-2">Visual</h5>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 mb-1 block">
+                        Cor de Fundo da Seção
+                      </label>
+                      <div className="flex items-center gap-3 p-1.5 border border-[#c8d8e8] rounded-xl bg-gray-50">
+                        <input
+                          type="color"
+                          className="w-10 h-10 rounded-lg border-none cursor-pointer p-0 bg-transparent"
+                          value={homeData.appDownloadBgColor || "#7A8C66"}
+                          onChange={(e) => setHomeData({ ...homeData, appDownloadBgColor: e.target.value })}
+                        />
+                        <input
+                          type="text"
+                          className="flex-1 p-2 text-sm font-mono font-bold uppercase tracking-wider bg-transparent border-0 outline-none"
+                          value={homeData.appDownloadBgColor || "#7A8C66"}
+                          onChange={(e) => setHomeData({ ...homeData, appDownloadBgColor: e.target.value })}
+                          placeholder="#7A8C66"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1 mb-1 block">
+                        Imagem do Celular (URL ou Upload)
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          className="flex-1 p-3 text-sm border border-[#c8d8e8] rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all overflow-hidden text-ellipsis"
+                          value={homeData.appDownloadImage || "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?... "}
+                          onChange={(e) => setHomeData({ ...homeData, appDownloadImage: e.target.value })}
+                          placeholder="URL da imagem..."
+                        />
+                        <label className="shrink-0 cursor-pointer px-4 bg-[#f8fafc] border border-[#c8d8e8] rounded-xl text-[#2D6A9F] hover:bg-[#eef4f9] transition flex items-center gap-2 text-[11px] font-bold uppercase overflow-hidden">
+                          <Upload size={14} /> Upload
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              if (file.size > 5 * 1024 * 1024) {
+                                alert("A imagem é muito grande. Escolha uma imagem de até 5MB.");
+                                return;
+                              }
+                              try {
+                                const base64String = await compressImage(file);
+                                setHomeData({ ...homeData, appDownloadImage: base64String });
+                              } catch (error) {
+                                console.error("Erro ao processar imagem", error);
+                                alert("Erro ao processar imagem.");
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 mt-6 border-t border-[#e2eaf3] flex flex-col-reverse md:flex-row justify-between items-center gap-4">
+                <button 
+                   onClick={() => {/* no-op for visual back */}} 
+                   className="w-full md:w-auto px-8 py-3 bg-white border border-[#c8d8e8] text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition drop-shadow-sm flex items-center justify-center gap-2"
+                >
+                   <ArrowLeft size={16} /> Voltar
+                </button>
+                <button 
+                   onClick={handleSaveHome} 
+                   disabled={isLoading} 
+                   className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-[#2D6A9F] text-white rounded-xl font-bold text-sm hover:bg-[#245785] shadow-md disabled:bg-gray-400 transition"
+                >
+                   {isLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Salvar Configuração
+                </button>
+              </div>
             </div>
           </div>
-        </div>
         </div>
         )}
 
@@ -3119,239 +3243,252 @@ const innerContent = (
         </div>
 
         {edificadoSubTab === "hero" && (
-          <div className="animate-fade-in space-y-10">
+          <div className="animate-fade-in space-y-6">
 
           {/* Carousel Section */}
-          <div id="section-hero" className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl space-y-6 scroll-mt-6">
-            <h4 className="font-bold text-primary-base mb-2 flex items-center gap-2">
-              Carrossel de Banners (Hero)
-            </h4>
-            <p className="text-xs text-gray-500 mb-4 italic">
-              Altere as imagens e textos que aparecem no topo do site.
-            </p>
-
-            <div className="grid grid-cols-1 gap-4">
-              {(edificadoMatrimonioData.slides || []).map(
-                (slide: any, idx: number) => (
-                  <div
-                    key={slide.id ? `slide-${slide.id}` : `idx-${idx}`}
-                    className="p-6 border border-[#e2eaf3] rounded-xl bg-white space-y-4 relative shadow-sm"
-                  >
-                    <button
-                      onClick={() => setSlideToDelete(idx)}
-                      className="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition"
-                      type="button"
-                      title="Excluir slide"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-[10px] text-gray-400 font-bold uppercase">
-                          Imagem (Max 5MB)
-                        </label>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            className="flex-1 p-2 border border-[#c8d8e8] rounded-lg text-xs"
-                            placeholder="URL da Imagem"
-                            value={slide.url}
-                            onChange={(e) => {
-                              const newUrl = e.target.value;
-                              setEdificadoMatrimonioData((prev) => ({
-                                ...prev,
-                                slides: prev.slides.map((s, i) =>
-                                  i === idx ? { ...s, url: newUrl } : s,
-                                ),
-                              }));
-                            }}
-                          />
-                          <label className="shrink-0 cursor-pointer p-2 bg-[#f7fafd] border border-[#c8d8e8] rounded-lg text-primary-base hover:bg-primary-bg transition flex items-center gap-1 text-[10px] font-bold uppercase overflow-hidden">
-                            <Upload size={14} />
-                            Dispositivo
-                            <input
-                              type="file"
-                              className="hidden"
-                              accept="image/*"
-                              onChange={(e) => handleImageUpload(e, idx, "edificado")}
-                            />
-                          </label>
-                        </div>
-                        <p className="text-[10px] text-gray-500 mt-1">
-                          Tamanho recomendado: 1920x1080 px (Proporção 16:9)
-                        </p>
-                        {slide.url && (
-                          <img
-                            src={slide.url}
-                            alt="Preview"
-                            className="h-16 w-full object-cover rounded mt-2 border shadow-sm"
-                          />
-                        )}
-                      </div>
-                      <div className="space-y-3">
-                        <div className="space-y-1">
-                          <label className="text-[10px] text-gray-400 font-bold uppercase">
-                            Título
-                          </label>
-                          <input
-                            type="text"
-                            className="w-full p-2 border border-[#c8d8e8] rounded-lg font-bold text-sm"
-                            value={slide.title || ""}
-                            onChange={(e) => {
-                              const newTitle = e.target.value;
-                              setEdificadoMatrimonioData((prev) => ({
-                                ...prev,
-                                slides: prev.slides.map((s, i) =>
-                                  i === idx ? { ...s, title: newTitle } : s,
-                                ),
-                              }));
-                            }}
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] text-gray-400 font-bold uppercase">
-                            Subtítulo
-                          </label>
-                          <textarea
-                            className="w-full p-2 border border-[#c8d8e8] rounded-lg text-xs h-16"
-                            value={slide.subtitle || ""}
-                            onChange={(e) => {
-                              const newSubtitle = e.target.value;
-                              setEdificadoMatrimonioData((prev) => ({
-                                ...prev,
-                                slides: prev.slides.map((s, i) =>
-                                  i === idx ? { ...s, subtitle: newSubtitle } : s,
-                                ),
-                              }));
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                      <div className="border border-[#e2eaf3] rounded-xl p-4 bg-[#fcfdfe] space-y-3">
-                        <h5 className="text-xs font-bold text-primary-base">
-                          Botão 1 (Principal)
-                        </h5>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <label className="text-[10px] text-gray-400 font-bold uppercase">
-                              Texto
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Ex: Nossos Cursos"
-                              className="w-full p-2 border border-[#c8d8e8] rounded-lg text-xs"
-                              value={slide.button1Text || ""}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setEdificadoMatrimonioData((prev) => ({
-                                  ...prev,
-                                  slides: prev.slides.map((s, i) =>
-                                    i === idx ? { ...s, button1Text: val } : s,
-                                  ),
-                                }));
-                              }}
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-[10px] text-gray-400 font-bold uppercase">
-                              Link
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Ex: /cursos"
-                              className="w-full p-2 border border-[#c8d8e8] rounded-lg text-xs"
-                              value={slide.button1Link || ""}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setEdificadoMatrimonioData((prev) => ({
-                                  ...prev,
-                                  slides: prev.slides.map((s, i) =>
-                                    i === idx ? { ...s, button1Link: val } : s,
-                                  ),
-                                }));
-                              }}
-                            />
-                          </div>
-                        </div>
-                      
-<div className="pt-6 mt-4 border-t border-[#e2eaf3] flex justify-end"><button onClick={handleSaveCursos} disabled={isLoading} className="flex items-center gap-2 px-6 py-2 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition">{isLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Salvar Configuração</button></div>
-</div>
-                      <div className="border border-[#e2eaf3] rounded-xl p-4 bg-[#fcfdfe] space-y-3">
-                        <h5 className="text-xs font-bold text-primary-base">
-                          Botão 2 (Secundário)
-                        </h5>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <label className="text-[10px] text-gray-400 font-bold uppercase">
-                              Texto
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Ex: Saiba Mais"
-                              className="w-full p-2 border border-[#c8d8e8] rounded-lg text-xs"
-                              value={slide.button2Text || ""}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setEdificadoMatrimonioData((prev) => ({
-                                  ...prev,
-                                  slides: prev.slides.map((s, i) =>
-                                    i === idx ? { ...s, button2Text: val } : s,
-                                  ),
-                                }));
-                              }}
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-[10px] text-gray-400 font-bold uppercase">
-                              Link
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Ex: /quem-somos"
-                              className="w-full p-2 border border-[#c8d8e8] rounded-lg text-xs"
-                              value={slide.button2Link || ""}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setEdificadoMatrimonioData((prev) => ({
-                                  ...prev,
-                                  slides: prev.slides.map((s, i) =>
-                                    i === idx ? { ...s, button2Link: val } : s,
-                                  ),
-                                }));
-                              }}
-                            />
-                          </div>
-                        </div>
-                      
-<div className="pt-6 mt-4 border-t border-[#e2eaf3] flex justify-end"><button onClick={handleSaveCursos} disabled={isLoading} className="flex items-center gap-2 px-6 py-2 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition">{isLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Salvar Configuração</button></div>
-</div>
-                    </div>
-                  </div>
-                ),
-              )}
+          <div className="bg-[#f8fafc] border border-[#e2eaf3] rounded-2xl overflow-hidden shadow-sm">
+            {/* Header section matching image style */}
+            <div className="bg-[#2D6A9F] text-white p-8 space-y-3 flex flex-col items-center justify-center text-center">
+              <h2 className="text-2xl font-black tracking-tight drop-shadow-sm">Carrossel de Banners (Hero)</h2>
+              <p className="text-sm font-medium text-white/80 max-w-md">
+                Altere as imagens e textos que aparecem no topo do site oficial.
+              </p>
             </div>
 
-            <button
-              onClick={addEdificadoSlide}
-              className="w-full py-3 border-2 border-dashed border-primary-base text-primary-base rounded-xl font-bold text-sm hover:bg-primary-bg transition"
-            >
-              + Adicionar Novo Slide ao Carrossel
-            </button>
+            <div className="p-6 md:p-8 space-y-6">
+              <div className="grid grid-cols-1 gap-6">
+                {(edificadoMatrimonioData.slides || []).map(
+                  (slide: any, idx: number) => (
+                    <div
+                      key={slide.id ? `slide-${slide.id}` : `idx-${idx}`}
+                      className="border border-[#c8d8e8] rounded-2xl bg-white shadow-sm overflow-hidden"
+                    >
+                      {/* Card Header matching image style */}
+                      <div className="p-5 border-b border-[#e2eaf3] flex justify-between items-center bg-[#fcfdfe]">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 border border-[#c8d8e8] rounded-xl flex justify-center items-center text-[#2D6A9F] bg-white shadow-sm">
+                            <ImageIcon size={18} strokeWidth={2.5} />
+                          </div>
+                          <h3 className="font-bold text-[#2D6A9F] text-lg">{idx + 1}. Configuração do Slide</h3>
+                        </div>
+                        <button
+                          onClick={() => setSlideToDelete(idx)}
+                          className="text-gray-400 hover:text-red-500 transition border border-transparent hover:border-red-100 hover:bg-red-50 p-2 rounded-lg"
+                          type="button"
+                          title="Excluir slide"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
 
-            <button
-              onClick={handleSaveEdificadoMatrimonio}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition mt-6"
-            >
-              {isLoading ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                <Save size={18} />
-              )}
-              Salvar Conteúdo Edificado
-            </button>
+                      {/* Card Body */}
+                      <div className="p-6 space-y-6">
+                        <div className="grid md:grid-cols-2 gap-8">
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                                Imagem (Max 5MB) *
+                              </label>
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  className="flex-1 p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                                  placeholder="URL da Imagem"
+                                  value={slide.url}
+                                  onChange={(e) => {
+                                    const newUrl = e.target.value;
+                                    setEdificadoMatrimonioData((prev) => ({
+                                      ...prev,
+                                      slides: prev.slides.map((s, i) =>
+                                        i === idx ? { ...s, url: newUrl } : s,
+                                      ),
+                                    }));
+                                  }}
+                                />
+                                <label className="shrink-0 cursor-pointer px-4 bg-[#f8fafc] border border-[#c8d8e8] rounded-xl text-[#2D6A9F] hover:bg-[#eef4f9] transition flex items-center gap-2 text-[11px] font-bold uppercase overflow-hidden">
+                                  <Upload size={14} /> Upload
+                                  <input
+                                    type="file"
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={(e) => handleImageUpload(e, idx, "edificado")}
+                                  />
+                                </label>
+                              </div>
+                              <p className="text-[10px] text-gray-500 pl-1">
+                                Tamanho recomendado: 1920x1080 px (Proporção 16:9)
+                              </p>
+                              {slide.url && (
+                                <div className="pt-2 border-t border-[#e2eaf3] mt-4">
+                                  <img
+                                    src={slide.url}
+                                    alt="Preview"
+                                    className="h-24 w-full object-cover rounded-lg border border-[#e2eaf3] shadow-sm"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                                Título Principal *
+                              </label>
+                              <input
+                                type="text"
+                                className="w-full p-3 border border-[#c8d8e8] rounded-xl font-bold text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                                value={slide.title || ""}
+                                onChange={(e) => {
+                                  const newTitle = e.target.value;
+                                  setEdificadoMatrimonioData((prev) => ({
+                                    ...prev,
+                                    slides: prev.slides.map((s, i) =>
+                                      i === idx ? { ...s, title: newTitle } : s,
+                                    ),
+                                  }));
+                                }}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                                Subtítulo / Texto de Apoio *
+                              </label>
+                              <textarea
+                                className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm h-24 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all resize-none"
+                                value={slide.subtitle || ""}
+                                onChange={(e) => {
+                                  const newSubtitle = e.target.value;
+                                  setEdificadoMatrimonioData((prev) => ({
+                                    ...prev,
+                                    slides: prev.slides.map((s, i) =>
+                                      i === idx ? { ...s, subtitle: newSubtitle } : s,
+                                    ),
+                                  }));
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-[#e2eaf3]">
+                          <div className="border border-[#e2eaf3] rounded-xl p-4 bg-[#fcfdfe] space-y-4">
+                            <h5 className="text-[11px] font-bold text-[#2D6A9F] uppercase tracking-wider">
+                              Botão 1 (Principal)
+                            </h5>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-1">
+                                <label className="text-[9px] text-gray-400 font-bold uppercase">Texto</label>
+                                <input
+                                  type="text"
+                                  placeholder="Ex: Nossos Cursos"
+                                  className="w-full p-2 border border-[#c8d8e8] rounded-lg text-xs bg-gray-50 focus:bg-white"
+                                  value={slide.button1Text || ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setEdificadoMatrimonioData((prev) => ({
+                                      ...prev,
+                                      slides: prev.slides.map((s, i) =>
+                                        i === idx ? { ...s, button1Text: val } : s,
+                                      ),
+                                    }));
+                                  }}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[9px] text-gray-400 font-bold uppercase">Link</label>
+                                <input
+                                  type="text"
+                                  placeholder="Ex: /cursos"
+                                  className="w-full p-2 border border-[#c8d8e8] rounded-lg text-xs bg-gray-50 focus:bg-white"
+                                  value={slide.button1Link || ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setEdificadoMatrimonioData((prev) => ({
+                                      ...prev,
+                                      slides: prev.slides.map((s, i) =>
+                                        i === idx ? { ...s, button1Link: val } : s,
+                                      ),
+                                    }));
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="border border-[#e2eaf3] rounded-xl p-4 bg-[#fcfdfe] space-y-4">
+                            <h5 className="text-[11px] font-bold text-[#2D6A9F] uppercase tracking-wider">
+                              Botão 2 (Secundário)
+                            </h5>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-1">
+                                <label className="text-[9px] text-gray-400 font-bold uppercase">Texto</label>
+                                <input
+                                  type="text"
+                                  placeholder="Ex: Saiba Mais"
+                                  className="w-full p-2 border border-[#c8d8e8] rounded-lg text-xs bg-gray-50 focus:bg-white"
+                                  value={slide.button2Text || ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setEdificadoMatrimonioData((prev) => ({
+                                      ...prev,
+                                      slides: prev.slides.map((s, i) =>
+                                        i === idx ? { ...s, button2Text: val } : s,
+                                      ),
+                                    }));
+                                  }}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[9px] text-gray-400 font-bold uppercase">Link</label>
+                                <input
+                                  type="text"
+                                  placeholder="Ex: /quem-somos"
+                                  className="w-full p-2 border border-[#c8d8e8] rounded-lg text-xs bg-gray-50 focus:bg-white"
+                                  value={slide.button2Link || ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setEdificadoMatrimonioData((prev) => ({
+                                      ...prev,
+                                      slides: prev.slides.map((s, i) =>
+                                        i === idx ? { ...s, button2Link: val } : s,
+                                      ),
+                                    }));
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ),
+                )}
+              </div>
+
+              <button
+                onClick={addEdificadoSlide}
+                className="w-full py-4 border-2 border-dashed border-[#2D6A9F] text-[#2D6A9F] rounded-2xl font-bold text-sm hover:bg-[#2D6A9F]/5 transition-colors"
+              >
+                + Adicionar Novo Slide ao Carrossel
+              </button>
+
+              {/* Footer Section */}
+              <div className="pt-6 mt-2 border-t border-[#e2eaf3] flex flex-col-reverse md:flex-row justify-between items-center gap-4">
+                <button 
+                   onClick={() => {/* no-op for visual back */}} 
+                   className="w-full md:w-auto px-8 py-3 bg-white border border-[#c8d8e8] text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition drop-shadow-sm flex items-center justify-center gap-2"
+                >
+                   <ArrowLeft size={16} /> Voltar
+                </button>
+                <button 
+                   onClick={handleSaveEdificadoMatrimonio} 
+                   disabled={isLoading} 
+                   className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-[#2D6A9F] text-white rounded-xl font-bold text-sm hover:bg-[#245785] shadow-md disabled:bg-gray-400 transition"
+                >
+                   {isLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Salvar Configuração
+                </button>
+              </div>
+            </div>
           </div>
           </div>
         )}
