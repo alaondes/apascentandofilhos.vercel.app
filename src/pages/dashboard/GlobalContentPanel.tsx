@@ -6579,48 +6579,51 @@ if (isEmbedded) {
 
 return (
   <AdminLayout>
-    <section className="bg-gradient-to-br from-primary-base to-primary-light pt-10 sm:pt-14 pb-8 sm:pb-10 text-center text-white px-4">
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
-        <ShieldCheck size={32} className="text-[#a5d2ff] sm:w-9 sm:h-9" />
-        <h1 className="text-2xl sm:text-[2.2rem] font-black font-serif tracking-wide m-0 leading-tight">
-          Gestão de Conteúdo Global
+    <section className="bg-white border-b border-[#e2eaf3] pt-12 pb-10 text-center px-4 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50/50 via-transparent to-transparent pointer-events-none"></div>
+      <div className="relative flex flex-col sm:flex-row items-center justify-center gap-3">
+        <div className="p-3 bg-[#2D6A9F]/10 rounded-2xl text-[#2D6A9F]">
+          <ShieldCheck size={32} />
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-black text-[#1a3d5c] tracking-tight m-0 leading-tight">
+          Painel de Conteúdo
         </h1>
       </div>
-      <p className="text-sm sm:text-[1.05rem] opacity-90 max-w-[540px] mx-auto mt-2">
-        Edite os textos e seções visíveis no site
+      <p className="relative text-sm sm:text-base text-gray-500 font-medium max-w-[540px] mx-auto mt-3">
+        Gerencie e edite todos os textos, seções e imagens do site
       </p>
     </section>
 
-    <section className="w-full max-w-[1200px] mx-auto px-4 sm:px-5 py-6 sm:py-10 pb-16 flex flex-col md:flex-row gap-8">
+    <section className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 py-8 pb-20 flex flex-col lg:flex-row gap-8">
       {/* Sidebar for Navigation within Global Content */}
-      <div className="w-full md:w-64 shrink-0 bg-white rounded-[14px] border-[1.5px] border-[#c8d8e8] shadow-sm p-4 h-fit">
-        <nav className="space-y-2">
+      <div className="w-full lg:w-72 shrink-0 bg-white rounded-2xl border border-[#e2eaf3] shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] p-5 h-fit lg:sticky lg:top-8 z-10">
+        <nav className="space-y-1">
           {[
             { id: "aparencia", label: "Aparência e Cores", icon: Settings },
             {
               id: "header_logo",
-              label: "Logo do Topo (Navbar)",
+              label: "Logo e Navbar",
               icon: ImageIcon,
             },
-            { id: "inicio", label: "Conteúdo Início", icon: Home },
-            { id: "quem_somos", label: "Conteúdo Quem Somos", icon: Users },
+            { id: "inicio", label: "Página Início", icon: Home },
+            { id: "quem_somos", label: "Página Quem Somos", icon: Users },
             {
               id: "edificado_matrimonio",
-              label: "Conteúdo Edificado Matrimônio",
+              label: "Edificado Matrimônio",
               icon: Heart,
             },
-            { id: "cursos", label: "Conteúdo Escola MAF", icon: BookOpen },
-            { id: "contatos", label: "Conteúdo Contatos", icon: Mail },
-            { id: "login", label: "Conteúdo Login", icon: Lock },
+            { id: "cursos", label: "Página de Cursos", icon: BookOpen },
+            { id: "contatos", label: "Contatos e Redes", icon: Mail },
+            { id: "login", label: "Página de Login", icon: Lock },
             { id: "footer", label: "Conteúdo Rodapé", icon: Layout },
           ].map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveContent(item.id as any)}
-              className={`flex items-center w-full gap-3 p-3 rounded-lg font-bold text-sm transition ${
+              className={`flex items-center w-full gap-3 p-3.5 rounded-xl font-bold text-sm transition-all border border-transparent ${
                 activeContent === item.id
-                  ? "bg-primary-base text-white shadow-md"
-                  : "text-primary-dark hover:bg-[#f7fafd]"
+                  ? "bg-[#2D6A9F] text-white shadow-md drop-shadow-sm"
+                  : "bg-transparent text-gray-600 hover:bg-gray-50 hover:text-[#2D6A9F] hover:border-[#e2eaf3]"
               }`}
             >
               <item.icon size={18} />
@@ -6629,25 +6632,20 @@ return (
           ))}
         </nav>
 
-        <div className="mt-6 pt-4 border-t space-y-2">
+        <div className="mt-6 pt-6 border-t border-[#e2eaf3] space-y-2">
           <button
             onClick={() => navigate("/dashboard/admin")}
-            className="flex items-center w-full gap-3 p-3 rounded-lg font-bold text-sm text-gray-700 hover:bg-gray-100 transition"
+            className="flex items-center justify-center w-full gap-2 p-3.5 rounded-xl font-bold text-sm bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-all border border-[#e2eaf3] shadow-sm"
           >
             <ArrowLeft size={18} />
-            Voltar p/ Painel
+            Voltar ao Dashboard
           </button>
         </div>
       </div>
 
       {/* Content Editor Area */}
-      <div className="flex-1">
-        <h2 className="text-2xl font-black text-primary-dark mb-6 capitalize font-serif px-1">
-          {activeContent.replace("_", " ")}
-        </h2>
-        <div className="bg-white p-6 rounded-[14px] border-[1.5px] border-[#c8d8e8] shadow-sm">
-          {innerContent}
-        </div>
+      <div className="flex-1 min-w-0">
+        {innerContent}
       </div>
     </section>
   </AdminLayout>
