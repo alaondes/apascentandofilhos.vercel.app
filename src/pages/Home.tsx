@@ -158,6 +158,32 @@ export default function Home({
   const [latestArtigos, setLatestArtigos] = useState<any[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
   const [isDataLoading, setIsDataLoading] = useState(true);
+  const [youtubeVideos, setYoutubeVideos] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (homeData?.youtubeChannelId) {
+      const fetchYoutubeVideos = async () => {
+        try {
+          const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=https://www.youtube.com/feeds/videos.xml?channel_id=${homeData.youtubeChannelId}`);
+          const data = await response.json();
+          if (data?.status === 'ok' && data.items) {
+            const formatted = data.items.map((item: any) => ({
+              id: item.guid,
+              title: item.title,
+              url: item.link.replace('watch?v=', 'embed/'),
+              thumbnail: item.thumbnail
+            }));
+            setYoutubeVideos(formatted);
+          }
+        } catch (error) {
+          console.error("Error fetching latest youtube videos: ", error);
+        }
+      };
+      fetchYoutubeVideos();
+    } else {
+      setYoutubeVideos([]);
+    }
+  }, [homeData?.youtubeChannelId]);
 
   const isGlobalAdmin =
     profile?.role === "admin" || user?.email === "alaondez@gmail.com";
@@ -774,6 +800,58 @@ export default function Home({
       {/* Videos Section */}
       <section className="bg-[#fafbfb] py-16 border-t border-[#e2eaf3] overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
+          
+          {/* Culto Ao Vivo / Featured Video */}
+          <div className="mb-16 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+            <div className="space-y-6 lg:col-span-5">
+              <h2 className="text-5xl md:text-7xl font-black text-[#2a2a2a] tracking-tighter leading-tight">
+                {homeData?.liveStreamTitle || "Ao vivo"}
+                <span className="text-[#a42b2b]">.</span>
+              </h2>
+              
+              <div className="text-lg md:text-xl font-light text-gray-500 space-y-4">
+                {homeData?.liveStreamDescription ? (
+                  <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{__html: homeData.liveStreamDescription}}></div>
+                ) : (
+                  <>
+                    <p>Você pode acompanhar as transmissões<br/>da nossa Igreja pelo <strong>canal 31.1</strong></p>
+                    <p>Caso prefira, você pode acessar<br/>e ouvir os sermões no <strong>Spotify!</strong></p>
+                  </>
+                )}
+              </div>
+              
+              <div className="flex flex-col gap-3 pt-4 items-start">
+                {(homeData?.liveStreamBtn1Text && homeData?.liveStreamBtn1Url) && (
+                  <a href={homeData.liveStreamBtn1Url} target="_blank" rel="noreferrer" className="px-6 py-3 bg-[#236863] text-white rounded-full font-medium hover:bg-[#1a504c] transition-colors shadow-sm text-sm">
+                    {homeData.liveStreamBtn1Text}
+                  </a>
+                )}
+                {(homeData?.liveStreamBtn2Text && homeData?.liveStreamBtn2Url) && (
+                  <a href={homeData.liveStreamBtn2Url} target="_blank" rel="noreferrer" className="px-6 py-3 bg-[#236863] text-white rounded-full font-medium hover:bg-[#1a504c] transition-colors shadow-sm text-sm">
+                    {homeData.liveStreamBtn2Text}
+                  </a>
+                )}
+                {(homeData?.liveStreamBtn3Text && homeData?.liveStreamBtn3Url) && (
+                  <a href={homeData.liveStreamBtn3Url} target="_blank" rel="noreferrer" className="px-6 py-3 bg-[#236863] text-white rounded-full font-medium hover:bg-[#1a504c] transition-colors shadow-sm text-sm">
+                    {homeData.liveStreamBtn3Text}
+                  </a>
+                )}
+                
+                {(!homeData?.liveStreamBtn1Text && !homeData?.liveStreamBtn2Text && !homeData?.liveStreamBtn3Text) && null}
+              </div>
+            </div>
+            
+            <div className="lg:col-span-7 w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl relative group">
+              <iframe
+                src={homeData?.liveStreamUrl || "https://www.youtube.com/embed/jNQXAC9IVRw?si=0sHqJtI2d8C3o6oP"}
+                title={homeData?.liveStreamTitle || "Culto ao Vivo"}
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold text-[#303387] tracking-tight">
               {homeData?.videosTitle || "VÍDEOS"}
@@ -818,7 +896,9 @@ export default function Home({
             className="flex overflow-x-auto gap-6 pb-6 snap-x snap-mandatory scrollbar-hide"
             style={{ msOverflowStyle: "none", scrollbarWidth: "none" }}
           >
-            {((homeData !== null) ? (homeData.videos || []) : _videos).map((vid: any, idx: number) => {
+            {((homeData?.youtubeChannelId && youtubeVideos.length > 0) 
+              ? youtubeVideos 
+              : ((homeData !== null) ? (homeData.videos || []) : _videos)).map((vid: any, idx: number) => {
               let displayThumbnail = vid.thumbnail;
               if (!displayThumbnail && vid.url) {
                 const match = vid.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);

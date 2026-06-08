@@ -1898,8 +1898,163 @@ const innerContent = (
                 </div>
               </div>
 
+              <div className="border border-[#c8d8e8] rounded-2xl bg-white shadow-sm overflow-hidden mb-8">
+                <div className="p-5 border-b border-[#e2eaf3] bg-[#fcfdfe]">
+                  <h3 className="font-bold text-[#2D6A9F] text-lg">Culto ao Vivo (Destaque Principal)</h3>
+                </div>
+                <div className="p-6 md:p-8 space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                      URL do Vídeo (Embed)
+                    </label>
+                    <input
+                      type="url"
+                      className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                      placeholder="Ex: https://www.youtube.com/embed/XXXX"
+                      value={homeData?.liveStreamUrl || ""}
+                      onChange={(e) => {
+                        let newUrl = e.target.value;
+                        const match = newUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                        if (match && match[1]) {
+                          newUrl = `https://www.youtube.com/embed/${match[1]}`;
+                        }
+                        setHomeData({ ...homeData, liveStreamUrl: newUrl });
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                      Título (Será "Ao vivo" se vazio)
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                      placeholder="Ex: Ao vivo"
+                      value={homeData?.liveStreamTitle || ""}
+                      onChange={(e) => setHomeData({ ...homeData, liveStreamTitle: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                      Descrição Opcional (HTML permitido para quebras de linha com <br/>)
+                    </label>
+                    <textarea
+                      rows={3}
+                      className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                      placeholder={"Você pode acompanhar as transmissões\nda nossa Igreja pelo <strong>canal 31.1</strong>"}
+                      value={homeData?.liveStreamDescription || ""}
+                      onChange={(e) => setHomeData({ ...homeData, liveStreamDescription: e.target.value })}
+                    />
+                  </div>
+                  
+                  <div className="pt-4 border-t border-[#e2eaf3]">
+                    <h4 className="text-sm font-bold text-[#2D6A9F] mb-4">Botões Opcionais</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                          Botão 1 - Texto
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                          placeholder="Assista no YouTube"
+                          value={homeData?.liveStreamBtn1Text || ""}
+                          onChange={(e) => setHomeData({ ...homeData, liveStreamBtn1Text: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                          Botão 1 - URL
+                        </label>
+                        <input
+                          type="url"
+                          className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                          placeholder="https://youtube.com..."
+                          value={homeData?.liveStreamBtn1Url || ""}
+                          onChange={(e) => setHomeData({ ...homeData, liveStreamBtn1Url: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                          Botão 2 - Texto
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                          placeholder="Siga-nos no Insta"
+                          value={homeData?.liveStreamBtn2Text || ""}
+                          onChange={(e) => setHomeData({ ...homeData, liveStreamBtn2Text: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                          Botão 2 - URL
+                        </label>
+                        <input
+                          type="url"
+                          className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                          placeholder="https://instagram.com..."
+                          value={homeData?.liveStreamBtn2Url || ""}
+                          onChange={(e) => setHomeData({ ...homeData, liveStreamBtn2Url: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                          Botão 3 - Texto
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                          placeholder="Siga-nos no TikTok"
+                          value={homeData?.liveStreamBtn3Text || ""}
+                          onChange={(e) => setHomeData({ ...homeData, liveStreamBtn3Text: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                          Botão 3 - URL
+                        </label>
+                        <input
+                          type="url"
+                          className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                          placeholder="https://tiktok.com..."
+                          value={homeData?.liveStreamBtn3Url || ""}
+                          onChange={(e) => setHomeData({ ...homeData, liveStreamBtn3Url: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-[#e2eaf3] pt-6 mb-6">
+                <h4 className="font-bold text-[#2D6A9F] text-lg mb-4">Sincronização Automática (Opção 1)</h4>
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-6">
+                  <p className="text-sm text-blue-800 mb-4">
+                    Insira o <strong>ID do Canal do YouTube</strong> abaixo para obter os últimos vídeos do canal automaticamente. 
+                    Se preenchido, os vídeos manuais abaixo serão ignorados.
+                    <br/><br/>
+                    <em>Exemplo de ID de canal: UCNM06L9xSks3zUONK3QW6NA</em>
+                  </p>
+                  <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest pl-1">
+                    ID do Canal
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-3 border border-blue-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all mt-1"
+                    placeholder="Ex: UCNM06L9xSks3zUONK3QW6NA"
+                    value={homeData?.youtubeChannelId || ""}
+                    onChange={(e) => setHomeData({ ...homeData, youtubeChannelId: e.target.value })}
+                  />
+                </div>
+              </div>
+
               <div className="flex justify-between items-center mb-2">
-                <h5 className="font-bold text-lg text-[#2D6A9F]">Vídeos Adicionados</h5>
+                <h5 className="font-bold text-lg text-[#2D6A9F]">Vídeos Adicionados Manualmente (Opção 2)</h5>
                 <button
                   onClick={() => {
                     setHomeData((prev: any) => ({
