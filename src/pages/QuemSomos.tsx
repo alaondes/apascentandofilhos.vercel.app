@@ -30,6 +30,7 @@ export default function QuemSomos() {
     historyImage:
       data?.historyImage ||
       "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?auto=format&fit=crop&q=80&w=2070",
+    historyVideoUrl: data?.historyVideoUrl || "",
     principlesTitle: data?.principlesTitle || "Missão, Visão e Valores",
     principles:
       data !== null
@@ -68,6 +69,8 @@ export default function QuemSomos() {
       "Nosso ministério faz parte da rede **Apascentando Filhos**, focada não apenas no casal, mas na formação integral da criança e do adolescente sob a luz do Evangelho. Contamos com líderes treinados e capacitados em todo o país para prestar mentoria e suporte personalizado a cada família que busca nossa ajuda.",
     teamBoxImage: data?.teamBoxImage || "",
   };
+
+  const [isTeamTextExpanded, setIsTeamTextExpanded] = useState(false);
 
   const formatText = (text: string) => {
     // Simple bold formatting replacement for **text**
@@ -115,11 +118,32 @@ export default function QuemSomos() {
             </div>
           </div>
           <div className="relative">
-            <img
-              src={content.historyImage}
-              alt="Story Image"
-              className="rounded-3xl shadow-xl w-full object-cover aspect-[4/3]"
-            />
+            {content.historyVideoUrl ? (
+              <iframe
+                src={(() => {
+                  let url = content.historyVideoUrl;
+                  try {
+                    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                    if (match && match[1]) {
+                      return `https://www.youtube.com/embed/${match[1]}`;
+                    }
+                  } catch (e) {
+                    console.error("Error formatting video url", e);
+                  }
+                  return url;
+                })()}
+                title="História Video"
+                className="rounded-3xl shadow-xl w-full aspect-[4/3] border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <img
+                src={content.historyImage}
+                alt="Story Image"
+                className="rounded-3xl shadow-xl w-full object-cover aspect-[4/3]"
+              />
+            )}
           </div>
         </div>
 
@@ -181,8 +205,8 @@ export default function QuemSomos() {
               </h2>
             )}
           </div>
-          <div className="flex flex-col md:flex-row gap-10 items-center bg-white p-8 md:p-12 rounded-[14px] shadow-[0_4px_28px_rgba(0,0,0,0.10)] border border-[#e2eaf3]">
-            <div className="w-48 h-48 rounded-full overflow-hidden shrink-0 border-4 border-primary-base/20 bg-[#f7fafd] flex items-center justify-center">
+          <div className="flex flex-col md:flex-row gap-10 items-start bg-white p-8 md:p-12 rounded-[14px] shadow-[0_4px_28px_rgba(0,0,0,0.10)] border border-[#e2eaf3]">
+            <div className="w-48 h-48 rounded-full overflow-hidden shrink-0 border-4 border-primary-base/20 bg-[#f7fafd] flex items-center justify-center mx-auto md:mx-0">
               {content.teamBoxImage ? (
                 <img
                   src={content.teamBoxImage}
@@ -193,14 +217,24 @@ export default function QuemSomos() {
                 <Users size={80} className="text-primary-base/50 shadow-sm" />
               )}
             </div>
-            <div>
+            <div className="w-full">
               <h3 className="text-2xl font-bold font-serif text-primary-dark mb-4 flex items-center gap-2">
                 <Heart className="text-primary-base" size={24} />{" "}
                 {content.teamBoxTitle}
               </h3>
-              <p className="text-[#2c4a63] text-lg leading-relaxed">
-                {formatText(content.teamBoxText)}
-              </p>
+              <div className="text-[#2c4a63] text-lg leading-relaxed">
+                <div className={isTeamTextExpanded ? "whitespace-pre-line" : "whitespace-pre-line line-clamp-6 md:line-clamp-5 overflow-hidden"}>
+                  {formatText(content.teamBoxText)}
+                </div>
+                {content.teamBoxText.length > 250 && (
+                  <button 
+                    onClick={() => setIsTeamTextExpanded(!isTeamTextExpanded)}
+                    className="mt-4 text-primary-base font-bold hover:text-primary-dark transition-colors"
+                  >
+                    {isTeamTextExpanded ? "Ler menos" : "Leia mais"}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

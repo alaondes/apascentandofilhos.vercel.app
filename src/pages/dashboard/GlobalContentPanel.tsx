@@ -3122,46 +3122,65 @@ const innerContent = (
             Nossa História
           </h4>
           <div className="grid grid-cols-1 gap-4">
-            <div className="space-y-1">
-              <label className="text-[10px] text-gray-400 font-bold uppercase">
-                Imagem (Recomendado: 800x600px)
-              </label>
-              <div className="flex gap-4 items-center">
-                {aboutData.historyImage && (
-                  <img
-                    src={aboutData.historyImage}
-                    alt="Preview"
-                    className="h-40 w-60 object-cover rounded-md border shadow-sm p-1 bg-white shrink-0"
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-[10px] text-gray-400 font-bold uppercase">
+                  Imagem de Fundo (Deixe em branco se usar o vídeo abaixo)
+                </label>
+                <div className="flex gap-4 items-center">
+                  {aboutData.historyImage && (
+                    <img
+                      src={aboutData.historyImage}
+                      alt="Preview"
+                      className="h-40 w-60 object-cover rounded-md border shadow-sm p-1 bg-white shrink-0"
+                    />
+                  )}
+                  <input
+                    type="text"
+                    className="flex-1 p-2 border border-[#c8d8e8] rounded-lg text-xs"
+                    placeholder="URL da Imagem"
+                    value={aboutData.historyImage || ""}
+                    onChange={(e) =>
+                      setAboutData({
+                        ...aboutData,
+                        historyImage: e.target.value,
+                      })
+                    }
                   />
-                )}
+                  <label className="shrink-0 cursor-pointer p-2 bg-[#f7fafd] border border-[#c8d8e8] rounded-lg text-primary-base hover:bg-primary-bg transition flex items-center gap-1 text-[10px] font-bold uppercase overflow-hidden">
+                    <Upload size={14} /> Upload
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 5 * 1024 * 1024)
+                          return alert("Imagem muito grande.");
+                        const b64 = await compressImage(file);
+                        setAboutData({ ...aboutData, historyImage: b64 });
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] text-gray-400 font-bold uppercase">
+                  URL do Vídeo (YouTube, Opcional - Substitui a Imagem)
+                </label>
                 <input
                   type="text"
-                  className="flex-1 p-2 border border-[#c8d8e8] rounded-lg text-xs"
-                  placeholder="URL da Imagem"
-                  value={aboutData.historyImage || ""}
+                  className="w-full p-2 border border-[#c8d8e8] rounded-lg text-xs"
+                  placeholder="https://www.youtube.com/embed/..."
+                  value={aboutData.historyVideoUrl || ""}
                   onChange={(e) =>
                     setAboutData({
                       ...aboutData,
-                      historyImage: e.target.value,
+                      historyVideoUrl: e.target.value,
                     })
                   }
                 />
-                <label className="shrink-0 cursor-pointer p-2 bg-[#f7fafd] border border-[#c8d8e8] rounded-lg text-primary-base hover:bg-primary-bg transition flex items-center gap-1 text-[10px] font-bold uppercase overflow-hidden">
-                  <Upload size={14} /> Upload
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      if (file.size > 5 * 1024 * 1024)
-                        return alert("Imagem muito grande.");
-                      const b64 = await compressImage(file);
-                      setAboutData({ ...aboutData, historyImage: b64 });
-                    }}
-                  />
-                </label>
               </div>
             </div>
             <div className="space-y-1">
