@@ -1821,6 +1821,53 @@ const innerContent = (
             </div>
             
             <div className="p-6 md:p-8 space-y-6">
+              
+              <div className="border border-[#c8d8e8] rounded-2xl bg-white shadow-sm overflow-hidden mb-8">
+                <div className="p-5 border-b border-[#e2eaf3] bg-[#fcfdfe]">
+                  <h3 className="font-bold text-[#2D6A9F] text-lg">Textos da Seção</h3>
+                </div>
+                <div className="p-6 md:p-8 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                        Título da Seção
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full p-3 border border-[#c8d8e8] rounded-xl font-bold text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                        placeholder="Ex: VÍDEOS"
+                        value={homeData?.videosTitle || ""}
+                        onChange={(e) => setHomeData({ ...homeData, videosTitle: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                        Texto do Botão
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full p-3 border border-[#c8d8e8] rounded-xl font-bold text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                        placeholder="Ex: VER MAIS"
+                        value={homeData?.videosButtonText || ""}
+                        onChange={(e) => setHomeData({ ...homeData, videosButtonText: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                      Link do Botão
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                      placeholder="Ex: /videos"
+                      value={homeData?.videosButtonLink || ""}
+                      onChange={(e) => setHomeData({ ...homeData, videosButtonLink: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="flex justify-between items-center mb-2">
                 <h5 className="font-bold text-lg text-[#2D6A9F]">Vídeos Adicionados</h5>
                 <button
@@ -1902,7 +1949,21 @@ const innerContent = (
                               value={vid.url || ""}
                               onChange={(e) => {
                                 const newVideos = [...(homeData.videos || [])];
-                                newVideos[idx].url = e.target.value;
+                                let newUrl = e.target.value;
+                                let newThumbnail = newVideos[idx].thumbnail;
+                                
+                                // Auto-fill thumbnail and convert to Embed URL for YouTube URLs
+                                const match = newUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                                if (match && match[1]) {
+                                  newThumbnail = `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
+                                  newUrl = `https://www.youtube.com/embed/${match[1]}`;
+                                }
+
+                                newVideos[idx] = {
+                                  ...newVideos[idx],
+                                  url: newUrl,
+                                  thumbnail: newThumbnail || newVideos[idx].thumbnail
+                                };
                                 setHomeData({ ...homeData, videos: newVideos });
                               }}
                             />
@@ -1947,11 +2008,21 @@ const innerContent = (
                                 />
                               </label>
                             </div>
-                            {vid.thumbnail && (
-                              <div className="pt-2 border-t border-[#e2eaf3] mt-4">
-                                <img src={vid.thumbnail} alt="Thumbnail preview" className="h-24 w-full object-cover rounded-lg border border-[#e2eaf3] shadow-sm" />
-                              </div>
-                            )}
+                            {(() => {
+                              let displayThumbnail = vid.thumbnail;
+                              if (!displayThumbnail && vid.url) {
+                                const match = vid.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                                if (match && match[1]) {
+                                  displayThumbnail = `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
+                                }
+                              }
+                              return displayThumbnail ? (
+                                <div className="pt-2 border-t border-[#e2eaf3] mt-4 relative">
+                                  <img src={displayThumbnail} referrerPolicy="no-referrer" alt="Thumbnail preview" className="h-24 w-full object-cover rounded-lg border border-[#e2eaf3] shadow-sm" />
+                                  <div className="absolute top-4 right-2 bg-black/60 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold tracking-wider pointer-events-none">Capa</div>
+                                </div>
+                              ) : null;
+                            })()}
                           </div>
                         </div>
                       </div>

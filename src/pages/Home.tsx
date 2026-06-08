@@ -851,7 +851,7 @@ export default function Home({
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold text-[#303387] tracking-tight">
-              VÍDEOS
+              {homeData?.videosTitle || "VÍDEOS"}
             </h2>
             <div className="flex flex-col md:flex-row items-center gap-4">
               <div className="flex items-center gap-2">
@@ -876,9 +876,15 @@ export default function Home({
                   <ChevronRight size={20} />
                 </button>
               </div>
-              <button className="px-6 py-2.5 bg-[#303387] text-white text-sm font-bold tracking-wider hover:bg-[#25286a] transition-colors">
-                VER MAIS
-              </button>
+              {homeData?.videosButtonLink ? (
+                <a href={homeData.videosButtonLink} className="px-6 py-2.5 bg-[#303387] text-white text-sm font-bold tracking-wider hover:bg-[#25286a] transition-colors inline-block">
+                  {homeData?.videosButtonText || "VER MAIS"}
+                </a>
+              ) : (
+                <button className="px-6 py-2.5 bg-[#303387] text-white text-sm font-bold tracking-wider hover:bg-[#25286a] transition-colors">
+                  {homeData?.videosButtonText || "VER MAIS"}
+                </button>
+              )}
             </div>
           </div>
 
@@ -887,7 +893,15 @@ export default function Home({
             className="flex overflow-x-auto gap-6 pb-6 snap-x snap-mandatory scrollbar-hide"
             style={{ msOverflowStyle: "none", scrollbarWidth: "none" }}
           >
-            {((homeData !== null) ? (homeData.videos || []) : _videos).map((vid: any, idx: number) => (
+            {((homeData !== null) ? (homeData.videos || []) : _videos).map((vid: any, idx: number) => {
+              let displayThumbnail = vid.thumbnail;
+              if (!displayThumbnail && vid.url) {
+                const match = vid.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                if (match && match[1]) {
+                  displayThumbnail = `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
+                }
+              }
+              return (
               <div
                 key={vid.id || idx}
                 className="snap-start shrink-0 w-[280px] md:w-[320px] group cursor-pointer"
@@ -895,7 +909,8 @@ export default function Home({
               >
                 <div className="relative w-full aspect-video bg-black mb-4 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                   <img
-                    src={vid.thumbnail || undefined}
+                    src={displayThumbnail || undefined}
+                    referrerPolicy="no-referrer"
                     alt={vid.title}
                     className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-300"
                   />
@@ -910,7 +925,8 @@ export default function Home({
                   {vid.title}
                 </h3>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
