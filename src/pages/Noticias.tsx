@@ -18,7 +18,7 @@ export default function Noticias() {
   const [homeData, setHomeData] = useState<any>(null);
 
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, "site_content", "home"), (docSnap) => {
+    const unsub = onSnapshot(doc(db, "content", "home"), (docSnap) => {
       if (docSnap.exists()) {
         setHomeData(docSnap.data());
       }
