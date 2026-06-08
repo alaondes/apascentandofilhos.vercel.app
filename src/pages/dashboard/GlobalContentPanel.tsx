@@ -2030,6 +2030,15 @@ const innerContent = (
                   </div>
                 </div>
               </div>
+              <div className="pt-6 mt-4 border-t border-[#e2eaf3] flex justify-end">
+                <button 
+                  onClick={handleSaveHome} 
+                  disabled={isLoading} 
+                  className="flex items-center gap-2 px-6 py-2 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition"
+                >
+                  {isLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Salvar Configuração
+                </button>
+              </div>
 
               <div className="border-t border-[#e2eaf3] pt-6 mb-6">
                 <h4 className="font-bold text-[#2D6A9F] text-lg mb-4">Sincronização Automática (Opção 1)</h4>

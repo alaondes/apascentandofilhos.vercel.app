@@ -802,37 +802,39 @@ export default function Home({
         <div className="max-w-7xl mx-auto px-6">
           
           {/* Culto Ao Vivo / Featured Video */}
-          <div className="mb-16 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-            <div className="space-y-6 lg:col-span-5">
-              <h2 className="text-5xl md:text-7xl font-black text-[#2a2a2a] tracking-tighter leading-tight">
-                {homeData?.liveStreamTitle || "Ao vivo"}
-                <span className="text-[#a42b2b]">.</span>
-              </h2>
-              
-              <div className="text-lg md:text-xl font-light text-gray-500 space-y-4">
-                {homeData?.liveStreamDescription ? (
-                  <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{__html: homeData.liveStreamDescription}}></div>
-                ) : (
-                  <>
-                    <p>Você pode acompanhar as transmissões<br/>da nossa Igreja pelo <strong>canal 31.1</strong></p>
-                    <p>Caso prefira, você pode acessar<br/>e ouvir os sermões no <strong>Spotify!</strong></p>
-                  </>
-                )}
+          <div className="mb-16 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-stretch">
+            <div className="flex flex-col justify-between lg:col-span-5 py-2">
+              <div className="space-y-6">
+                <h2 className="text-5xl md:text-7xl font-black text-[#2a2a2a] tracking-tighter leading-tight">
+                  {homeData?.liveStreamTitle || "Ao vivo"}
+                  <span className="text-[#a42b2b]">.</span>
+                </h2>
+                
+                <div className="text-lg md:text-xl font-light text-gray-500 space-y-4">
+                  {homeData?.liveStreamDescription ? (
+                    <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{__html: homeData.liveStreamDescription}}></div>
+                  ) : (
+                    <>
+                      <p>Você pode acompanhar as transmissões<br/>da nossa Igreja pelo <strong>canal 31.1</strong></p>
+                      <p>Caso prefira, você pode acessar<br/>e ouvir os sermões no <strong>Spotify!</strong></p>
+                    </>
+                  )}
+                </div>
               </div>
               
-              <div className="flex flex-col gap-3 pt-4 items-start">
+              <div className="flex flex-col gap-3 pt-6 items-start mt-auto">
                 {(homeData?.liveStreamBtn1Text && homeData?.liveStreamBtn1Url) && (
-                  <a href={homeData.liveStreamBtn1Url} target="_blank" rel="noreferrer" className="px-6 py-3 bg-[#236863] text-white rounded-full font-medium hover:bg-[#1a504c] transition-colors shadow-sm text-sm">
+                  <a href={homeData.liveStreamBtn1Url} target="_blank" rel="noreferrer" className="px-6 py-3 bg-primary-base text-white rounded-full font-medium hover:bg-primary-dark transition-colors shadow-sm text-sm">
                     {homeData.liveStreamBtn1Text}
                   </a>
                 )}
                 {(homeData?.liveStreamBtn2Text && homeData?.liveStreamBtn2Url) && (
-                  <a href={homeData.liveStreamBtn2Url} target="_blank" rel="noreferrer" className="px-6 py-3 bg-[#236863] text-white rounded-full font-medium hover:bg-[#1a504c] transition-colors shadow-sm text-sm">
+                  <a href={homeData.liveStreamBtn2Url} target="_blank" rel="noreferrer" className="px-6 py-3 bg-primary-base text-white rounded-full font-medium hover:bg-primary-dark transition-colors shadow-sm text-sm">
                     {homeData.liveStreamBtn2Text}
                   </a>
                 )}
                 {(homeData?.liveStreamBtn3Text && homeData?.liveStreamBtn3Url) && (
-                  <a href={homeData.liveStreamBtn3Url} target="_blank" rel="noreferrer" className="px-6 py-3 bg-[#236863] text-white rounded-full font-medium hover:bg-[#1a504c] transition-colors shadow-sm text-sm">
+                  <a href={homeData.liveStreamBtn3Url} target="_blank" rel="noreferrer" className="px-6 py-3 bg-primary-base text-white rounded-full font-medium hover:bg-primary-dark transition-colors shadow-sm text-sm">
                     {homeData.liveStreamBtn3Text}
                   </a>
                 )}
@@ -841,14 +843,70 @@ export default function Home({
               </div>
             </div>
             
-            <div className="lg:col-span-7 w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl relative group">
-              <iframe
-                src={homeData?.liveStreamUrl || "https://www.youtube.com/embed/jNQXAC9IVRw?si=0sHqJtI2d8C3o6oP"}
-                title={homeData?.liveStreamTitle || "Culto ao Vivo"}
-                className="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
+            <div 
+              className="lg:col-span-7 w-full h-full min-h-[300px] bg-black rounded-2xl overflow-hidden shadow-2xl relative group cursor-pointer"
+              onClick={() => setSelectedVideo(homeData?.liveStreamUrl || "https://www.youtube.com/embed/jNQXAC9IVRw")}
+            >
+              {(() => {
+                let url = homeData?.liveStreamUrl || "https://www.youtube.com/embed/jNQXAC9IVRw";
+                let videoId = "";
+                try {
+                  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                  if (match && match[1]) {
+                    videoId = match[1];
+                  }
+                } catch (e) {
+                  console.error("Error formatting youtube url", e);
+                }
+                
+                if (videoId) {
+                  return (
+                    <>
+                      <img 
+                        src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} 
+                        alt={homeData?.liveStreamTitle || "Culto ao Vivo"}
+                        className="w-full h-full absolute inset-0 object-cover transition-transform duration-500 group-hover:scale-105" 
+                        onError={(e) => {
+                          if (e.currentTarget.src.includes('maxresdefault')) {
+                            e.currentTarget.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                          }
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-black/30 flex items-center justify-center transition-opacity group-hover:bg-black/40">
+                        <div className="w-20 h-20 bg-primary-base rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(48,51,135,0.4)] backdrop-blur-sm group-hover:scale-110 transition-transform">
+                          <Play size={32} className="text-white ml-2" fill="currentColor" />
+                        </div>
+                      </div>
+                    </>
+                  );
+                }
+                
+                return (
+                  <iframe
+                    src={(() => {
+                      try {
+                        if (url.includes("youtube.com/embed/")) {
+                          const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
+                          const id = urlObj.pathname.split("/embed/")[1];
+                          urlObj.searchParams.set('autoplay', '1');
+                          urlObj.searchParams.set('mute', '1');
+                          urlObj.searchParams.set('loop', '1');
+                          urlObj.searchParams.set('playlist', id);
+                          urlObj.searchParams.set('controls', '0');
+                          return urlObj.toString();
+                        }
+                      } catch (e) {
+                        console.error("Error formatting youtube url", e);
+                      }
+                      return url;
+                    })()}
+                    title={homeData?.liveStreamTitle || "Culto ao Vivo"}
+                    className="w-full h-full absolute inset-0 border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                );
+              })()}
             </div>
           </div>
 
