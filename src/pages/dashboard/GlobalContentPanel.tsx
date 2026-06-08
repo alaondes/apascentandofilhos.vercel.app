@@ -146,7 +146,7 @@ export default function GlobalContentPanel({
   const [principleToDelete, setPrincipleToDelete] = useState<number | null>(
     null,
   );
-  const [homeData, setHomeData] = useState({
+  const [homeData, setHomeData] = useState<any>({
     videos: [] as any[],
     heroTitle: "Edificado Matrimônio",
     heroSubtitle:
@@ -1606,6 +1606,36 @@ const innerContent = (
                     value={homeData.newsLinkText || ""}
                     onChange={(e) =>
                       setHomeData({ ...homeData, newsLinkText: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+              <div className="grid md:grid-cols-2 gap-6 mt-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                    Texto do Botão (Notícias Antigas)
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-3 border border-[#c8d8e8] rounded-xl font-bold text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                    placeholder="Ver Notícias Antigas"
+                    value={homeData.olderNewsButtonText || ""}
+                    onChange={(e) =>
+                      setHomeData({ ...homeData, olderNewsButtonText: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                    Link do Botão (Notícias Antigas)
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-3 border border-[#c8d8e8] rounded-xl font-bold text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                    placeholder="/noticias"
+                    value={homeData.olderNewsButtonLink || ""}
+                    onChange={(e) =>
+                      setHomeData({ ...homeData, olderNewsButtonLink: e.target.value })
                     }
                   />
                 </div>

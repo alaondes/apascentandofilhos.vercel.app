@@ -23,6 +23,7 @@ import AdminPanel from "./pages/dashboard/AdminPanel";
 
 // Lazy load pages
 const QuemSomos = lazy(() => import("./pages/QuemSomos"));
+const Noticias = lazy(() => import("./pages/Noticias"));
 const EdificadoMatrimonio = lazy(() => import("./pages/EdificadoMatrimonio"));
 const Cursos = lazy(() => import("./pages/Cursos"));
 const DetalheCurso = lazy(() => import("./pages/DetalheCurso"));
@@ -73,6 +74,7 @@ function AppContent() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/quem-somos" element={<QuemSomos />} />
+            <Route path="/noticias" element={<Noticias />} />
             <Route path="/edificado-matrimonio" element={<EdificadoMatrimonio />} />
             <Route path="/cursos" element={<Cursos />} />
             <Route path="/cursos/detalhes/:courseTitle" element={<DetalheCurso />} />

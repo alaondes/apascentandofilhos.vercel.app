@@ -765,82 +765,16 @@ export default function Home({
             </div>
           )}
 
-          {/* Older News Section: Render items after the first 3 */}
+          {/* Older News Button */}
           {homeData?.newsItems && homeData.newsItems.length > 3 && (
-            <div className="mt-16 w-full lg:w-2/3">
-              <h3 className="text-xl md:text-2xl font-bold text-[#142340] mb-6 flex items-center gap-4">
-                Notícias Antigas
-                <div className="h-px bg-gray-300 flex-grow"></div>
-              </h3>
-              
-              <div className="flex flex-col gap-6">
-                {homeData.newsItems.slice(3).map((news: any, idx: number) => {
-                  if (!news.title && !news.imageUrl) return null;
-                  return (
-                    <div key={idx} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col sm:flex-row h-auto sm:h-56 hover:shadow-md transition-shadow group">
-                      <div className="w-full sm:w-2/5 md:w-1/3 shrink-0 relative overflow-hidden">
-                        {news.imageUrl ? (
-                          <img src={news.imageUrl} alt={news.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                        ) : (
-                          <div className="w-full h-full bg-gray-200"></div>
-                        )}
-                      </div>
-                      
-                      <div className="p-5 md:p-6 flex flex-col flex-1 relative">
-                        <button className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-                          <MoreVertical size={20} />
-                        </button>
-                        
-                        <div className="flex items-center gap-3 mb-3">
-                          {news.category && (
-                            <span className="text-[10px] sm:text-xs font-bold bg-[#e11d48] text-white px-3 py-1 rounded-full whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px] inline-block">
-                              {news.category}
-                            </span>
-                          )}
-                          <div className="flex items-center text-gray-500 text-xs sm:text-sm font-medium gap-1.5">
-                            <Calendar size={14} />
-                            <span>{news.date || "Atualizado"}</span>
-                          </div>
-                          {news.credits && (
-                            <div className="flex items-center text-gray-400 text-xs sm:text-sm font-medium border-l border-gray-300 pl-3">
-                              Fonte: {news.credits}
-                            </div>
-                          )}
-                        </div>
-
-                        <h4 className="text-lg md:text-xl font-bold text-[#1e3a8a] mb-2 leading-tight line-clamp-1">
-                          {news.title}
-                        </h4>
-                        
-                        {news.description && (
-                          <p className="text-gray-500 text-sm md:text-base line-clamp-2 md:line-clamp-3 mb-4">
-                            {news.description}
-                          </p>
-                        )}
-
-                        <div className="mt-auto flex justify-between items-center w-full">
-                          <a 
-                            href={formatUrl(news.linkUrl)}
-                            target={formatUrl(news.linkUrl).startsWith("http") ? "_blank" : undefined}
-                            className="bg-[#3b82f6] hover:bg-[#2563eb] text-white text-sm font-bold py-2 px-5 rounded-full transition-colors inline-flex"
-                          >
-                            Continue lendo
-                          </a>
-                          
-                          <div className="flex items-center text-gray-500 gap-1 opacity-70">
-                            <div className="relative p-1">
-                              <MessageCircle size={24} strokeWidth={1.5} />
-                              <span className="absolute top-0 right-0 bg-[#1e293b] text-white text-[9px] font-bold h-4 w-4 rounded-full flex items-center justify-center transform translate-x-1 -translate-y-1">
-                                {Math.floor(Math.random() * 8)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+            <div className="mt-12 flex justify-center w-full">
+              <button 
+                onClick={() => window.location.href = homeData?.olderNewsButtonLink || '/noticias'}
+                className="px-8 py-3 bg-[#1e3a8a] text-white font-bold rounded-full hover:bg-[#152c6f] transition-colors flex items-center gap-2 shadow-md"
+              >
+                {homeData?.olderNewsButtonText || "Ver Notícias Antigas"}
+                <ChevronRight size={18} />
+              </button>
             </div>
           )}
         </div>
