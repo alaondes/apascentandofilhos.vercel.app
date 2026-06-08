@@ -602,9 +602,12 @@ export default function Home({
           <div className="flex items-center mb-8">
             <h2 className="text-3xl font-extrabold text-[#2a2a2a]">{homeData?.newsTitle || "Blogs e Colunas"}</h2>
             <div className="flex-grow h-px bg-[#8a8a8a] mx-6"></div>
-            <div className="flex items-center gap-2 text-[#ba2424] font-medium text-sm md:text-base whitespace-nowrap">
-              {homeData?.newsLinkText || "Ultimas atualizações"} <ArrowRight size={18} />
-            </div>
+            <button 
+              onClick={() => window.location.href = homeData?.olderNewsButtonLink || '/noticias'}
+              className="px-6 py-2.5 bg-[#1e3a8a] text-white text-sm font-bold rounded-full hover:bg-[#152c6f] transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap"
+            >
+              {homeData?.olderNewsButtonText || "Ver Notícias Antigas"} <ChevronRight size={16} />
+            </button>
           </div>
 
           {(!homeData) ? (
@@ -765,18 +768,6 @@ export default function Home({
             </div>
           )}
 
-          {/* Older News Button */}
-          {homeData?.newsItems && homeData.newsItems.length > 3 && (
-            <div className="mt-12 flex justify-center w-full">
-              <button 
-                onClick={() => window.location.href = homeData?.olderNewsButtonLink || '/noticias'}
-                className="px-8 py-3 bg-[#1e3a8a] text-white font-bold rounded-full hover:bg-[#152c6f] transition-colors flex items-center gap-2 shadow-md"
-              >
-                {homeData?.olderNewsButtonText || "Ver Notícias Antigas"}
-                <ChevronRight size={18} />
-              </button>
-            </div>
-          )}
         </div>
       </section>
 
