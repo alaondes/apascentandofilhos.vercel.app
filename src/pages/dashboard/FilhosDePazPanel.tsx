@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Save, Upload } from "lucide-react";
+import { Save, Upload, Plus, Trash2 } from "lucide-react";
 import { db } from "../../lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+
+interface RedeItem {
+  title: string;
+  image: string;
+}
 
 interface FilhosDePazData {
   heroTitle: string;
@@ -15,6 +20,10 @@ interface FilhosDePazData {
   visaoText1: string;
   visaoText2: string;
   whatsappLink: string;
+  redesBgColor: string;
+  redesTitle: string;
+  redesSub: string;
+  redesList: RedeItem[];
 }
 
 const defaultData: FilhosDePazData = {
@@ -29,6 +38,64 @@ const defaultData: FilhosDePazData = {
   visaoText1: "Jesus em Lucas 10, deixou a estratégia simples e eficaz no processo de evangelização de casa em casa.\nTodo o processo começa com a preparação dos líderes dos Filhos de Paz. A formação e o treinamento acontecem dentro de um mês aproximadamente.",
   visaoText2: "No treinamento detalhamos toda a estratégia de Jesus para alcançarmos os \"não-crentes\" a partir da casa deles.\nPara participar do treinamento dos Filhos de Paz é preciso ser membro da Abba Church Marlboro, ter frequentado a classe de membresia e a escola de DNA e Fundamentos da Visão e Cultura da Abba Church Marlboro.",
   whatsappLink: "https://wa.me/55000000000",
+  redesBgColor: "#d6965f",
+  redesTitle: "Temos outras\nredes e ministérios",
+  redesSub: "Veja qual delas você mais se identifica",
+  redesList: [
+    {
+      title: "Rede de Mulheres",
+      image: "https://images.unsplash.com/photo-1510255562709-322ce64821db?auto=format&fit=crop&q=80&w=600",
+    },
+    {
+      title: "Rede de Homens",
+      image: "https://images.unsplash.com/photo-1506869640319-fea1a2ab8e9c?auto=format&fit=crop&q=80&w=600",
+    },
+    {
+      title: "Flow Up Rede de Jovens",
+      image: "https://images.unsplash.com/photo-1523580456209-567a5b3a32f6?auto=format&fit=crop&q=80&w=600",
+    },
+    {
+      title: "RISYTH Rede de Adolescentes",
+      image: "https://images.unsplash.com/photo-1511632765486-a01c80cb8fa4?auto=format&fit=crop&q=80&w=600",
+    },
+  ],
+};
+
+const compressImage = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+        const MAX_WIDTH = 1200; // Allow slightly larger images for this page
+        const MAX_HEIGHT = 1200;
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+        resolve(dataUrl);
+      };
+      img.onerror = (error) => reject(error);
+    };
+    reader.onerror = (error) => reject(error);
+  });
 };
 
 export default function FilhosDePazPanel() {
@@ -57,6 +124,29 @@ export default function FilhosDePazPanel() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setData({ ...data, [e.target.name]: e.target.value });
+  };
+
+  const handleAddRede = () => {
+    setData((prev) => ({
+      ...prev,
+      redesList: [...(prev.redesList || []), { title: "", image: "" }],
+    }));
+  };
+
+  const handleDeleteRede = (index: number) => {
+    setData((prev) => {
+      const newList = [...(prev.redesList || [])];
+      newList.splice(index, 1);
+      return { ...prev, redesList: newList };
+    });
+  };
+
+  const handleRedeChange = (index: number, field: keyof RedeItem, value: string) => {
+    setData((prev) => {
+      const newList = [...(prev.redesList || [])];
+      newList[index] = { ...newList[index], [field]: value };
+      return { ...prev, redesList: newList };
+    });
   };
 
   const handleSave = async () => {
@@ -100,16 +190,55 @@ export default function FilhosDePazPanel() {
           </div>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">URL Imagem Fundo</label>
-              <input
-                type="text"
-                name="heroImage"
-                value={data.heroImage}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">URL da Imagem de Fundo (Topo)</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  name="heroImage"
+                  value={data.heroImage}
+                  onChange={handleChange}
+                  className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
+                  placeholder="Cole a URL ou faça um upload"
+                />
+                <label className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer font-bold text-sm transition-colors cursor-pointer border border-gray-200 whitespace-nowrap">
+                  <Upload size={16} />
+                  <span>Upload</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        try {
+                          const base64 = await compressImage(file);
+                          setData({ ...data, heroImage: base64 });
+                        } catch (err) {
+                          alert("Erro ao processar imagem.");
+                        }
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+              {data.heroImage && (
+                <div className="mt-3">
+                   <span className="block text-xs font-bold text-gray-400 uppercase mb-2">Visualização</span>
+                   <img src={data.heroImage || "https://images.unsplash.com/photo-1544256718-3baf24732b4f?auto=format&fit=crop&q=80&w=2000"} alt="Preview Fundo" className="h-32 w-full object-cover rounded-lg border border-gray-200 shadow-sm" />
+                </div>
+              )}
             </div>
           </div>
+        </div>
+        <div className="flex justify-end pt-4 mt-4 border-t border-gray-100 items-center gap-4">
+          {successMessage && <span className="text-green-600 font-medium text-sm">{successMessage}</span>}
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="bg-primary-base hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-bold shadow-sm transition-colors flex items-center gap-2 text-sm"
+          >
+            {isSaving ? "Salvando..." : <><Save size={16} /> Salvar Alterações</>}
+          </button>
         </div>
       </div>
 
@@ -158,14 +287,53 @@ export default function FilhosDePazPanel() {
           </div>
           <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">URL Imagem Principal (Família)</label>
-              <input
-                type="text"
-                name="mainImage"
-                value={data.mainImage}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  name="mainImage"
+                  value={data.mainImage}
+                  onChange={handleChange}
+                  className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
+                  placeholder="Cole a URL ou faça um upload"
+                />
+                <label className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer font-bold text-sm transition-colors cursor-pointer border border-gray-200 whitespace-nowrap">
+                  <Upload size={16} />
+                  <span>Upload</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        try {
+                          const base64 = await compressImage(file);
+                          setData({ ...data, mainImage: base64 });
+                        } catch (err) {
+                          alert("Erro ao processar imagem.");
+                        }
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+              {data.mainImage && (
+                <div className="mt-3">
+                   <span className="block text-xs font-bold text-gray-400 uppercase mb-2">Visualização</span>
+                   <img src={data.mainImage || "https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&q=80&w=800"} alt="Preview Principal" className="h-40 w-auto object-cover rounded-lg border border-gray-200 shadow-sm" />
+                </div>
+              )}
           </div>
+        </div>
+        <div className="flex justify-end pt-4 mt-4 border-t border-gray-100 items-center gap-4">
+          {successMessage && <span className="text-green-600 font-medium text-sm">{successMessage}</span>}
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="bg-primary-base hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-bold shadow-sm transition-colors flex items-center gap-2 text-sm"
+          >
+            {isSaving ? "Salvando..." : <><Save size={16} /> Salvar Alterações</>}
+          </button>
         </div>
       </div>
 
@@ -213,24 +381,156 @@ export default function FilhosDePazPanel() {
               />
           </div>
         </div>
+        <div className="flex justify-end pt-4 mt-4 border-t border-gray-100 items-center gap-4">
+          {successMessage && <span className="text-green-600 font-medium text-sm">{successMessage}</span>}
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="bg-primary-base hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-bold shadow-sm transition-colors flex items-center gap-2 text-sm"
+          >
+            {isSaving ? "Salvando..." : <><Save size={16} /> Salvar Alterações</>}
+          </button>
+        </div>
       </div>
 
-      <div className="flex justify-end gap-4">
-         {successMessage && (
-          <span className="text-green-600 font-medium self-center">{successMessage}</span>
-        )}
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="bg-primary-base hover:bg-primary-dark text-white px-6 py-2.5 rounded-lg font-bold shadow-md transition-colors flex items-center gap-2"
-        >
-          {isSaving ? "Salvando..." : (
-            <>
-              <Save size={20} />
-              Salvar Alterações
-            </>
-          )}
-        </button>
+      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+        <h3 className="text-lg font-bold text-gray-800 border-b pb-2">Seção Outras Redes e Ministérios</h3>
+        
+        {/* Background Color Picker & Titles */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Cor de Fundo da Seção</label>
+            <div className="flex gap-2">
+              <input
+                type="color"
+                name="redesBgColor"
+                value={data.redesBgColor || "#d6965f"}
+                onChange={handleChange}
+                className="w-10 h-10 border border-gray-200 rounded-lg cursor-pointer p-1"
+              />
+              <input
+                type="text"
+                name="redesBgColor"
+                value={data.redesBgColor || "#d6965f"}
+                onChange={handleChange}
+                placeholder="#d6965f"
+                className="flex-1 px-3 py-1 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none uppercase font-mono"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Título da Seção</label>
+            <input
+              type="text"
+              name="redesTitle"
+              value={data.redesTitle || ""}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
+              placeholder="Ex: Temos outras\nredes e ministérios"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Subtítulo da Seção</label>
+            <input
+              type="text"
+              name="redesSub"
+              value={data.redesSub || ""}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
+              placeholder="Ex: Veja qual delas você mais se identifica"
+            />
+          </div>
+        </div>
+
+        {/* List of networks */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h4 className="text-sm font-bold text-gray-700">Lista de Redes/Ministérios ({data.redesList?.length || 0})</h4>
+            <button
+              type="button"
+              onClick={handleAddRede}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700 rounded-lg text-xs font-bold transition-colors"
+            >
+              <Plus size={14} />
+              Adicionar Rede
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {data.redesList?.map((rede, idx) => (
+              <div key={idx} className="p-4 border border-gray-100 rounded-lg bg-gray-50/50 space-y-3 relative">
+                <button
+                  type="button"
+                  onClick={() => handleDeleteRede(idx)}
+                  className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500 rounded transition-colors"
+                  title="Excluir"
+                >
+                  <Trash2 size={16} />
+                </button>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Título da Rede #{idx + 1}</label>
+                  <input
+                    type="text"
+                    value={rede.title}
+                    onChange={(e) => handleRedeChange(idx, "title", e.target.value)}
+                    className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base outline-none bg-white"
+                    placeholder="Ex: Rede de Mulheres"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Imagem da Rede #{idx + 1}</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={rede.image}
+                      onChange={(e) => handleRedeChange(idx, "image", e.target.value)}
+                      className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base outline-none bg-white"
+                      placeholder="Cole a URL ou faça um upload"
+                    />
+                    <label className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-gray-700 rounded-lg hover:bg-gray-100 cursor-pointer text-xs font-bold transition-colors border border-gray-200 whitespace-nowrap">
+                      <Upload size={14} />
+                      <span>Upload</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            try {
+                              const base64 = await compressImage(file);
+                              handleRedeChange(idx, "image", base64);
+                            } catch (err) {
+                              alert("Erro ao processar imagem.");
+                            }
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                  {rede.image && (
+                    <div className="mt-2 text-center">
+                      <img src={rede.image} alt={rede.title} className="h-20 max-w-full mx-auto object-cover rounded border border-gray-200 shadow-xs" referrerPolicy="no-referrer" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex justify-end pt-4 mt-4 border-t border-gray-100 items-center gap-4">
+          {successMessage && <span className="text-green-600 font-medium text-sm">{successMessage}</span>}
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="bg-primary-base hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-bold shadow-sm transition-colors flex items-center gap-2 text-sm"
+          >
+            {isSaving ? "Salvando..." : <><Save size={16} /> Salvar Alterações</>}
+          </button>
+        </div>
       </div>
 
     </div>

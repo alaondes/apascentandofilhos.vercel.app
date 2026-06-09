@@ -17,7 +17,30 @@ export default function FilhosDePaz() {
     visaoText1: "Jesus em Lucas 10, deixou a estratégia simples e eficaz no processo de evangelização de casa em casa.\nTodo o processo começa com a preparação dos líderes dos Filhos de Paz. A formação e o treinamento acontecem dentro de um mês aproximadamente.",
     visaoText2: "No treinamento detalhamos toda a estratégia de Jesus para alcançarmos os \"não-crentes\" a partir da casa deles.\nPara participar do treinamento dos Filhos de Paz é preciso ser membro da Abba Church Marlboro, ter frequentado a classe de membresia e a escola de DNA e Fundamentos da Visão e Cultura da Abba Church Marlboro.",
     whatsappLink: "https://wa.me/55000000000",
+    redesBgColor: "#d6965f",
+    redesTitle: "Temos outras\nredes e ministérios",
+    redesSub: "Veja qual delas você mais se identifica",
+    redesList: [
+      {
+        title: "Rede de Mulheres",
+        image: "https://images.unsplash.com/photo-1510255562709-322ce64821db?auto=format&fit=crop&q=80&w=600",
+      },
+      {
+        title: "Rede de Homens",
+        image: "https://images.unsplash.com/photo-1506869640319-fea1a2ab8e9c?auto=format&fit=crop&q=80&w=600",
+      },
+      {
+        title: "Flow Up Rede de Jovens",
+        image: "https://images.unsplash.com/photo-1523580456209-567a5b3a32f6?auto=format&fit=crop&q=80&w=600",
+      },
+      {
+        title: "RISYTH Rede de Adolescentes",
+        image: "https://images.unsplash.com/photo-1511632765486-a01c80cb8fa4?auto=format&fit=crop&q=80&w=600",
+      },
+    ],
   });
+
+  const [visibleCount, setVisibleCount] = useState(4);
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, "content", "filhos_de_paz"), (snap) => {
@@ -100,47 +123,54 @@ export default function FilhosDePaz() {
         </div>
       </section>
 
+      {/* Dynamic style tag to dynamically respect user background colors without inline attributes */}
+      <style>{`
+        .custom-redes-bg {
+          background-color: ${data.redesBgColor || '#d6965f'} !important;
+        }
+      `}</style>
+      
       {/* Outras redes section */}
-      <section className="mt-16 relative bg-[#d6965f] pt-[400px]">
-        {/* We want the grid to overlap the transition from #f7f7f7 to #d6965f, so we do it with absolute positioning or negative margin */}
+      <section className="mt-16 relative custom-redes-bg pt-[400px]">
+        {/* We want the grid to overlap the transition from #f7f7f7 to custom color, so we do it with absolute positioning or negative margin */}
       </section>
       
-      <section className="relative bg-[#d6965f] pb-20">
+      <section className="relative custom-redes-bg pb-20">
         <div className="max-w-6xl mx-auto px-6 relative z-10 -mt-[450px]">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight leading-[1.1]">
-              Temos outras<br/>redes e ministérios
+            <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight leading-[1.1] whitespace-pre-line">
+              {data.redesTitle || "Temos outras\nredes e ministérios"}
             </h2>
-            <p className="text-gray-500 font-bold tracking-[0.3em] uppercase text-[9px] mt-6">
-              Veja qual delas você mais se identifica
+            <p className="text-[#333333]/70 font-bold tracking-[0.3em] uppercase text-[9px] mt-6">
+              {data.redesSub || "Veja qual delas você mais se identifica"}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Cards */}
-            <div className="relative h-[340px] group overflow-hidden bg-black flex items-center justify-center">
-              <img src="https://images.unsplash.com/photo-1510255562709-322ce64821db?auto=format&fit=crop&q=80&w=600" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" alt="Mulheres" />
-              <h3 className="relative z-10 text-white font-black text-lg text-center px-4 w-full">Rede de Mulheres</h3>
-            </div>
-            <div className="relative h-[340px] group overflow-hidden bg-black flex items-center justify-center">
-              <img src="https://images.unsplash.com/photo-1506869640319-fea1a2ab8e9c?auto=format&fit=crop&q=80&w=600" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" alt="Homens" />
-              <h3 className="relative z-10 text-white font-black text-lg text-center px-4 w-full">Rede de Homens</h3>
-            </div>
-            <div className="relative h-[340px] group overflow-hidden bg-black flex items-center justify-center">
-              <img src="https://images.unsplash.com/photo-1523580456209-567a5b3a32f6?auto=format&fit=crop&q=80&w=600" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" alt="Jovens" />
-              <h3 className="relative z-10 text-white font-black text-lg text-center px-4 w-full">Flow Up Rede de Jovens</h3>
-            </div>
-            <div className="relative h-[340px] group overflow-hidden bg-black flex items-center justify-center">
-              <img src="https://images.unsplash.com/photo-1511632765486-a01c80cb8fa4?auto=format&fit=crop&q=80&w=600" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" alt="Adolescentes" />
-              <h3 className="relative z-10 text-white font-black text-lg text-center px-4 w-full">RISYTH Rede de Adolescentes</h3>
-            </div>
+            {/* Dynamic Cards */}
+            {data.redesList && data.redesList.slice(0, visibleCount).map((rede: any, idx: number) => (
+              <div key={idx} className="relative h-[340px] group overflow-hidden bg-black flex items-center justify-center">
+                <img
+                  src={rede.image || "https://images.unsplash.com/photo-1510255562709-322ce64821db?auto=format&fit=crop&q=80&w=600"}
+                  className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700"
+                  alt={rede.title}
+                  referrerPolicy="no-referrer"
+                />
+                <h3 className="relative z-10 text-white font-black text-lg text-center px-4 w-full">{rede.title}</h3>
+              </div>
+            ))}
           </div>
 
-          <div className="mt-12 flex justify-center">
-            <button className="bg-[#fc5d46] text-white px-8 py-2.5 rounded-full font-bold text-xs hover:bg-[#e04b36] transition-colors shadow-sm">
-              carregar mais
-            </button>
-          </div>
+          {data.redesList && data.redesList.length > visibleCount && (
+            <div className="mt-12 flex justify-center">
+              <button
+                onClick={() => setVisibleCount((prev) => prev + 4)}
+                className="bg-[#fc5d46] text-white px-8 py-2.5 rounded-full font-bold text-xs hover:bg-[#e04b36] transition-colors shadow-sm"
+              >
+                carregar mais
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
