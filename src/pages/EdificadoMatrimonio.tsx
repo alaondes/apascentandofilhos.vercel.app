@@ -136,7 +136,7 @@ export default function EdificadoMatrimonio() {
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.5, duration: 0.8 }}
-                className="text-lg md:text-xl text-white/90 mt-6 max-w-2xl italic drop-shadow-md font-medium"
+                className="text-lg md:text-xl text-white/90 mt-6 max-w-2xl italic drop-shadow-md font-medium whitespace-pre-line"
               >
                 {displaySlides[currentSlide]?.subtitle}
               </motion.p>

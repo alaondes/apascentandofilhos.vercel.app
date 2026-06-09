@@ -99,7 +99,7 @@ export default function QuemSomos() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-[1.1rem] opacity-90 max-w-[600px] mx-auto italic"
+            className="text-[1.1rem] opacity-90 max-w-[600px] mx-auto italic whitespace-pre-line"
           >
             {content.subtitle}
           </motion.p>
@@ -123,7 +123,7 @@ export default function QuemSomos() {
                 src={(() => {
                   let url = content.historyVideoUrl;
                   try {
-                    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|live\/|shorts\/))([\w-]{11})/);
                     if (match && match[1]) {
                       return `https://www.youtube.com/embed/${match[1]}`;
                     }

@@ -398,7 +398,27 @@ export default function Home({
               className="absolute inset-0"
             >
               <div className="absolute inset-0 bg-[#0a1e2e]/50 z-10" />
-              {displaySlides[currentSlide]?.url && (
+              {displaySlides[currentSlide]?.videoUrl ? (
+                <iframe
+                  src={(() => {
+                    let url = displaySlides[currentSlide].videoUrl;
+                    try {
+                      const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|live\/|shorts\/))([\w-]{11})/);
+                      if (match && match[1]) {
+                        return `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=1&loop=1&playlist=${match[1]}&controls=0&showinfo=0&rel=0`;
+                      }
+                    } catch (e) {
+                      console.error("Error formatting video url", e);
+                    }
+                    return url;
+                  })()}
+                  title="Banner Video"
+                  className="w-full h-full object-cover scale-[1.5]"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  style={{ border: 0, pointerEvents: "none" }}
+                />
+              ) : displaySlides[currentSlide]?.url && (
                 <img
                   src={displaySlides[currentSlide]?.url || undefined}
                   alt="Hero"
@@ -418,7 +438,7 @@ export default function Home({
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.5, duration: 0.8 }}
-                  className="text-lg md:text-xl text-white/90 mt-6 max-w-2xl italic drop-shadow-md font-medium"
+                  className="text-lg md:text-xl text-white/90 mt-6 max-w-2xl italic drop-shadow-md font-medium whitespace-pre-line"
                 >
                   {displaySlides[currentSlide]?.subtitle}
                 </motion.p>
@@ -851,7 +871,7 @@ export default function Home({
                 let url = homeData?.liveStreamUrl || "https://www.youtube.com/embed/jNQXAC9IVRw";
                 let videoId = "";
                 try {
-                  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|live\/|shorts\/))([\w-]{11})/);
                   if (match && match[1]) {
                     videoId = match[1];
                   }
@@ -882,29 +902,33 @@ export default function Home({
                 }
                 
                 return (
-                  <iframe
-                    src={(() => {
-                      try {
-                        if (url.includes("youtube.com/embed/")) {
-                          const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
-                          const id = urlObj.pathname.split("/embed/")[1];
-                          urlObj.searchParams.set('autoplay', '1');
-                          urlObj.searchParams.set('mute', '1');
-                          urlObj.searchParams.set('loop', '1');
-                          urlObj.searchParams.set('playlist', id);
-                          urlObj.searchParams.set('controls', '0');
-                          return urlObj.toString();
+                  <div className="w-full h-full absolute inset-0 flex items-center justify-center">
+                    <iframe
+                      src={(() => {
+                        try {
+                          if (url.includes("youtube.com/embed/")) {
+                            const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
+                            const id = urlObj.pathname.split("/embed/")[1];
+                            urlObj.searchParams.set('autoplay', '1');
+                            urlObj.searchParams.set('mute', '1');
+                            urlObj.searchParams.set('loop', '1');
+                            urlObj.searchParams.set('playlist', id);
+                            urlObj.searchParams.set('controls', '0');
+                            return urlObj.toString();
+                          }
+                        } catch (e) {
+                          console.error("Error formatting youtube url", e);
                         }
-                      } catch (e) {
-                        console.error("Error formatting youtube url", e);
-                      }
-                      return url;
-                    })()}
-                    title={homeData?.liveStreamTitle || "Culto ao Vivo"}
-                    className="w-full h-full absolute inset-0 border-0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  ></iframe>
+                        return url;
+                      })()}
+                      title={homeData?.liveStreamTitle || "Culto ao Vivo"}
+                      className="w-full h-full absolute inset-0 border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                    {/* Invisible overlay to catch clicks if iframe doesn't let them through */}
+                    <div className="absolute inset-0 z-10" />
+                  </div>
                 );
               })()}
             </div>
@@ -959,7 +983,7 @@ export default function Home({
               : ((homeData !== null) ? (homeData.videos || []) : _videos)).map((vid: any, idx: number) => {
               let displayThumbnail = vid.thumbnail;
               if (!displayThumbnail && vid.url) {
-                const match = vid.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                const match = vid.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|live\/|shorts\/))([\w-]{11})/);
                 if (match && match[1]) {
                   displayThumbnail = `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
                 }
@@ -1699,12 +1723,9 @@ export default function Home({
               <iframe
                 src={(() => {
                   let embedUrl = selectedVideo;
-                  if (selectedVideo.includes("youtube.com/watch")) {
-                    const urlParams = new URL(selectedVideo).searchParams;
-                    embedUrl = `https://www.youtube.com/embed/${urlParams.get("v")}`;
-                  } else if (selectedVideo.includes("youtu.be/")) {
-                    const id = selectedVideo.split("youtu.be/")[1]?.split("?")[0];
-                    embedUrl = `https://www.youtube.com/embed/${id}`;
+                  const match = selectedVideo.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|live\/|shorts\/))([\w-]{11})/);
+                  if (match && match[1]) {
+                    embedUrl = `https://www.youtube.com/embed/${match[1]}`;
                   } else if (selectedVideo.includes("vimeo.com/")) {
                     const id = selectedVideo.split("vimeo.com/")[1];
                     embedUrl = `https://player.vimeo.com/video/${id}`;

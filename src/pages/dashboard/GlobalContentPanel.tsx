@@ -1479,6 +1479,29 @@ const innerContent = (
                               }}
                             />
                           </div>
+                          
+                          <div className="pt-2">
+                            <div className="space-y-1">
+                              <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                                URL do Vídeo (Substitui Imagem)
+                              </label>
+                              <input
+                                type="text"
+                                className="w-full p-2.5 text-xs text-gray-500 border border-[#c8d8e8] rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all placeholder:text-gray-400"
+                                placeholder="Youtube URL (Ex: https://youtube.com/embed/...)"
+                                value={slide.videoUrl || ""}
+                                onChange={(e) => {
+                                  const newUrl = e.target.value;
+                                  setHomeData((prev: any) => ({
+                                    ...prev,
+                                    slides: prev.slides.map((s: any, i: number) =>
+                                      i === idx ? { ...s, videoUrl: newUrl } : s,
+                                    ),
+                                  }));
+                                }}
+                              />
+                            </div>
+                          </div>
                         </div>
 
                         {/* Conteudo de Texto (Right/Bottom) */}
@@ -3685,6 +3708,27 @@ const innerContent = (
                                   />
                                 </div>
                               )}
+                            </div>
+                            
+                            <div className="space-y-2 pt-2 border-t border-[#e2eaf3]">
+                              <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                                URL do Vídeo (Youtube, Substitui Imagem)
+                              </label>
+                              <input
+                                type="text"
+                                className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                                placeholder="Youtube URL (Ex: https://youtube.com/embed/...)"
+                                value={slide.videoUrl || ""}
+                                onChange={(e) => {
+                                  const newUrl = e.target.value;
+                                  setEdificadoMatrimonioData((prev) => ({
+                                    ...prev,
+                                    slides: prev.slides.map((s, i) =>
+                                      i === idx ? { ...s, videoUrl: newUrl } : s,
+                                    ),
+                                  }));
+                                }}
+                              />
                             </div>
                           </div>
                           <div className="space-y-4">
