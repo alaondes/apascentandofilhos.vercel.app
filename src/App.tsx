@@ -33,6 +33,7 @@ const Cadastro = lazy(() => import("./pages/Cadastro"));
 const CadastroMembro = lazy(() => import("./pages/CadastroMembro"));
 const ColunistaPage = lazy(() => import("./pages/ColunistaPage"));
 const ArtigoPage = lazy(() => import("./pages/ArtigoPage"));
+const FilhosDePaz = lazy(() => import("./pages/FilhosDePaz"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading component
@@ -77,6 +78,13 @@ function AppContent() {
             <Route path="/noticias" element={<Noticias />} />
             <Route path="/edificado-matrimonio" element={<EdificadoMatrimonio />} />
             <Route path="/cursos" element={<Cursos />} />
+            <Route path="/casas-de-paz" element={<FilhosDePaz />} />
+            <Route path="/filhos-de-paz" element={<FilhosDePaz />} />
+            <Route path="/filhos de paz" element={<FilhosDePaz />} />
+            <Route path="/Filhos de Paz" element={<FilhosDePaz />} />
+            <Route path="/Filhos-de-Paz" element={<FilhosDePaz />} />
+            <Route path="/FilhosDePaz" element={<FilhosDePaz />} />
+            <Route path="/filhosdepaz" element={<FilhosDePaz />} />
             <Route path="/cursos/detalhes/:courseTitle" element={<DetalheCurso />} />
             <Route path="/contato" element={<Contato />} />
             <Route path="/colunista/:nome" element={<ColunistaPage />} />

@@ -18,14 +18,62 @@ export default function Navbar() {
     const unsub = onSnapshot(doc(db, "content", "header_logo"), (snap) => {
       if (snap.exists()) {
         const data = snap.data();
+        let fetchedLinks = data.links && data.links.length > 0 ? data.links : [];
+
+        // Ensure "Ministérios" exists and has "Filhos de Paz"
+        const ministeriosIdx = fetchedLinks.findIndex((l: any) => l.name === "Ministérios");
+        if (ministeriosIdx !== -1) {
+          const mLinks = fetchedLinks[ministeriosIdx].subLinks || [];
+          const fpIdx = mLinks.findIndex((l: any) => l.name === "Filhos de Paz" || l.name === "Filhos de paz");
+          
+          if (fpIdx === -1) {
+            fetchedLinks[ministeriosIdx] = {
+              ...fetchedLinks[ministeriosIdx],
+              subLinks: [
+                ...mLinks,
+                { name: "Filhos de Paz", path: "/filhos-de-paz" }
+              ]
+            };
+          } else {
+            // Force the path to be correct
+            mLinks[fpIdx].path = "/filhos-de-paz";
+            fetchedLinks[ministeriosIdx] = {
+              ...fetchedLinks[ministeriosIdx],
+              subLinks: mLinks
+            };
+          }
+        } else {
+            // fallback if it doesn't have Ministérios
+            const filhosDePazIdx = fetchedLinks.findIndex((l: any) => l.name === "Filhos de Paz");
+            if (filhosDePazIdx === -1) {
+                // insert it before Contato
+                const contatoIdx = fetchedLinks.findIndex((l: any) => l.name === "Contato");
+                if (contatoIdx !== -1) {
+                  fetchedLinks.splice(contatoIdx, 0, { name: "Filhos de Paz", path: "/filhos-de-paz" });
+                } else {
+                  fetchedLinks.push({ name: "Filhos de Paz", path: "/filhos-de-paz" });
+                }
+            }
+        }
+
         setHeaderLogo({
           logoUrl: data.logoUrl || "",
           title: data.logoTitle || data.title || "",
           subtitle: data.logoSubtitle || data.subtitle || "",
-          links: data.links && data.links.length > 0 ? data.links : [
+          links: fetchedLinks.length > 0 ? fetchedLinks : [
             { name: "Início", path: "/" },
             { name: "Quem Somos", path: "/quem-somos" },
-            { name: "Edificado Matrimônio", path: "/edificado-matrimonio" },
+            {
+              name: "Ministérios",
+              path: "#",
+              subLinks: [
+                { name: "Edificado Matrimônio", path: "/edificado-matrimonio" },
+                { name: "MAF Kids", path: "/maf-kids" },
+                { name: "Filhos de Paz", path: "/filhos-de-paz" },
+                { name: "Jovens MAF", path: "/jovens-maf" },
+                { name: "Homens de Temor", path: "/homens-de-temor" }
+              ]
+            },
             { name: "Cursos", path: "/cursos" },
             { name: "Contato", path: "/contato" },
           ],
@@ -38,7 +86,17 @@ export default function Navbar() {
           links: [
             { name: "Início", path: "/" },
             { name: "Quem Somos", path: "/quem-somos" },
-            { name: "Edificado Matrimônio", path: "/edificado-matrimonio" },
+            {
+              name: "Ministérios",
+              path: "#",
+              subLinks: [
+                { name: "Edificado Matrimônio", path: "/edificado-matrimonio" },
+                { name: "MAF Kids", path: "/maf-kids" },
+                { name: "Filhos de Paz", path: "/filhos-de-paz" },
+                { name: "Jovens MAF", path: "/jovens-maf" },
+                { name: "Homens de Temor", path: "/homens-de-temor" }
+              ]
+            },
             { name: "Cursos", path: "/cursos" },
             { name: "Contato", path: "/contato" },
           ]

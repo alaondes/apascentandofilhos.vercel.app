@@ -33,13 +33,14 @@ export default function CadastroMembro() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     // Pessoal
+    foto: "",
     nome: "",
-    sobrenome: "",
     cpf: "",
     dataNascimento: "",
     sexo: "",
     estadoCivil: "",
     naturalidade: "",
+    naturalidadeEstado: "",
     escolaridade: "",
     profissao: "",
     senha: "",
@@ -62,6 +63,8 @@ export default function CadastroMembro() {
     igrejaAnterior: "",
     membroDesde: "",
     cargosAnteriores: "",
+    consagrado: "não",
+    cargoConsagracao: "",
     // Família
     nomeConjuge: "",
     dataCasamento: "",
@@ -69,6 +72,8 @@ export default function CadastroMembro() {
     cpfConjuge: "",
     celularConjuge: "",
     igrejaConjuge: "",
+    conjugeConvertido: "não",
+    conjugeBatizado: "não",
     temFilhos: "não",
     quantidadeFilhos: 0,
     listaFilhos: [] as { nome: string; dataNascimento: string; sexo: string }[],
@@ -189,10 +194,26 @@ export default function CadastroMembro() {
     });
   };
 
+  const handlePhotoUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setErrorMsg("A foto deve ter no máximo 5MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, foto: reader.result as string }));
+        setErrorMsg("");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const validateStep = (step: number) => {
     if (step === 1) {
-      if (!formData.nome || !formData.sobrenome || !formData.dataNascimento || !formData.sexo || !formData.senha) {
-        setErrorMsg("Preencha os campos obrigatórios da etapa pessoal, incluindo sua senha.");
+      if (!formData.foto || !formData.nome || !formData.dataNascimento || !formData.sexo || !formData.estadoCivil || !formData.escolaridade || !formData.profissao || !formData.naturalidade || !formData.naturalidadeEstado || !formData.senha) {
+        setErrorMsg("Preencha todos os campos obrigatórios da etapa pessoal, incluindo sua foto e senha.");
         return false;
       }
       if (formData.senha.length < 6) {
@@ -207,6 +228,12 @@ export default function CadastroMembro() {
     if (step === 2) {
       if (!formData.email || !formData.celular || !formData.cep || !formData.rua) {
         setErrorMsg("Preencha os campos obrigatórios de contato e endereço.");
+        return false;
+      }
+    }
+    if (step === 4) {
+      if (formData.estadoCivil === "Casado(a)" && (!formData.nomeConjuge || !formData.dataCasamento)) {
+        setErrorMsg("Por ser casado(a), o nome do cônjuge e a data de casamento são obrigatórios.");
         return false;
       }
     }
@@ -258,8 +285,9 @@ export default function CadastroMembro() {
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         email: formData.email.trim(),
-        nome: `${formData.nome} ${formData.sobrenome}`,
-        role: "membro",
+        nome: formData.nome,
+        role: ["membro"],
+        papel: ["membro"],
         status: "ativo",
         createdAt: serverTimestamp(),
       });
@@ -388,31 +416,46 @@ export default function CadastroMembro() {
               {currentStep === 1 && (
                 <div className="space-y-8">
                   <h3 className="text-2xl font-bold font-serif text-primary-dark border-b pb-4">Dados Pessoais</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-6">
+                    <div className="space-y-4">
+                      <label className="text-xs font-black uppercase text-gray-400 ml-1">Foto de Perfil*</label>
+                      <div className="flex items-center gap-6">
+                        <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
+                          {formData.foto ? (
+                            <img src={formData.foto} alt="Sua foto" className="w-full h-full object-cover" />
+                          ) : (
+                            <User size={32} className="text-gray-300" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <label htmlFor="foto" className="inline-block px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors">
+                            Escolher Foto
+                          </label>
+                          <input
+                            type="file"
+                            id="foto"
+                            accept="image/*"
+                            onChange={handlePhotoUpload}
+                            className="hidden"
+                          />
+                          <p className="text-[10px] text-gray-400 mt-2">JPEGs ou PNGs de até 5MB. Foto de rosto, preferencialmente.</p>
+                        </div>
+                      </div>
+                    </div>
                     <div className="space-y-1.5">
-                      <label className="text-xs font-black uppercase text-gray-400 ml-1">Nome*</label>
+                      <label className="text-xs font-black uppercase text-gray-400 ml-1">Nome Completo*</label>
                       <input
                         type="text"
                         id="nome"
                         required
                         value={formData.nome}
                         onChange={handleInputChange}
-                        placeholder="João"
+                        placeholder="João da Silva"
                         className="form-input-m"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-black uppercase text-gray-400 ml-1">Sobrenome*</label>
-                      <input
-                        type="text"
-                        id="sobrenome"
-                        required
-                        value={formData.sobrenome}
-                        onChange={handleInputChange}
-                        placeholder="da Silva"
-                        className="form-input-m"
-                      />
-                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                     <div className="space-y-1.5">
                       <label className="text-xs font-black uppercase text-gray-400 ml-1">CPF</label>
                       <input
@@ -451,9 +494,10 @@ export default function CadastroMembro() {
                       </select>
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-xs font-black uppercase text-gray-400 ml-1">Estado Civil</label>
+                      <label className="text-xs font-black uppercase text-gray-400 ml-1">Estado Civil*</label>
                       <select
                         id="estadoCivil"
+                        required
                         value={formData.estadoCivil}
                         onChange={handleInputChange}
                         className="form-input-m"
@@ -467,9 +511,10 @@ export default function CadastroMembro() {
                       </select>
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-xs font-black uppercase text-gray-400 ml-1">Escolaridade</label>
+                      <label className="text-xs font-black uppercase text-gray-400 ml-1">Escolaridade*</label>
                       <select
                         id="escolaridade"
+                        required
                         value={formData.escolaridade}
                         onChange={handleInputChange}
                         className="form-input-m"
@@ -483,26 +528,68 @@ export default function CadastroMembro() {
                       </select>
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-xs font-black uppercase text-gray-400 ml-1">Profissão</label>
+                      <label className="text-xs font-black uppercase text-gray-400 ml-1">Profissão*</label>
                       <input
                         type="text"
                         id="profissao"
+                        required
                         value={formData.profissao}
                         onChange={handleInputChange}
                         placeholder="Sua profissão atual"
                         className="form-input-m"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-black uppercase text-gray-400 ml-1">Naturalidade</label>
-                      <input
-                        type="text"
-                        id="naturalidade"
-                        value={formData.naturalidade}
-                        onChange={handleInputChange}
-                        placeholder="Cidade/Estado onde nasceu"
-                        className="form-input-m"
-                      />
+                    <div className="space-y-1.5 md:col-span-2">
+                      <label className="text-xs font-black uppercase text-gray-400 ml-1">Naturalidade*</label>
+                      <div className="flex gap-4">
+                        <input
+                          type="text"
+                          id="naturalidade"
+                          required
+                          value={formData.naturalidade}
+                          onChange={handleInputChange}
+                          placeholder="Cidade"
+                          className="form-input-m"
+                          style={{ flex: 1, minWidth: 0 }}
+                        />
+                        <select
+                          id="naturalidadeEstado"
+                          required
+                          value={formData.naturalidadeEstado}
+                          onChange={handleInputChange}
+                          className="form-input-m"
+                          style={{ width: '120px', flex: 'none' }}
+                        >
+                          <option value="">UF</option>
+                          <option value="AC">AC</option>
+                          <option value="AL">AL</option>
+                          <option value="AP">AP</option>
+                          <option value="AM">AM</option>
+                          <option value="BA">BA</option>
+                          <option value="CE">CE</option>
+                          <option value="DF">DF</option>
+                          <option value="ES">ES</option>
+                          <option value="GO">GO</option>
+                          <option value="MA">MA</option>
+                          <option value="MT">MT</option>
+                          <option value="MS">MS</option>
+                          <option value="MG">MG</option>
+                          <option value="PA">PA</option>
+                          <option value="PB">PB</option>
+                          <option value="PR">PR</option>
+                          <option value="PE">PE</option>
+                          <option value="PI">PI</option>
+                          <option value="RJ">RJ</option>
+                          <option value="RN">RN</option>
+                          <option value="RS">RS</option>
+                          <option value="RO">RO</option>
+                          <option value="RR">RR</option>
+                          <option value="SC">SC</option>
+                          <option value="SP">SP</option>
+                          <option value="SE">SE</option>
+                          <option value="TO">TO</option>
+                        </select>
+                      </div>
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-xs font-black uppercase text-primary-base ml-1">Crie uma Senha para Logar*</label>
@@ -713,6 +800,42 @@ export default function CadastroMembro() {
                         className="form-input-m pt-3"
                       />
                     </div>
+                    <div className="space-y-4 pt-4 md:col-span-2">
+                      <label className="text-xs font-black uppercase text-gray-400 ml-1 block">Você tem alguma consagração ministerial?</label>
+                      <div className="flex gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer text-sm mb-4">
+                          <input type="radio" name="consagrado" value="sim" checked={formData.consagrado === "sim"} onChange={(e) => setFormData({ ...formData, consagrado: e.target.value })} className="w-4 h-4 text-primary-base focus:ring-primary-base rounded" />
+                          <span>Sim</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer text-sm mb-4">
+                          <input type="radio" name="consagrado" value="não" checked={formData.consagrado === "não"} onChange={(e) => setFormData({ ...formData, consagrado: e.target.value })} className="w-4 h-4 text-primary-base focus:ring-primary-base rounded" />
+                          <span>Não</span>
+                        </label>
+                      </div>
+                    </div>
+                    {formData.consagrado === "sim" && (
+                      <div className="space-y-1.5 md:col-span-2">
+                        <label className="text-xs font-black uppercase text-gray-400 ml-1">Qual a sua consagração?</label>
+                        <input
+                          type="text"
+                          list="consagracoesList"
+                          id="cargoConsagracao"
+                          value={formData.cargoConsagracao}
+                          onChange={handleInputChange}
+                          placeholder="Selecione ou digite..."
+                          className="form-input-m"
+                        />
+                        <datalist id="consagracoesList">
+                          <option value="Diácono / Diaconisa" />
+                          <option value="Presbítero" />
+                          <option value="Evangelista" />
+                          <option value="Missionário(a)" />
+                          <option value="Pastor(a)" />
+                          <option value="Bispo(a)" />
+                          <option value="Apóstolo(a)" />
+                        </datalist>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -723,7 +846,7 @@ export default function CadastroMembro() {
                   <h3 className="text-2xl font-bold font-serif text-primary-dark border-b pb-4">Família</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1.5 md:col-span-2">
-                       <label className="text-xs font-black uppercase text-gray-400 ml-1">Nome do Cônjuge</label>
+                       <label className="text-xs font-black uppercase text-gray-400 ml-1">Nome do Cônjuge {formData.estadoCivil === "Casado(a)" && "*"}</label>
                       <input
                         type="text"
                         id="nomeConjuge"
@@ -731,6 +854,7 @@ export default function CadastroMembro() {
                         onChange={handleInputChange}
                         placeholder="Caso seja casado(a)"
                         className="form-input-m"
+                        required={formData.estadoCivil === "Casado(a)"}
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -767,7 +891,7 @@ export default function CadastroMembro() {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-xs font-black uppercase text-gray-400 ml-1">Data do Casamento</label>
+                      <label className="text-xs font-black uppercase text-gray-400 ml-1">Data do Casamento {formData.estadoCivil === "Casado(a)" && "*"}</label>
                       <input
                         type="text"
                         id="dataCasamento"
@@ -775,6 +899,7 @@ export default function CadastroMembro() {
                         onChange={handleInputChange}
                         placeholder="dd/mm/aaaa"
                         className="form-input-m"
+                        required={formData.estadoCivil === "Casado(a)"}
                       />
                     </div>
                     <div className="space-y-1.5 md:col-span-2">
@@ -787,6 +912,32 @@ export default function CadastroMembro() {
                         placeholder="Qual igreja o cônjuge frequenta?"
                         className="form-input-m"
                       />
+                    </div>
+                    <div className="space-y-4 pt-4">
+                      <label className="text-xs font-black uppercase text-gray-400 ml-1 block">O Cônjuge é Convertido?</label>
+                      <div className="flex gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer text-sm mb-4">
+                          <input type="radio" name="conjugeConvertido" value="sim" checked={formData.conjugeConvertido === "sim"} onChange={(e) => setFormData({ ...formData, conjugeConvertido: e.target.value })} className="w-4 h-4 text-primary-base focus:ring-primary-base rounded" />
+                          <span>Sim</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer text-sm mb-4">
+                          <input type="radio" name="conjugeConvertido" value="não" checked={formData.conjugeConvertido === "não"} onChange={(e) => setFormData({ ...formData, conjugeConvertido: e.target.value })} className="w-4 h-4 text-primary-base focus:ring-primary-base rounded" />
+                          <span>Não</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div className="space-y-4 pt-4">
+                      <label className="text-xs font-black uppercase text-gray-400 ml-1 block">O Cônjuge é Batizado?</label>
+                      <div className="flex gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer text-sm mb-4">
+                          <input type="radio" name="conjugeBatizado" value="sim" checked={formData.conjugeBatizado === "sim"} onChange={(e) => setFormData({ ...formData, conjugeBatizado: e.target.value })} className="w-4 h-4 text-primary-base focus:ring-primary-base rounded" />
+                          <span>Sim</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer text-sm mb-4">
+                          <input type="radio" name="conjugeBatizado" value="não" checked={formData.conjugeBatizado === "não"} onChange={(e) => setFormData({ ...formData, conjugeBatizado: e.target.value })} className="w-4 h-4 text-primary-base focus:ring-primary-base rounded" />
+                          <span>Não</span>
+                        </label>
+                      </div>
                     </div>
                     <div className="space-y-4 md:col-span-2 pt-4">
                       <label className="text-xs font-black uppercase text-gray-400 ml-1 block">Você tem filhos?</label>

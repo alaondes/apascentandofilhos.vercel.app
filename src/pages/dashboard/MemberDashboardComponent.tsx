@@ -30,7 +30,6 @@ export default function MemberDashboardComponent() {
   const [annotation, setAnnotation] = useState("");
   const [isEditingAnnotation, setIsEditingAnnotation] = useState(false);
   const [savedAnnotation, setSavedAnnotation] = useState("");
-  const [activeSubTab, setActiveSubTab] = useState("visao_geral");
 
   useEffect(() => {
     if (user) {
@@ -51,38 +50,8 @@ export default function MemberDashboardComponent() {
     }
   };
 
-  const menuItems = [
-    { id: "visao_geral", label: "Visão geral", icon: LayoutDashboard },
-    { id: "pessoas", label: "Pessoas", icon: Users },
-    { id: "departamentos", label: "Departamentos", icon: Building },
-    { id: "grupos", label: "Grupos", icon: Users },
-    { id: "kids", label: "Kids", icon: Baby },
-    { id: "ensino", label: "Ensino", icon: BookOpen },
-    { id: "agenda", label: "Agenda", icon: Calendar },
-    { id: "midias", label: "Mídias", icon: Video },
-    { id: "ajuda", label: "Ajuda", icon: HelpCircle },
-  ];
-
   return (
     <div className="w-full h-full flex flex-col gap-6">
-      {/* Top Menu Simulating screenshot */}
-      <div className="flex bg-white border border-[#c8d8e8] rounded-[14px] overflow-hidden overflow-x-auto shadow-sm hide-scrollbar">
-        {menuItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setActiveSubTab(item.id)}
-            className={`flex items-center gap-2 px-5 py-4 whitespace-nowrap text-sm font-bold border-r border-[#c8d8e8] transition-colors ${
-              activeSubTab === item.id
-                ? "bg-[#f7fafd] text-primary-base"
-                : "text-gray-500 hover:text-primary-base hover:bg-gray-50"
-            }`}
-          >
-            <item.icon size={16} />
-            {item.label}
-          </button>
-        ))}
-      </div>
-
       {/* Banner */}
       <div className="w-full h-[120px] bg-gradient-to-r from-blue-500 to-primary-base rounded-[14px] overflow-hidden relative shadow-sm">
         <div className="absolute inset-0 flex items-center justify-center text-white text-3xl font-black italic tracking-wider">

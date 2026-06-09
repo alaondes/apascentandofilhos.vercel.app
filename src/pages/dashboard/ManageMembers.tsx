@@ -15,7 +15,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "../../lib/firebase";
-import { Plus, Edit2, Trash2, Search, X, Check, Users, Eye } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, X, Check, Users, Eye, User, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
@@ -27,7 +27,6 @@ export default function ManageMembers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
-  const [viewingMember, setViewingMember] = useState<any>(null);
   const [roles, setRoles] = useState<any[]>([
     { id: "membro", label: "Membro", base: "membro" },
     { id: "lider", label: "Líder", base: "leader" },
@@ -45,13 +44,14 @@ export default function ManageMembers() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     // Pessoal
+    foto: "",
     nome: "",
-    sobrenome: "",
     cpf: "",
     dataNascimento: "",
     sexo: "",
     estadoCivil: "",
     naturalidade: "",
+    naturalidadeEstado: "",
     escolaridade: "",
     profissao: "",
     senha: "",
@@ -74,6 +74,8 @@ export default function ManageMembers() {
     igrejaAnterior: "",
     membroDesde: "",
     cargosAnteriores: "",
+    consagrado: "não",
+    cargoConsagracao: "",
     // Família
     nomeConjuge: "",
     dataCasamento: "",
@@ -81,6 +83,8 @@ export default function ManageMembers() {
     cpfConjuge: "",
     celularConjuge: "",
     igrejaConjuge: "",
+    conjugeConvertido: "não",
+    conjugeBatizado: "não",
     temFilhos: "não",
     quantidadeFilhos: 0,
     listaFilhos: [] as { nome: string; dataNascimento: string; sexo: string }[],
@@ -88,6 +92,11 @@ export default function ManageMembers() {
     ministeriosInteresse: [] as string[],
     talentos: "",
     observacoes: "",
+    // Secretaria Ministerial
+    categorias: [] as string[],
+    cargos: [] as string[],
+    camposAdicionais: [] as { id: string; titulo: string; valor: string }[],
+    anotacoesSecretaria: "",
     // Status e Permissões
     status: "ativo",
     permissao: "membro",
@@ -194,18 +203,36 @@ export default function ManageMembers() {
     };
   }, []);
 
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setErrorMessage("A foto deve ter no máximo 5MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, foto: reader.result as string }));
+        setErrorMessage(null);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleOpenModal = (member: any = null) => {
     setErrorMessage(null);
+
     if (member) {
       setEditingMember(member);
       setFormData({
+        foto: member.foto || "",
         nome: member.nome || "",
-        sobrenome: member.sobrenome || "",
         cpf: member.cpf || "",
         dataNascimento: member.dataNascimento || "",
         sexo: member.sexo || "",
         estadoCivil: member.estadoCivil || "",
         naturalidade: member.naturalidade || "",
+        naturalidadeEstado: member.naturalidadeEstado || "",
         escolaridade: member.escolaridade || "",
         profissao: member.profissao || "",
         senha: member.senha || "",
@@ -225,31 +252,40 @@ export default function ManageMembers() {
         igrejaAnterior: member.igrejaAnterior || "",
         membroDesde: member.membroDesde || "",
         cargosAnteriores: member.cargosAnteriores || "",
+        consagrado: member.consagrado || "não",
+        cargoConsagracao: member.cargoConsagracao || "",
         nomeConjuge: member.nomeConjuge || "",
         dataCasamento: member.dataCasamento || "",
         dataNascimentoConjuge: member.dataNascimentoConjuge || "",
         cpfConjuge: member.cpfConjuge || "",
         celularConjuge: member.celularConjuge || "",
         igrejaConjuge: member.igrejaConjuge || "",
+        conjugeConvertido: member.conjugeConvertido || "não",
+        conjugeBatizado: member.conjugeBatizado || "não",
         temFilhos: member.temFilhos || "não",
         quantidadeFilhos: member.quantidadeFilhos || 0,
         listaFilhos: member.listaFilhos || [],
         ministeriosInteresse: member.ministeriosInteresse || [],
         talentos: member.talentos || "",
         observacoes: member.observacoes || "",
+        categorias: member.categorias || [],
+        cargos: member.cargos || [],
+        camposAdicionais: member.camposAdicionais || [],
+        anotacoesSecretaria: member.anotacoesSecretaria || "",
         status: member.status || "ativo",
         permissao: member.permissao || "membro",
       });
     } else {
       setEditingMember(null);
       setFormData({
+        foto: "",
         nome: "",
-        sobrenome: "",
         cpf: "",
         dataNascimento: "",
         sexo: "",
         estadoCivil: "",
         naturalidade: "",
+        naturalidadeEstado: "",
         escolaridade: "",
         profissao: "",
         senha: "",
@@ -269,18 +305,26 @@ export default function ManageMembers() {
         igrejaAnterior: "",
         membroDesde: "",
         cargosAnteriores: "",
+        consagrado: "não",
+        cargoConsagracao: "",
         nomeConjuge: "",
         dataCasamento: "",
         dataNascimentoConjuge: "",
         cpfConjuge: "",
         celularConjuge: "",
         igrejaConjuge: "",
+        conjugeConvertido: "não",
+        conjugeBatizado: "não",
         temFilhos: "não",
         quantidadeFilhos: 0,
         listaFilhos: [],
         ministeriosInteresse: [],
         talentos: "",
         observacoes: "",
+        categorias: [],
+        cargos: [],
+        camposAdicionais: [],
+        anotacoesSecretaria: "",
         status: "ativo",
         permissao: "membro",
       });
@@ -294,15 +338,9 @@ export default function ManageMembers() {
     setErrorMessage(null);
   };
 
-  const handleViewMember = (member: any) => {
-    setViewingMember(member);
-  };
-
-  const handleCloseViewModal = () => {
-    setViewingMember(null);
-  };
-
   const [activeTab, setActiveTab] = useState("pessoal");
+  const [novaCategoriaInput, setNovaCategoriaInput] = useState("");
+  const [novoCargoInput, setNovoCargoInput] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -311,9 +349,7 @@ export default function ManageMembers() {
       const selectedRole = roles.find((r) => r.id === formData.permissao);
       let role = selectedRole?.base || "membro"; // fallback
 
-      const fullNome = formData.sobrenome 
-        ? `${formData.nome} ${formData.sobrenome}` 
-        : formData.nome;
+      const fullNome = formData.nome;
 
       if (editingMember) {
         let finalUid = editingMember.id;
@@ -354,99 +390,108 @@ export default function ManageMembers() {
           }
         }
 
-        await setDoc(doc(db, "membros", finalUid), {
-          ...formData,
-          createdAt: editingMember.createdAt || Timestamp.now(),
-          updatedAt: Timestamp.now(),
-        });
+        const updateData = { ...formData };
+        if (editingMember) {
+          // Do not overwrite existing permissao if it exists (might be array)
+          delete (updateData as any).permissao;
+          
+          await setDoc(doc(db, "membros", finalUid), {
+            ...updateData,
+            createdAt: editingMember.createdAt || Timestamp.now(),
+            updatedAt: Timestamp.now(),
+          }, { merge: true });
 
-        // Atualizar também na tabela de usuários para sincronizar o nível de acesso
-        if (formData.email) {
-          await setDoc(
-            doc(db, "users", finalUid),
-            {
-              nome: fullNome,
-              email: formData.email,
-              role: role,
-              status: formData.status,
-              updatedAt: Timestamp.now(),
-            },
-            { merge: true },
-          );
-        }
-      } else {
-        if (formData.email && formData.senha) {
-          try {
-            const secondaryApp = initializeApp(
-              firebaseConfig,
-              "SecondaryApp" + Date.now(),
+          // Atualizar também na tabela de usuários para sincronizar o nível de acesso
+          if (formData.email) {
+            await setDoc(
+              doc(db, "users", finalUid),
+              {
+                nome: fullNome,
+                email: formData.email,
+                status: formData.status,
+                updatedAt: Timestamp.now(),
+              },
+              { merge: true },
             );
-            const secondaryAuth = getAuth(secondaryApp);
-            const userCredential = await createUserWithEmailAndPassword(
-              secondaryAuth,
-              formData.email,
-              formData.senha,
-            );
-            const uid = userCredential.user.uid;
-
-            await setDoc(doc(db, "users", uid), {
-              nome: fullNome,
-              email: formData.email,
-              role: role,
-              status: formData.status,
-              createdAt: Timestamp.now(),
-            });
-
-            await setDoc(doc(db, "membros", uid), {
-              ...formData,
-              createdAt: Timestamp.now(),
-              updatedAt: Timestamp.now(),
-            });
-
-            await secondaryAuth.signOut();
-          } catch (authError: any) {
-            console.error("Erro ao criar credencial:", authError);
-            if (authError.code === "auth/email-already-in-use") {
-              // Try to find the user by email in the users collection and use its ID
-              const q = query(
-                collection(db, "users"),
-                where("email", "==", formData.email)
-              );
-              const snapshot = await getDocs(q);
-              
-              if (!snapshot.empty) {
-                const existingUid = snapshot.docs[0].id;
-                
-                await setDoc(doc(db, "users", existingUid), {
-                  nome: fullNome,
-                  email: formData.email,
-                  role: role,
-                  status: formData.status,
-                  updatedAt: Timestamp.now(),
-                }, { merge: true });
-
-                await setDoc(doc(db, "membros", existingUid), {
-                  ...formData,
-                  createdAt: Timestamp.now(),
-                  updatedAt: Timestamp.now(),
-                }, { merge: true });
-              } else {
-                setErrorMessage(
-                  "O e-mail informado já está cadastrado no Firebase Auth, mas não foi encontrado no banco de dados."
-                );
-                return;
-              }
-            } else {
-              setErrorMessage("Erro ao criar login: " + authError.message);
-              return;
-            }
           }
         } else {
-          await addDoc(collection(db, "membros"), {
-            ...formData,
-            createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now(),
-          });
+          // New Member - initialize arrays
+          updateData.permissao = ["membro"] as any;
+          if (formData.email && formData.senha) {
+            try {
+              const secondaryApp = initializeApp(
+                firebaseConfig,
+                "SecondaryApp" + Date.now(),
+              );
+              const secondaryAuth = getAuth(secondaryApp);
+              const userCredential = await createUserWithEmailAndPassword(
+                secondaryAuth,
+                formData.email,
+                formData.senha,
+              );
+              const uid = userCredential.user.uid;
+
+              await setDoc(doc(db, "users", uid), {
+                nome: fullNome,
+                email: formData.email,
+                role: ["membro"],
+                papel: ["membro"],
+                status: formData.status,
+                createdAt: Timestamp.now(),
+              });
+
+              await setDoc(doc(db, "membros", uid), {
+                ...updateData,
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
+              });
+
+              await secondaryAuth.signOut();
+            } catch (authError: any) {
+              console.error("Erro ao criar credencial:", authError);
+              if (authError.code === "auth/email-already-in-use") {
+                // Try to find the user by email in the users collection and use its ID
+                const q = query(
+                  collection(db, "users"),
+                  where("email", "==", formData.email)
+                );
+                const snapshot = await getDocs(q);
+                
+                if (!snapshot.empty) {
+                  const existingUid = snapshot.docs[0].id;
+                  
+                  await setDoc(doc(db, "users", existingUid), {
+                    nome: fullNome,
+                    email: formData.email,
+                    role: ["membro"],
+                    papel: ["membro"],
+                    status: formData.status,
+                    updatedAt: Timestamp.now(),
+                  }, { merge: true });
+
+                  await setDoc(doc(db, "membros", existingUid), {
+                    ...updateData,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now(),
+                  }, { merge: true });
+                } else {
+                  setErrorMessage(
+                    "O e-mail informado já está cadastrado no Firebase Auth, mas não foi encontrado no banco de dados."
+                  );
+                  return;
+                }
+              } else {
+                setErrorMessage("Erro ao criar login: " + authError.message);
+                return;
+              }
+            }
+          } else {
+            await addDoc(collection(db, "membros"), {
+              ...updateData,
+              createdAt: Timestamp.now(),
+              updatedAt: Timestamp.now(),
+            });
+          }
         }
       }
       handleCloseModal();
@@ -660,7 +705,7 @@ export default function ManageMembers() {
                   </td>
                   <td className="py-3 px-4">
                     <span className="px-2 py-1 rounded text-[10px] bg-[#f0f6fb] text-primary-base font-bold uppercase tracking-wider">
-                      {member.permissao || "Membro"}
+                      {Array.isArray(member.permissao) ? member.permissao.join(', ') : member.permissao || "Membro"}
                     </span>
                   </td>
                   <td className="py-3 px-4">
@@ -687,18 +732,11 @@ export default function ManageMembers() {
                       </button>
                     )}
                     <button
-                      onClick={() => handleViewMember(member)}
+                      onClick={() => handleOpenModal(member)}
                       className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition"
-                      title="Ver Ficha Completa"
+                      title="Ver Ficha / Editar"
                     >
                       <Eye size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleOpenModal(member)}
-                      className="p-1.5 text-primary-base hover:bg-blue-50 rounded-md transition"
-                      title="Editar Ficha"
-                    >
-                      <Edit2 size={16} />
                     </button>
                     <button
                       onClick={() => confirmDelete(member.id)}
@@ -744,6 +782,7 @@ export default function ManageMembers() {
                     { id: "espiritual", label: "Cristã" },
                     { id: "familia", label: "Família" },
                     { id: "servico", label: "Serviço" },
+                    { id: "ministerial", label: "Ministerial" },
                     { id: "sistema", label: "Sistema" },
                   ].map((tab) => (
                     <button
@@ -772,14 +811,32 @@ export default function ManageMembers() {
                   {/* PESSOAL */}
                   {activeTab === "pessoal" && (
                     <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Nome*</label>
-                          <input type="text" required value={formData.nome} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} className="modal-input" />
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-16 h-16 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
+                          {formData.foto ? (
+                            <img src={formData.foto} alt="Foto" className="w-full h-full object-cover" />
+                          ) : (
+                            <User size={24} className="text-gray-300" />
+                          )}
                         </div>
+                        <div className="flex-1">
+                          <label htmlFor="modal-foto" className="inline-block px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors">
+                            Escolher Foto
+                          </label>
+                          <input
+                            type="file"
+                            id="modal-foto"
+                            accept="image/*"
+                            onChange={handlePhotoUpload}
+                            className="hidden"
+                          />
+                          <p className="text-[10px] text-gray-400 mt-1">Até 5MB. JPEGs ou PNGs.</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 gap-4">
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Sobrenome*</label>
-                          <input type="text" value={formData.sobrenome} onChange={(e) => setFormData({ ...formData, sobrenome: e.target.value })} className="modal-input" />
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Nome Completo*</label>
+                          <input type="text" required value={formData.nome} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} className="modal-input" />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
@@ -802,8 +859,8 @@ export default function ManageMembers() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Estado Civil</label>
-                          <select value={formData.estadoCivil} onChange={(e) => setFormData({ ...formData, estadoCivil: e.target.value })} className="modal-input">
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Estado Civil*</label>
+                          <select required value={formData.estadoCivil} onChange={(e) => setFormData({ ...formData, estadoCivil: e.target.value })} className="modal-input">
                             <option value="">Selecione</option>
                             <option value="Solteiro(a)">Solteiro(a)</option>
                             <option value="Casado(a)">Casado(a)</option>
@@ -814,12 +871,48 @@ export default function ManageMembers() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Escolaridade</label>
-                          <input type="text" value={formData.escolaridade} onChange={(e) => setFormData({ ...formData, escolaridade: e.target.value })} className="modal-input" />
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Escolaridade*</label>
+                          <input type="text" required value={formData.escolaridade} onChange={(e) => setFormData({ ...formData, escolaridade: e.target.value })} className="modal-input" />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Profissão</label>
-                          <input type="text" value={formData.profissao} onChange={(e) => setFormData({ ...formData, profissao: e.target.value })} className="modal-input" />
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Profissão*</label>
+                          <input type="text" required value={formData.profissao} onChange={(e) => setFormData({ ...formData, profissao: e.target.value })} className="modal-input" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Naturalidade*</label>
+                        <div className="flex gap-2">
+                          <input type="text" required placeholder="Cidade" value={formData.naturalidade} onChange={(e) => setFormData({ ...formData, naturalidade: e.target.value })} className="modal-input" style={{ flex: 1, minWidth: 0 }} />
+                          <select required value={formData.naturalidadeEstado} onChange={(e) => setFormData({ ...formData, naturalidadeEstado: e.target.value })} className="modal-input" style={{ width: '100px', flex: 'none' }}>
+                            <option value="">UF</option>
+                            <option value="AC">AC</option>
+                            <option value="AL">AL</option>
+                            <option value="AP">AP</option>
+                            <option value="AM">AM</option>
+                            <option value="BA">BA</option>
+                            <option value="CE">CE</option>
+                            <option value="DF">DF</option>
+                            <option value="ES">ES</option>
+                            <option value="GO">GO</option>
+                            <option value="MA">MA</option>
+                            <option value="MT">MT</option>
+                            <option value="MS">MS</option>
+                            <option value="MG">MG</option>
+                            <option value="PA">PA</option>
+                            <option value="PB">PB</option>
+                            <option value="PR">PR</option>
+                            <option value="PE">PE</option>
+                            <option value="PI">PI</option>
+                            <option value="RJ">RJ</option>
+                            <option value="RN">RN</option>
+                            <option value="RS">RS</option>
+                            <option value="RO">RO</option>
+                            <option value="RR">RR</option>
+                            <option value="SC">SC</option>
+                            <option value="SP">SP</option>
+                            <option value="SE">SE</option>
+                            <option value="TO">TO</option>
+                          </select>
                         </div>
                       </div>
                     </div>
@@ -903,6 +996,34 @@ export default function ManageMembers() {
                           <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Membro Desde</label>
                           <input type="text" placeholder="dd/mm/aaaa" value={formData.membroDesde} onChange={(e) => setFormData({ ...formData, membroDesde: e.target.value })} className="modal-input" />
                         </div>
+                        <div className="pt-2 border-t">
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Consagração Ministerial?</label>
+                          <div className="flex gap-4">
+                            <label className="flex items-center gap-2 cursor-pointer text-sm">
+                              <input type="radio" value="sim" checked={formData.consagrado === "sim"} onChange={(e) => setFormData({ ...formData, consagrado: e.target.value })} className="w-4 h-4 text-primary-base focus:ring-primary-base rounded" />
+                              <span>Sim</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer text-sm">
+                              <input type="radio" value="não" checked={formData.consagrado === "não"} onChange={(e) => setFormData({ ...formData, consagrado: e.target.value })} className="w-4 h-4 text-primary-base focus:ring-primary-base rounded" />
+                              <span>Não</span>
+                            </label>
+                          </div>
+                        </div>
+                        {formData.consagrado === "sim" && (
+                          <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Qual a Consagração?</label>
+                            <input type="text" list="consagracoesList" placeholder="Selecione ou digite..." value={formData.cargoConsagracao} onChange={(e) => setFormData({ ...formData, cargoConsagracao: e.target.value })} className="modal-input" />
+                            <datalist id="consagracoesList">
+                              <option value="Diácono / Diaconisa" />
+                              <option value="Presbítero" />
+                              <option value="Evangelista" />
+                              <option value="Missionário(a)" />
+                              <option value="Pastor(a)" />
+                              <option value="Bispo(a)" />
+                              <option value="Apóstolo(a)" />
+                            </datalist>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -922,6 +1043,32 @@ export default function ManageMembers() {
                         <div>
                           <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Data Casamento</label>
                           <input type="text" placeholder="dd/mm/aaaa" value={formData.dataCasamento} onChange={(e) => setFormData({ ...formData, dataCasamento: e.target.value })} className="modal-input" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Celular Cônjuge</label>
+                          <input type="text" placeholder="(00) 00000-0000" value={formData.celularConjuge} onChange={(e) => setFormData({ ...formData, celularConjuge: e.target.value })} className="modal-input" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Igreja do Cônjuge</label>
+                          <input type="text" placeholder="Igreja" value={formData.igrejaConjuge} onChange={(e) => setFormData({ ...formData, igrejaConjuge: e.target.value })} className="modal-input" />
+                        </div>
+                      </div>
+                       <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">O Cônjuge é Convertido?</label>
+                          <select value={formData.conjugeConvertido} onChange={(e) => setFormData({ ...formData, conjugeConvertido: e.target.value })} className="modal-input">
+                            <option value="não">Não</option>
+                            <option value="sim">Sim</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">O Cônjuge é Batizado?</label>
+                          <select value={formData.conjugeBatizado} onChange={(e) => setFormData({ ...formData, conjugeBatizado: e.target.value })} className="modal-input">
+                            <option value="não">Não</option>
+                            <option value="sim">Sim</option>
+                          </select>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4 pt-4 border-t">
@@ -982,6 +1129,145 @@ export default function ManageMembers() {
                     </div>
                   )}
 
+                  {/* MINISTERIAL */}
+                  {activeTab === "ministerial" && (
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1 border-b pb-1">Categorias</label>
+                        <div className="flex gap-2 mb-3">
+                          <input type="text" placeholder="Adicionar nova categoria..." value={novaCategoriaInput} onChange={(e) => setNovaCategoriaInput(e.target.value)} className="modal-input flex-1 !py-1.5" />
+                          <button type="button" onClick={() => {
+                            if (novaCategoriaInput.trim()) {
+                              setFormData({ ...formData, categorias: [...formData.categorias, novaCategoriaInput.trim()] });
+                              setNovaCategoriaInput("");
+                            }
+                          }} className="px-3 py-1.5 bg-gray-100 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-200">
+                            Adicionar
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {Array.from(new Set([...["Congregado", "Membro Afastado", "Membro Ativo", "Novo Convertido", "Visitante"], ...formData.categorias])).map((cat) => (
+                            <label key={cat} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg cursor-pointer">
+                              <input type="checkbox" checked={formData.categorias.includes(cat)} onChange={(e) => {
+                                const newCats = e.target.checked ? [...formData.categorias, cat] : formData.categorias.filter((c) => c !== cat);
+                                setFormData({ ...formData, categorias: newCats });
+                              }} className="w-3.5 h-3.5 text-primary-base rounded" />
+                              <span className="text-[11px] font-medium text-gray-600">{cat}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1 border-b pb-1">Cargos</label>
+                        <div className="flex gap-2 mb-3">
+                          <input type="text" placeholder="Adicionar novo cargo..." value={novoCargoInput} onChange={(e) => setNovoCargoInput(e.target.value)} className="modal-input flex-1 !py-1.5" />
+                          <button type="button" onClick={() => {
+                            if (novoCargoInput.trim()) {
+                              setFormData({ ...formData, cargos: [...formData.cargos, novoCargoInput.trim()] });
+                              setNovoCargoInput("");
+                            }
+                          }} className="px-3 py-1.5 bg-gray-100 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-200">
+                            Adicionar
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {Array.from(new Set([
+                            "Coordenador de Ministério", "Líder de Departamento", "Líder de Ministério", "Professor",
+                            "Músico", "Tesoureiro(a)", "Secretário(a)", "Líder de Célula", "Missionário", "Evangelista",
+                            "Obreiro", "Diácono", "Presbítero", "Pastor", "Pastor Auxiliar", "Pastor Presidente",
+                            ...formData.cargos
+                          ])).map((cargo) => (
+                            <label key={cargo} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg cursor-pointer">
+                              <input type="checkbox" checked={formData.cargos.includes(cargo)} onChange={(e) => {
+                                const newCargos = e.target.checked ? [...formData.cargos, cargo] : formData.cargos.filter((c) => c !== cargo);
+                                setFormData({ ...formData, cargos: newCargos });
+                              }} className="w-3.5 h-3.5 text-primary-base rounded" />
+                              <span className="text-[11px] font-medium text-gray-600">{cargo}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-2 mb-2 pb-1 border-b">
+                          <label className="block text-[10px] font-black text-gray-400 uppercase ml-1">+ Campos adicionais</label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData({
+                                ...formData,
+                                camposAdicionais: [...formData.camposAdicionais, { id: Math.random().toString(36).substring(7), titulo: "", valor: "" }]
+                              });
+                            }}
+                            className="bg-gray-100 hover:bg-gray-200 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded-md"
+                          >
+                            Adicionar
+                          </button>
+                        </div>
+                        {formData.camposAdicionais && formData.camposAdicionais.length > 0 && (
+                          <div className="space-y-3 mb-4">
+                            {formData.camposAdicionais.map((campo, index) => (
+                              <div key={campo.id || index} className="p-3 bg-gray-50 border border-gray-100 rounded-xl relative group">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newCampos = formData.camposAdicionais.filter((_, i) => i !== index);
+                                    setFormData({ ...formData, camposAdicionais: newCampos });
+                                  }}
+                                  className="absolute -top-2 -right-2 bg-red-100 text-red-500 rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-sm hover:bg-red-200"
+                                >
+                                  <X size={12} />
+                                </button>
+                                <div className="space-y-2">
+                                  <input
+                                    type="text"
+                                    placeholder="Nome do Campo (ex: Outros Ministérios)"
+                                    value={campo.titulo}
+                                    onChange={(e) => {
+                                      const newCampos = [...formData.camposAdicionais];
+                                      newCampos[index].titulo = e.target.value;
+                                      setFormData({ ...formData, camposAdicionais: newCampos });
+                                    }}
+                                    className="modal-input !text-xs !py-1.5 !bg-white"
+                                  />
+                                  <div className="flex bg-red-50 text-red-600 text-[9px] font-bold p-1.5 rounded-t-lg border border-red-200 border-b-0 items-center justify-between">
+                                    <div className="flex items-center gap-1.5">
+                                      <AlertCircle size={10} />
+                                      Visível para a pessoa
+                                    </div>
+                                  </div>
+                                  <textarea
+                                    rows={2}
+                                    placeholder="Conteúdo do campo..."
+                                    value={campo.valor}
+                                    onChange={(e) => {
+                                      const newCampos = [...formData.camposAdicionais];
+                                      newCampos[index].valor = e.target.value;
+                                      setFormData({ ...formData, camposAdicionais: newCampos });
+                                    }}
+                                    className="modal-input !text-xs !rounded-t-none border-red-200 resize-none focus:border-red-400 !bg-white"
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1 flex items-center gap-2">
+                          Anotações Relevantes
+                        </label>
+                        <div className="bg-red-50 text-red-600 text-[10px] font-bold p-2 rounded-t-lg border border-red-200 border-b-0 flex items-center gap-2">
+                          <AlertCircle size={14} />
+                          Atenção: o conteúdo deste campo pode ser visualizado pela própria pessoa.
+                        </div>
+                        <textarea rows={4} value={formData.anotacoesSecretaria} onChange={(e) => setFormData({ ...formData, anotacoesSecretaria: e.target.value })} className="modal-input !rounded-t-none border-red-200 resize-none focus:border-red-400" />
+                      </div>
+                    </div>
+                  )}
+
                   {/* SISTEMA */}
                   {activeTab === "sistema" && (
                     <div className="space-y-4">
@@ -996,11 +1282,9 @@ export default function ManageMembers() {
                         </div>
                         <div>
                           <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Permissão / Perfil</label>
-                          <select value={formData.permissao} onChange={(e) => setFormData({ ...formData, permissao: e.target.value })} className="modal-input">
-                            {roles.map((r) => (
-                              <option key={r.id} value={r.id}>{r.label}</option>
-                            ))}
-                          </select>
+                          <div className="modal-input bg-gray-50 flex items-center text-xs text-gray-500 italic">
+                             Acesse "Níveis de Permissão" no menu para alterar.
+                          </div>
                         </div>
                       </div>
                       <div className="pt-4 border-t">
@@ -1036,154 +1320,6 @@ export default function ManageMembers() {
                 </div>
               </form>
 
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {viewingMember && (
-          <div className="fixed inset-0 bg-primary-dark/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-[20px] shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]"
-            >
-              <div className="bg-[#f7fafd] border-b border-[#c8d8e8] px-6 py-4 flex justify-between items-center">
-                <h3 className="font-bold font-serif text-lg text-primary-dark">
-                  Informações de Cadastro Completa
-                </h3>
-                <button
-                  onClick={handleCloseViewModal}
-                  className="text-gray-500 hover:text-gray-800 transition p-1"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="p-8 overflow-y-auto custom-scrollbar flex-1 space-y-8 bg-white text-sm">
-                
-                {/* 1. Pessoal */}
-                <div>
-                  <h4 className="text-xs font-black text-primary-base uppercase tracking-widest border-b border-[#e2eaf3] pb-2 mb-4">
-                    1. Dados Pessoais
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Nome</span><span className="font-semibold text-gray-800">{viewingMember.nome || "-"} {viewingMember.sobrenome || ""}</span></div>
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">CPF</span><span className="font-semibold text-gray-800">{viewingMember.cpf || "-"}</span></div>
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Nascimento</span><span className="font-semibold text-gray-800">{viewingMember.dataNascimento || "-"}</span></div>
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Sexo</span><span className="font-semibold text-gray-800">{viewingMember.sexo || "-"}</span></div>
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Estado Civil</span><span className="font-semibold text-gray-800">{viewingMember.estadoCivil || "-"}</span></div>
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Naturalidade</span><span className="font-semibold text-gray-800">{viewingMember.naturalidade || "-"}</span></div>
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Escolaridade</span><span className="font-semibold text-gray-800">{viewingMember.escolaridade || "-"}</span></div>
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Profissão</span><span className="font-semibold text-gray-800">{viewingMember.profissao || "-"}</span></div>
-                  </div>
-                </div>
-
-                {/* 2. Contato e Endereço */}
-                <div>
-                  <h4 className="text-xs font-black text-primary-base uppercase tracking-widest border-b border-[#e2eaf3] pb-2 mb-4">
-                    2. Contato & Endereço
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Email</span><span className="font-semibold text-gray-800">{viewingMember.email || "-"}</span></div>
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Telefone</span><span className="font-semibold text-gray-800">{viewingMember.telefone || viewingMember.celular || "-"}</span></div>
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">WhatsApp</span><span className="font-semibold text-gray-800">{viewingMember.whatsapp || "-"}</span></div>
-                    <div className="col-span-full pt-2">
-                       <span className="block text-[10px] font-bold text-gray-400 uppercase">Endereço Completo</span>
-                       <span className="font-semibold text-gray-800">
-                         {viewingMember.rua ? `${viewingMember.rua}, ${viewingMember.numero || ''} ${viewingMember.complemento ? ' - ' + viewingMember.complemento : ''} - ${viewingMember.bairro || ''}, ${viewingMember.cidade || ''}/${viewingMember.estado || ''} - CEP: ${viewingMember.cep || ''}` : "-"}
-                       </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Espiritual */}
-                <div>
-                  <h4 className="text-xs font-black text-primary-base uppercase tracking-widest border-b border-[#e2eaf3] pb-2 mb-4">
-                    3. Vida Cristã
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Data de Conversão</span><span className="font-semibold text-gray-800">{viewingMember.dataConversao || "-"}</span></div>
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Batismo nas Águas</span><span className="font-semibold text-gray-800">{viewingMember.dataBatismoAguas || "-"}</span></div>
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Membro Desde</span><span className="font-semibold text-gray-800">{viewingMember.membroDesde || "-"}</span></div>
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Igreja Anterior</span><span className="font-semibold text-gray-800">{viewingMember.igrejaAnterior || "-"}</span></div>
-                    <div className="col-span-1 lg:col-span-2"><span className="block text-[10px] font-bold text-gray-400 uppercase">Cargos/Funções Anteriores</span><span className="font-semibold text-gray-800">{viewingMember.cargosAnteriores || "-"}</span></div>
-                  </div>
-                </div>
-
-                {/* 4. Familia */}
-                <div>
-                  <h4 className="text-xs font-black text-primary-base uppercase tracking-widest border-b border-[#e2eaf3] pb-2 mb-4">
-                    4. Família
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Nome do Cônjuge</span><span className="font-semibold text-gray-800">{viewingMember.nomeConjuge || "-"}</span></div>
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">CPF Cônjuge</span><span className="font-semibold text-gray-800">{viewingMember.cpfConjuge || "-"}</span></div>
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Nasc. Cônjuge</span><span className="font-semibold text-gray-800">{viewingMember.dataNascimentoConjuge || "-"}</span></div>
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Celular Cônjuge</span><span className="font-semibold text-gray-800">{viewingMember.celularConjuge || "-"}</span></div>
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Igreja Cônjuge</span><span className="font-semibold text-gray-800">{viewingMember.igrejaConjuge || "-"}</span></div>
-                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Data de Casamento</span><span className="font-semibold text-gray-800">{viewingMember.dataCasamento || "-"}</span></div>
-                  </div>
-                  
-                  {viewingMember.temFilhos === "sim" && Array.isArray(viewingMember.listaFilhos) && viewingMember.listaFilhos.length > 0 && (
-                    <div className="mt-6">
-                      <span className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Filhos ({viewingMember.listaFilhos.length})</span>
-                      <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                        {viewingMember.listaFilhos.map((filho: any, i: number) => (
-                          <div key={i} className="flex gap-4 border-b border-gray-200 last:border-0 pb-2 mb-2 last:pb-0 last:mb-0">
-                            <div><span className="block text-[9px] text-gray-400 uppercase">Nome</span><span className="font-semibold">{filho.nome || "-"}</span></div>
-                            <div><span className="block text-[9px] text-gray-400 uppercase">Nasc.</span><span className="font-semibold">{filho.dataNascimento || "-"}</span></div>
-                            <div><span className="block text-[9px] text-gray-400 uppercase">Sexo</span><span className="font-semibold">{filho.sexo || "-"}</span></div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 5. Serviço */}
-                <div>
-                  <h4 className="text-xs font-black text-primary-base uppercase tracking-widest border-b border-[#e2eaf3] pb-2 mb-4">
-                    5. Ministério e Habilidades
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div>
-                      <span className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Ministérios de Interesse</span>
-                      <div className="flex flex-wrap gap-2">
-                        {Array.isArray(viewingMember.ministeriosInteresse) && viewingMember.ministeriosInteresse.length > 0 ? (
-                          viewingMember.ministeriosInteresse.map((m: string) => (
-                            <span key={m} className="px-2 py-1 bg-blue-50 text-blue-700 text-[11px] font-bold rounded-md">{m}</span>
-                          ))
-                        ) : (
-                          <span className="font-semibold text-gray-800">-</span>
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                       <span className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Talentos / Habilidades</span>
-                       <p className="font-semibold text-gray-800 whitespace-pre-wrap">{viewingMember.talentos || "-"}</p>
-                    </div>
-                    {viewingMember.observacoes && (
-                        <div className="col-span-full">
-                           <span className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Observações / Anotações</span>
-                           <p className="p-3 bg-[#fdfaf2] border border-[#f5e3b5] rounded-xl text-yellow-800 text-sm whitespace-pre-wrap">{viewingMember.observacoes}</p>
-                        </div>
-                    )}
-                  </div>
-                </div>
-
-              </div>
-
-              <div className="p-6 border-t bg-gray-50 flex justify-end">
-                <button
-                  onClick={handleCloseViewModal}
-                  className="px-6 py-2.5 font-bold text-white bg-primary-base hover:bg-primary-dark rounded-xl transition shadow-md"
-                >
-                  Fechar Visualização
-                </button>
-              </div>
             </motion.div>
           </div>
         )}

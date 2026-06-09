@@ -1,9 +1,11 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Home } from "lucide-react";
 import { motion } from "motion/react";
 
 export default function NotFound() {
+  const location = useLocation();
+
   return (
     <div className="min-h-[80vh] flex items-center justify-center bg-[#fcfaf7] px-6">
       <motion.div
@@ -15,7 +17,7 @@ export default function NotFound() {
           404
         </h1>
         <h2 className="text-2xl font-serif text-gray-700 mb-6">
-          Página não encontrada
+          Página não encontrada ({location.pathname})
         </h2>
         <p className="text-gray-500 mb-10 max-w-md mx-auto">
           A página que você está procurando pode ter sido removida, mudou de

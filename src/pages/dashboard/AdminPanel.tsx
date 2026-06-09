@@ -45,6 +45,9 @@ import {
   ArrowDown,
   GripVertical,
   Grid,
+  Building,
+  Baby,
+  Video,
 } from "lucide-react";
 import {
   collection,
@@ -78,6 +81,7 @@ import Duvidas from "./Duvidas";
 import MeusDados from "./MeusDados";
 import RestrictedEditionPanel from "./RestrictedEditionPanel";
 import ColunistaPanelComponent from "./ColunistaPanelComponent";
+import FilhosDePazPanel from "./FilhosDePazPanel";
 
 const COURSES_LIST = [
   "Casados para Sempre",
@@ -214,6 +218,7 @@ export default function AdminPanel() {
   const isColunista = hasRole(["colunista", "columnist"]);
   const isEditorEdificado = hasRole(["editor_edificado"]);
   const isEditorMaf = hasRole(["editor_maf"]);
+  const isEditorFilhosDePaz = hasRole(["editor_filhos_de_paz"]);
 
   // A leader is someone who specifically has the leader role,
   // OR someone who has a profile but no other specific admin role assigned.
@@ -224,6 +229,7 @@ export default function AdminPanel() {
       !isEditor &&
       !isEditorEdificado &&
       !isEditorMaf &&
+      !isEditorFilhosDePaz &&
       !isSecretary &&
       !isFinancial &&
       !isColunista &&
@@ -282,6 +288,13 @@ export default function AdminPanel() {
       id: "maf_painel",
       name: "Painel Escola MAF",
       icon: BookOpen,
+    });
+  }
+  if (isAdmin || isEditorFilhosDePaz) {
+    availableDashboards.push({
+      id: "filhos_de_paz_painel",
+      name: "Painel Filhos de Paz",
+      icon: Home,
     });
   }
   if (isAdmin || isColunista) {
@@ -357,6 +370,8 @@ export default function AdminPanel() {
         setActiveTab("edificado_matrimonio_hero" as any);
       else if (selectedDashboard === "maf_painel")
         setActiveTab("cursos_geral" as any);
+      else if (selectedDashboard === "filhos_de_paz_painel")
+        setActiveTab("filhos_de_paz_editor" as any);
       else if (selectedDashboard === "colunista")
         setActiveTab("colunista_meus_artigos" as any);
     }
@@ -1264,24 +1279,46 @@ export default function AdminPanel() {
                 Painel do Membro
               </h3>
               <nav className="space-y-1 mb-4">
-                <button
-                  onClick={() => setActiveTab("member_dashboard_preview")}
-                  className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
-                    activeTab === "member_dashboard_preview"
-                      ? "bg-primary-base text-white shadow-md border-transparent"
-                      : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
-                  }`}
-                >
-                  <Users
-                    size={18}
-                    className={
-                      activeTab === "member_dashboard_preview"
-                        ? "text-white"
-                        : "text-primary-base"
-                    }
-                  />{" "}
-                  Visão do Membro (Preview)
-                </button>
+                {[
+                  {
+                    id: "member_dashboard_preview",
+                    label: "Visão Geral",
+                    icon: LayoutDashboard,
+                  },
+                  {
+                    id: "member_profile",
+                    label: "Meus Dados",
+                    icon: UserCircle,
+                  },
+                  { id: "member_pessoas", label: "Pessoas", icon: Users },
+                  { id: "member_departamentos", label: "Departamentos", icon: Building },
+                  { id: "member_grupos", label: "Grupos", icon: Users },
+                  { id: "member_kids", label: "Kids", icon: Baby },
+                  { id: "member_ensino", label: "Ensino", icon: BookOpen },
+                  { id: "member_agenda", label: "Agenda", icon: Calendar },
+                  { id: "member_midias", label: "Mídias", icon: Video },
+                  { id: "member_ajuda", label: "Ajuda", icon: HelpCircle },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id as any)}
+                    className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
+                      activeTab === item.id
+                        ? "bg-primary-base text-white shadow-md border-transparent"
+                        : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
+                    }`}
+                  >
+                    <item.icon
+                      size={18}
+                      className={
+                        activeTab === item.id
+                          ? "text-white"
+                          : "text-primary-base"
+                      }
+                    />{" "}
+                    {item.label}
+                  </button>
+                ))}
               </nav>
             </div>
           )}
@@ -1942,6 +1979,63 @@ export default function AdminPanel() {
             </div>
           )}
 
+          {selectedDashboard === "filhos_de_paz_painel" && (isAdmin || isEditorFilhosDePaz) && (
+            <div>
+              <h3 className="text-[12px] font-black uppercase tracking-wider text-white bg-primary-base rounded-md mb-4 px-3 py-2 text-center">
+                Painel Filhos de Paz
+              </h3>
+              <nav className="space-y-1 mb-4">
+                <button
+                  onClick={() => setActiveTab("leader_profile")}
+                  className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
+                    activeTab === "leader_profile"
+                      ? "bg-primary-base text-white shadow-md border-transparent"
+                      : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
+                  }`}
+                >
+                  <UserCircle
+                    size={18}
+                    className={
+                      activeTab === "leader_profile"
+                        ? "text-white"
+                        : "text-primary-base"
+                    }
+                  />
+                  Meus Dados
+                </button>
+              </nav>
+              <nav className="space-y-1">
+                {[
+                  {
+                    id: "filhos_de_paz_editor",
+                    label: "Edição da Página",
+                    icon: Edit3,
+                  },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id as any)}
+                    className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
+                      activeTab === item.id
+                        ? "bg-primary-base text-white shadow-md border-transparent"
+                        : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
+                    }`}
+                  >
+                    <item.icon
+                      size={18}
+                      className={
+                        activeTab === item.id
+                          ? "text-white"
+                          : "text-primary-base"
+                      }
+                    />
+                    {item.label}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          )}
+
           {selectedDashboard === "colunista" && (isAdmin || isColunista) && (
             <div>
               <h3 className="text-[12px] font-black uppercase tracking-wider text-white bg-primary-base rounded-md mb-4 px-3 py-2 text-center">
@@ -2084,6 +2178,7 @@ export default function AdminPanel() {
           ) : [
               "leader_overview",
               "leader_profile",
+              "member_profile",
               "leader_groups",
               "leader_new_group",
               "leader_reports",
@@ -2095,7 +2190,7 @@ export default function AdminPanel() {
               {activeTab === "leader_overview" && (
                 <DashboardHome isEmbedded={true} />
               )}
-              {activeTab === "leader_profile" && (
+              {(activeTab === "leader_profile" || activeTab === "member_profile") && (
                 <MeusDados isEmbedded={true} />
               )}
               {activeTab === "leader_groups" && (
@@ -2115,11 +2210,29 @@ export default function AdminPanel() {
               )}
               {activeTab === "leader_support" && <Duvidas isEmbedded={true} />}
             </div>
+          ) : activeTab === "filhos_de_paz_editor" ? (
+            <div className="w-full bg-[#f4f7f9] min-h-screen p-4 xl:p-8">
+              <FilhosDePazPanel />
+            </div>
           ) : [
               "colunista_meus_artigos",
               "colunista_novo_artigo"
             ].includes(activeTab) ? (
             <ColunistaPanelComponent activeTab={activeTab} />
+          ) : [
+              "member_dashboard_preview",
+              "member_pessoas",
+              "member_departamentos",
+              "member_grupos",
+              "member_kids",
+              "member_ensino",
+              "member_agenda",
+              "member_midias",
+              "member_ajuda"
+            ].includes(activeTab) ? (
+            <div className="w-full bg-[#f4f7f9] min-h-screen p-4 lg:p-6">
+              <MemberDashboardComponent />
+            </div>
           ) : (
             <>
               {/* Stats Cards only shown on system management tabs for Admin */}
@@ -2269,10 +2382,6 @@ export default function AdminPanel() {
               ) : activeTab === "edicao_restrita" ? (
                 <div className="w-full">
                   <RestrictedEditionPanel />
-                </div>
-              ) : activeTab === "member_dashboard_preview" ? (
-                <div className="w-full bg-[#f4f7f9] p-4 lg:p-6 min-h-screen">
-                  <MemberDashboardComponent />
                 </div>
               ) : (
                 <div className="bg-white rounded-[14px] border-[1.5px] border-[#c8d8e8] shadow-[0_4px_28px_rgba(0,0,0,0.05)] overflow-hidden w-full">

@@ -108,6 +108,7 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [membroData, setMembroData] = useState<any>(null);
 
   const [formData, setFormData] = useState<any>({
     nome: "",
@@ -168,6 +169,22 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
       });
     }
   }, [profile]);
+
+  useEffect(() => {
+    let unsubscribe = () => {};
+    if (auth.currentUser) {
+      // Using onSnapshot to keep it real-time if the secretary updates it while the user is looking
+      const docRef = doc(db, "membros", auth.currentUser.uid);
+      import("firebase/firestore").then(({ onSnapshot }) => {
+        unsubscribe = onSnapshot(docRef, (snap) => {
+          if (snap.exists()) {
+            setMembroData(snap.data());
+          }
+        });
+      });
+    }
+    return () => unsubscribe();
+  }, [auth.currentUser]);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -428,6 +445,7 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
     { id: "dados_pessoais", label: "Dados Pessoais", icon: User },
     { id: "endereco", label: "Endereço", icon: MapPin },
     { id: "conjuge", label: "Cônjuge", icon: Heart },
+    { id: "ficha_ministerial", label: "Ficha Ministerial (Secretaria)", icon: Church },
     { id: "senha_acesso", label: "Senha e Acesso", icon: Lock },
     { id: "avisos", label: "Quadro de Avisos", icon: Info },
     { id: "notificacoes", label: "Notificações", icon: Bell },
@@ -989,6 +1007,111 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                       </button>
                     </div>
                   </form>
+                </div>
+              )}
+
+              {activeTab === "ficha_ministerial" && (
+                <div className="p-6 md:p-8">
+                  <div className="flex items-center gap-2 text-[#3b7197] font-bold text-lg mb-8 pb-4 border-b border-gray-100">
+                    <Church
+                      fill="currentColor"
+                      size={20}
+                      className="opacity-80"
+                    />
+                    Ficha Ministerial
+                  </div>
+                  
+                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-8 text-sm text-blue-800 flex gap-3">
+                    <Info size={20} className="flex-shrink-0 text-blue-600" />
+                    <div>
+                      <p className="font-bold mb-1">Apenas visualização</p>
+                      <p>Estes dados são preenchidos e gerenciados exclusivamente pela secretaria da igreja. Para qualquer alteração, entre em contato com a administração.</p>
+                    </div>
+                  </div>
+
+                  {membroData ? (
+                    <div className="space-y-8">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Status de Consagração</h4>
+                          <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                            <p className="text-xs text-gray-500 font-bold mb-1">Possui consagração?</p>
+                            <p className="text-sm font-medium text-gray-800 mb-4 capitalize">{membroData.consagrado || "Não"}</p>
+                            
+                            {membroData.consagrado === "sim" && (
+                              <>
+                                <p className="text-xs text-gray-500 font-bold mb-1">Cargo de Consagração</p>
+                                <p className="text-sm font-medium text-[#3b7197] bg-blue-50 px-3 py-1.5 rounded-lg inline-block">{membroData.cargoConsagracao || "Não especificado"}</p>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Classificação</h4>
+                          <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 h-[calc(100%-2.25rem)]">
+                            <p className="text-xs text-gray-500 font-bold mb-2">Categorias Atuais</p>
+                            {membroData.categorias && membroData.categorias.length > 0 ? (
+                              <div className="flex flex-wrap gap-2">
+                                {membroData.categorias.map((cat: string) => (
+                                  <span key={cat} className="px-3 py-1 bg-white border border-gray-200 text-gray-700 text-xs font-bold rounded-lg shadow-sm">
+                                    {cat}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-gray-400 italic">Nenhuma categoria atribuída.</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Atuações e Cargos (Departamentos/Ministérios)</h4>
+                        <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 min-h-[5rem]">
+                          {membroData.cargos && membroData.cargos.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                              {membroData.cargos.map((cargo: string) => (
+                                <span key={cargo} className="px-3 py-1.5 bg-[#3b7197]/10 border border-[#3b7197]/20 text-[#3b7197] text-xs font-bold rounded-lg">
+                                  {cargo}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-400 italic pt-2">Nenhum cargo ativo no momento.</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {membroData.camposAdicionais && membroData.camposAdicionais.length > 0 && (
+                        <div>
+                          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Outras Informações</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {membroData.camposAdicionais.map((campo: any, index: number) => (
+                              <div key={campo.id || index} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                <p className="text-xs text-gray-500 font-bold mb-2 uppercase">{campo.titulo || "Informação"}</p>
+                                <p className="text-sm font-medium text-gray-800 whitespace-pre-wrap">{campo.valor}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {membroData.anotacoesSecretaria && (
+                        <div>
+                          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Anotações Relevantes</h4>
+                          <div className="bg-orange-50 rounded-xl p-5 border border-orange-100 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+                            {membroData.anotacoesSecretaria}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 flex flex-col items-center">
+                      <Loader2 className="w-8 h-8 text-[#3b7197] animate-spin mb-4" />
+                      <p className="text-gray-500">Carregando informações ministeriais...</p>
+                    </div>
+                  )}
                 </div>
               )}
 
