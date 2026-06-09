@@ -1547,6 +1547,28 @@ const innerContent = (
                               }}
                             />
                           </div>
+
+                          <div className="space-y-2 relative group focus-within:z-10">
+                            <div className="absolute -left-2 top-0 bottom-0 w-1 bg-[#2D6A9F] rounded-r opacity-50 group-focus-within:opacity-100 transition-opacity"></div>
+                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-2 block">
+                              Referência Bíblica (Opcional, texto menor)
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full p-3.5 border border-[#c8d8e8] rounded-xl text-sm text-gray-600 bg-gray-50 focus:bg-white focus:border-[#2D6A9F] focus:ring-2 focus:ring-[#2D6A9F]/10 outline-none transition-all"
+                              placeholder='Ex: "Assim, eles já não são dois, mas sim uma só carne." — Mateus 19:6'
+                              value={slide.reference || ""}
+                              onChange={(e) => {
+                                const newReference = e.target.value;
+                                setHomeData((prev: any) => ({
+                                  ...prev,
+                                  slides: prev.slides.map((s: any, i: number) =>
+                                    i === idx ? { ...s, reference: newReference } : s,
+                                  ),
+                                }));
+                              }}
+                            />
+                          </div>
                         </div>
                         
                       </div>
@@ -3764,6 +3786,27 @@ const innerContent = (
                                     ...prev,
                                     slides: prev.slides.map((s, i) =>
                                       i === idx ? { ...s, subtitle: newSubtitle } : s,
+                                    ),
+                                  }));
+                                }}
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-1">
+                                Referência Bíblica (Opcional, texto menor)
+                              </label>
+                              <input
+                                type="text"
+                                className="w-full p-3 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                                placeholder='Ex: "Assim, eles já não são dois, mas sim uma só carne." — Mateus 19:6'
+                                value={slide.reference || ""}
+                                onChange={(e) => {
+                                  const newReference = e.target.value;
+                                  setEdificadoMatrimonioData((prev) => ({
+                                    ...prev,
+                                    slides: prev.slides.map((s, i) =>
+                                      i === idx ? { ...s, reference: newReference } : s,
                                     ),
                                   }));
                                 }}

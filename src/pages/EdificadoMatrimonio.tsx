@@ -140,6 +140,16 @@ export default function EdificadoMatrimonio() {
               >
                 {displaySlides[currentSlide]?.subtitle}
               </motion.p>
+              {displaySlides[currentSlide]?.reference && (
+                <motion.p
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.6, duration: 0.8 }}
+                  className="text-sm md:text-base text-white/70 mt-3 max-w-2xl italic font-light drop-shadow"
+                >
+                  {displaySlides[currentSlide]?.reference}
+                </motion.p>
+              )}
               {(displaySlides[currentSlide]?.button1Text || displaySlides[currentSlide]?.button2Text) && (
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
