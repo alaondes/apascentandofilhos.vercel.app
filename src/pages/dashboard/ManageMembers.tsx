@@ -15,7 +15,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "../../lib/firebase";
-import { Plus, Edit2, Trash2, Search, X, Check, Users } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, X, Check, Users, Eye } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
@@ -27,6 +27,7 @@ export default function ManageMembers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
+  const [viewingMember, setViewingMember] = useState<any>(null);
   const [roles, setRoles] = useState<any[]>([
     { id: "membro", label: "Membro", base: "membro" },
     { id: "lider", label: "Líder", base: "leader" },
@@ -291,6 +292,14 @@ export default function ManageMembers() {
     setIsModalOpen(false);
     setEditingMember(null);
     setErrorMessage(null);
+  };
+
+  const handleViewMember = (member: any) => {
+    setViewingMember(member);
+  };
+
+  const handleCloseViewModal = () => {
+    setViewingMember(null);
   };
 
   const [activeTab, setActiveTab] = useState("pessoal");
@@ -678,9 +687,16 @@ export default function ManageMembers() {
                       </button>
                     )}
                     <button
+                      onClick={() => handleViewMember(member)}
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition"
+                      title="Ver Ficha Completa"
+                    >
+                      <Eye size={16} />
+                    </button>
+                    <button
                       onClick={() => handleOpenModal(member)}
                       className="p-1.5 text-primary-base hover:bg-blue-50 rounded-md transition"
-                      title="Editar"
+                      title="Editar Ficha"
                     >
                       <Edit2 size={16} />
                     </button>
@@ -1020,6 +1036,154 @@ export default function ManageMembers() {
                 </div>
               </form>
 
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {viewingMember && (
+          <div className="fixed inset-0 bg-primary-dark/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-[20px] shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              <div className="bg-[#f7fafd] border-b border-[#c8d8e8] px-6 py-4 flex justify-between items-center">
+                <h3 className="font-bold font-serif text-lg text-primary-dark">
+                  Informações de Cadastro Completa
+                </h3>
+                <button
+                  onClick={handleCloseViewModal}
+                  className="text-gray-500 hover:text-gray-800 transition p-1"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-8 overflow-y-auto custom-scrollbar flex-1 space-y-8 bg-white text-sm">
+                
+                {/* 1. Pessoal */}
+                <div>
+                  <h4 className="text-xs font-black text-primary-base uppercase tracking-widest border-b border-[#e2eaf3] pb-2 mb-4">
+                    1. Dados Pessoais
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Nome</span><span className="font-semibold text-gray-800">{viewingMember.nome || "-"} {viewingMember.sobrenome || ""}</span></div>
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">CPF</span><span className="font-semibold text-gray-800">{viewingMember.cpf || "-"}</span></div>
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Nascimento</span><span className="font-semibold text-gray-800">{viewingMember.dataNascimento || "-"}</span></div>
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Sexo</span><span className="font-semibold text-gray-800">{viewingMember.sexo || "-"}</span></div>
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Estado Civil</span><span className="font-semibold text-gray-800">{viewingMember.estadoCivil || "-"}</span></div>
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Naturalidade</span><span className="font-semibold text-gray-800">{viewingMember.naturalidade || "-"}</span></div>
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Escolaridade</span><span className="font-semibold text-gray-800">{viewingMember.escolaridade || "-"}</span></div>
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Profissão</span><span className="font-semibold text-gray-800">{viewingMember.profissao || "-"}</span></div>
+                  </div>
+                </div>
+
+                {/* 2. Contato e Endereço */}
+                <div>
+                  <h4 className="text-xs font-black text-primary-base uppercase tracking-widest border-b border-[#e2eaf3] pb-2 mb-4">
+                    2. Contato & Endereço
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Email</span><span className="font-semibold text-gray-800">{viewingMember.email || "-"}</span></div>
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Telefone</span><span className="font-semibold text-gray-800">{viewingMember.telefone || viewingMember.celular || "-"}</span></div>
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">WhatsApp</span><span className="font-semibold text-gray-800">{viewingMember.whatsapp || "-"}</span></div>
+                    <div className="col-span-full pt-2">
+                       <span className="block text-[10px] font-bold text-gray-400 uppercase">Endereço Completo</span>
+                       <span className="font-semibold text-gray-800">
+                         {viewingMember.rua ? `${viewingMember.rua}, ${viewingMember.numero || ''} ${viewingMember.complemento ? ' - ' + viewingMember.complemento : ''} - ${viewingMember.bairro || ''}, ${viewingMember.cidade || ''}/${viewingMember.estado || ''} - CEP: ${viewingMember.cep || ''}` : "-"}
+                       </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Espiritual */}
+                <div>
+                  <h4 className="text-xs font-black text-primary-base uppercase tracking-widest border-b border-[#e2eaf3] pb-2 mb-4">
+                    3. Vida Cristã
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Data de Conversão</span><span className="font-semibold text-gray-800">{viewingMember.dataConversao || "-"}</span></div>
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Batismo nas Águas</span><span className="font-semibold text-gray-800">{viewingMember.dataBatismoAguas || "-"}</span></div>
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Membro Desde</span><span className="font-semibold text-gray-800">{viewingMember.membroDesde || "-"}</span></div>
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Igreja Anterior</span><span className="font-semibold text-gray-800">{viewingMember.igrejaAnterior || "-"}</span></div>
+                    <div className="col-span-1 lg:col-span-2"><span className="block text-[10px] font-bold text-gray-400 uppercase">Cargos/Funções Anteriores</span><span className="font-semibold text-gray-800">{viewingMember.cargosAnteriores || "-"}</span></div>
+                  </div>
+                </div>
+
+                {/* 4. Familia */}
+                <div>
+                  <h4 className="text-xs font-black text-primary-base uppercase tracking-widest border-b border-[#e2eaf3] pb-2 mb-4">
+                    4. Família
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Nome do Cônjuge</span><span className="font-semibold text-gray-800">{viewingMember.nomeConjuge || "-"}</span></div>
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">CPF Cônjuge</span><span className="font-semibold text-gray-800">{viewingMember.cpfConjuge || "-"}</span></div>
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Nasc. Cônjuge</span><span className="font-semibold text-gray-800">{viewingMember.dataNascimentoConjuge || "-"}</span></div>
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Celular Cônjuge</span><span className="font-semibold text-gray-800">{viewingMember.celularConjuge || "-"}</span></div>
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Igreja Cônjuge</span><span className="font-semibold text-gray-800">{viewingMember.igrejaConjuge || "-"}</span></div>
+                    <div><span className="block text-[10px] font-bold text-gray-400 uppercase">Data de Casamento</span><span className="font-semibold text-gray-800">{viewingMember.dataCasamento || "-"}</span></div>
+                  </div>
+                  
+                  {viewingMember.temFilhos === "sim" && Array.isArray(viewingMember.listaFilhos) && viewingMember.listaFilhos.length > 0 && (
+                    <div className="mt-6">
+                      <span className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Filhos ({viewingMember.listaFilhos.length})</span>
+                      <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                        {viewingMember.listaFilhos.map((filho: any, i: number) => (
+                          <div key={i} className="flex gap-4 border-b border-gray-200 last:border-0 pb-2 mb-2 last:pb-0 last:mb-0">
+                            <div><span className="block text-[9px] text-gray-400 uppercase">Nome</span><span className="font-semibold">{filho.nome || "-"}</span></div>
+                            <div><span className="block text-[9px] text-gray-400 uppercase">Nasc.</span><span className="font-semibold">{filho.dataNascimento || "-"}</span></div>
+                            <div><span className="block text-[9px] text-gray-400 uppercase">Sexo</span><span className="font-semibold">{filho.sexo || "-"}</span></div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 5. Serviço */}
+                <div>
+                  <h4 className="text-xs font-black text-primary-base uppercase tracking-widest border-b border-[#e2eaf3] pb-2 mb-4">
+                    5. Ministério e Habilidades
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                      <span className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Ministérios de Interesse</span>
+                      <div className="flex flex-wrap gap-2">
+                        {Array.isArray(viewingMember.ministeriosInteresse) && viewingMember.ministeriosInteresse.length > 0 ? (
+                          viewingMember.ministeriosInteresse.map((m: string) => (
+                            <span key={m} className="px-2 py-1 bg-blue-50 text-blue-700 text-[11px] font-bold rounded-md">{m}</span>
+                          ))
+                        ) : (
+                          <span className="font-semibold text-gray-800">-</span>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                       <span className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Talentos / Habilidades</span>
+                       <p className="font-semibold text-gray-800 whitespace-pre-wrap">{viewingMember.talentos || "-"}</p>
+                    </div>
+                    {viewingMember.observacoes && (
+                        <div className="col-span-full">
+                           <span className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Observações / Anotações</span>
+                           <p className="p-3 bg-[#fdfaf2] border border-[#f5e3b5] rounded-xl text-yellow-800 text-sm whitespace-pre-wrap">{viewingMember.observacoes}</p>
+                        </div>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+
+              <div className="p-6 border-t bg-gray-50 flex justify-end">
+                <button
+                  onClick={handleCloseViewModal}
+                  className="px-6 py-2.5 font-bold text-white bg-primary-base hover:bg-primary-dark rounded-xl transition shadow-md"
+                >
+                  Fechar Visualização
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

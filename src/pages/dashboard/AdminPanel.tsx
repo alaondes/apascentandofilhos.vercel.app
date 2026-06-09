@@ -1181,6 +1181,8 @@ export default function AdminPanel() {
     !isFinancial &&
     !isEditor &&
     !isColunista &&
+    !isEditorEdificado &&
+    !isEditorMaf &&
     isMembro
   ) {
     return (

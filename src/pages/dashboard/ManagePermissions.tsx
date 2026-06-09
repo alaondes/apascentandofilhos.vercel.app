@@ -76,11 +76,17 @@ function MultiSelectRole({
 
   const resolvedPermissao =
     member.permissao || member.role || member.papel || "membro";
-  const currentRoles = Array.isArray(resolvedPermissao)
+  const propRoles = Array.isArray(resolvedPermissao)
     ? resolvedPermissao
     : typeof resolvedPermissao === "string"
       ? [resolvedPermissao]
       : ["membro"];
+
+  const [currentRoles, setCurrentRoles] = useState<string[]>(propRoles);
+
+  useEffect(() => {
+    setCurrentRoles(propRoles);
+  }, [JSON.stringify(propRoles)]);
 
   const [isSuccess, setIsSuccess] = useState(false);
   
@@ -98,6 +104,7 @@ function MultiSelectRole({
       ];
     }
     
+    setCurrentRoles(newRoles);
     onUpdate(newRoles);
     
     setIsSuccess(true);
@@ -116,7 +123,7 @@ function MultiSelectRole({
           onClick={() => setIsOpen(true)}
           className="text-white bg-primary-base hover:bg-primary-dark px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap shadow-sm text-center"
         >
-          Editar Permissões
+          Conceder/Retirar
         </button>
         <div className="flex flex-wrap gap-1">
           {currentLabels.slice(0, 3).map((lbl: string) => (
@@ -310,6 +317,8 @@ export default function ManagePermissions() {
         role: baseRoles,
         papel: baseRoles 
       }, { merge: true });
+      
+      alert("Permissões atualizadas com sucesso para o usuário!");
     } catch (e: any) {
       console.error("Erro ao atualizar papel", e);
       alert("Erro ao atualizar permissão: " + e.message);
@@ -403,7 +412,7 @@ export default function ManagePermissions() {
                 : "text-gray-500 hover:text-primary-dark"
             }`}
           >
-            Conceder/Retirar
+            Usuários
           </button>
           <button
             onClick={() => setActiveTab("roles")}

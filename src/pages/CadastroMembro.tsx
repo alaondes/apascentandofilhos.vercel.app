@@ -260,15 +260,12 @@ export default function CadastroMembro() {
         email: formData.email.trim(),
         nome: `${formData.nome} ${formData.sobrenome}`,
         role: "membro",
-        status: "pendente_aprovacao",
+        status: "ativo",
         createdAt: serverTimestamp(),
       });
 
-      // 4. Log out immediately as they need approval
-      await signOut(auth);
-
-      setSuccessMsg("Sua ficha de cadastro foi enviada com sucesso! Você poderá acessar o sistema assim que sua ficha for aprovada pela secretaria.");
-      setTimeout(() => navigate("/login"), 5000);
+      setSuccessMsg("Sua ficha de cadastro foi enviada com sucesso! Redirecionando para o painel...");
+      setTimeout(() => navigate("/dashboard/admin"), 3000);
     } catch (error: any) {
       console.error("Registration error:", error);
       if (error.code === "auth/email-already-in-use") {
