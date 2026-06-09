@@ -41,6 +41,10 @@ import {
   UserCircle,
   Edit3,
   DollarSign,
+  ArrowUp,
+  ArrowDown,
+  GripVertical,
+  Grid,
 } from "lucide-react";
 import {
   collection,
@@ -208,6 +212,8 @@ export default function AdminPanel() {
   const isFinancial = hasRole(["financial"]);
   const isMembro = hasRole(["membro", "member"]);
   const isColunista = hasRole(["colunista", "columnist"]);
+  const isEditorEdificado = hasRole(["editor_edificado"]);
+  const isEditorMaf = hasRole(["editor_maf"]);
 
   // A leader is someone who specifically has the leader role,
   // OR someone who has a profile but no other specific admin role assigned.
@@ -216,6 +222,8 @@ export default function AdminPanel() {
     (profile &&
       !isAdmin &&
       !isEditor &&
+      !isEditorEdificado &&
+      !isEditorMaf &&
       !isSecretary &&
       !isFinancial &&
       !isColunista &&
@@ -262,6 +270,20 @@ export default function AdminPanel() {
       icon: Layout,
     });
   }
+  if (isAdmin || isEditorEdificado) {
+    availableDashboards.push({
+      id: "edificado_painel",
+      name: "Painel Edificado Matrimônio",
+      icon: Heart,
+    });
+  }
+  if (isAdmin || isEditorMaf) {
+    availableDashboards.push({
+      id: "maf_painel",
+      name: "Painel Escola MAF",
+      icon: BookOpen,
+    });
+  }
   if (isAdmin || isColunista) {
     availableDashboards.push({
       id: "colunista",
@@ -269,6 +291,48 @@ export default function AdminPanel() {
       icon: Edit3,
     });
   }
+
+  const [dashboardOrder, setDashboardOrder] = useState<string[]>([]);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [tempOrderList, setTempOrderList] = useState<{id: string, name: string, icon: any}[]>([]);
+
+  useEffect(() => {
+    if (user?.uid) {
+      const saved = localStorage.getItem(`dashboard_order_${user.uid}`);
+      if (saved) {
+        try {
+          setDashboardOrder(JSON.parse(saved));
+        } catch (e) {
+          console.error("Failed to parse dashboard order");
+        }
+      }
+    }
+  }, [user]);
+
+  if (dashboardOrder.length > 0) {
+    availableDashboards.sort((a, b) => {
+      const indexA = dashboardOrder.indexOf(a.id);
+      const indexB = dashboardOrder.indexOf(b.id);
+      if (indexA === -1 && indexB === -1) return 0;
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    });
+  }
+
+  const handleOpenOrderModal = () => {
+    setTempOrderList([...availableDashboards]);
+    setIsOrderModalOpen(true);
+  };
+
+  const handleSaveOrder = () => {
+    const order = tempOrderList.map(item => item.id);
+    setDashboardOrder(order);
+    if (user?.uid) {
+      localStorage.setItem(`dashboard_order_${user.uid}`, JSON.stringify(order));
+    }
+    setIsOrderModalOpen(false);
+  };
 
   useEffect(() => {
     if (!selectedDashboard && availableDashboards.length > 0) {
@@ -289,6 +353,10 @@ export default function AdminPanel() {
         setActiveTab("orders" as any);
       else if (selectedDashboard === "conteudo")
         setActiveTab("aparencia" as any);
+      else if (selectedDashboard === "edificado_painel")
+        setActiveTab("edificado_matrimonio_hero" as any);
+      else if (selectedDashboard === "maf_painel")
+        setActiveTab("cursos_geral" as any);
       else if (selectedDashboard === "colunista")
         setActiveTab("colunista_meus_artigos" as any);
     }
@@ -1158,9 +1226,18 @@ export default function AdminPanel() {
         <div className="w-full lg:w-72 shrink-0 bg-white rounded-[14px] border-[1.5px] border-[#c8d8e8] shadow-sm p-4 h-fit space-y-6">
           {availableDashboards.length > 1 && (
             <div className="mb-4 pb-4 border-b border-[#e2eaf3]">
-              <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-2 block px-2">
-                Trocar Painel
-              </label>
+              <div className="flex items-center justify-between mb-2 px-2">
+                <label className="text-[10px] font-black uppercase tracking-wider text-gray-400">
+                  Trocar Painel
+                </label>
+                <button
+                  onClick={handleOpenOrderModal}
+                  className="text-gray-400 hover:text-primary-base transition-colors"
+                  title="Organizar Painéis"
+                >
+                  <Settings size={14} />
+                </button>
+              </div>
               <select
                 value={selectedDashboard || ""}
                 onChange={(e) => setSelectedDashboard(e.target.value)}
@@ -1641,16 +1718,30 @@ export default function AdminPanel() {
                     label: "Conteúdo Quem Somos",
                     icon: Users,
                   },
-                  {
-                    id: "cursos",
-                    label: "Conteúdo Escola MAF",
-                    icon: BookOpen,
-                  },
-                  {
-                    id: "edificado_matrimonio",
-                    label: "Conteúdo Edificado Matrimônio",
-                    icon: Heart,
-                  },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id as any)}
+                    className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
+                      activeTab === item.id
+                        ? "bg-primary-base text-white shadow-md border-transparent"
+                        : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
+                    }`}
+                  >
+                    <item.icon
+                      size={18}
+                      className={
+                        activeTab === item.id
+                          ? "text-white"
+                          : "text-primary-base"
+                      }
+                    />
+                    {item.label}
+                  </button>
+                ))}
+
+                <h4 className="text-[10px] uppercase font-bold text-gray-400 mt-4 mb-2 pl-2">DIVISÃO: SISTEMA</h4>
+                {[
                   { id: "contatos", label: "Conteúdo Contatos", icon: Mail },
                   { id: "login", label: "Conteúdo Login", icon: Lock },
                   { id: "footer", label: "Conteúdo Rodapé", icon: Layout },
@@ -1675,6 +1766,176 @@ export default function AdminPanel() {
                     {item.label}
                   </button>
                 ))}
+              </nav>
+            </div>
+          )}
+
+          {selectedDashboard === "edificado_painel" && (isAdmin || isEditorEdificado) && (
+            <div>
+              <h3 className="text-[12px] font-black uppercase tracking-wider text-white bg-primary-base rounded-md mb-4 px-3 py-2 text-center">
+                Painel Edificado Matrim.
+              </h3>
+              <nav className="space-y-1 mb-4">
+                <button
+                  onClick={() => setActiveTab("leader_profile")}
+                  className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
+                    activeTab === "leader_profile"
+                      ? "bg-primary-base text-white shadow-md border-transparent"
+                      : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
+                  }`}
+                >
+                  <UserCircle
+                    size={18}
+                    className={
+                      activeTab === "leader_profile"
+                        ? "text-white"
+                        : "text-primary-base"
+                    }
+                  />
+                  Meus Dados
+                </button>
+              </nav>
+              <h4 className="text-[10px] uppercase font-bold text-gray-400 mt-4 mb-2 pl-2">DIVISÃO: MINISTÉRIOS</h4>
+              <nav className="space-y-1">
+                <button
+                  onClick={() => setActiveTab("edificado_matrimonio_hero")}
+                  className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
+                    activeTab === "edificado_matrimonio_hero" || activeTab === "edificado_matrimonio"
+                      ? "bg-primary-base text-white shadow-md border-transparent"
+                      : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
+                  }`}
+                >
+                  <ImageIcon
+                    size={18}
+                    className={
+                      activeTab === "edificado_matrimonio_hero" || activeTab === "edificado_matrimonio"
+                        ? "text-white"
+                        : "text-primary-base"
+                    }
+                  />
+                  Banners
+                </button>
+                <button
+                  onClick={() => setActiveTab("edificado_matrimonio_crencas")}
+                  className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
+                    activeTab === "edificado_matrimonio_crencas"
+                      ? "bg-primary-base text-white shadow-md border-transparent"
+                      : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
+                  }`}
+                >
+                  <Heart
+                    size={18}
+                    className={
+                      activeTab === "edificado_matrimonio_crencas"
+                        ? "text-white"
+                        : "text-primary-base"
+                    }
+                  />
+                  No que Acreditamos
+                </button>
+                <button
+                  onClick={() => setActiveTab("edificado_matrimonio_cursos_editor")}
+                  className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
+                    activeTab === "edificado_matrimonio_cursos_editor"
+                      ? "bg-primary-base text-white shadow-md border-transparent"
+                      : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
+                  }`}
+                >
+                  <GraduationCap
+                    size={18}
+                    className={
+                      activeTab === "edificado_matrimonio_cursos_editor"
+                        ? "text-white"
+                        : "text-primary-base"
+                    }
+                  />
+                  Treinamentos
+                </button>
+                <button
+                  onClick={() => setActiveTab("edificado_matrimonio_cta")}
+                  className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
+                    activeTab === "edificado_matrimonio_cta"
+                      ? "bg-primary-base text-white shadow-md border-transparent"
+                      : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
+                  }`}
+                >
+                  <MessageSquare
+                    size={18}
+                    className={
+                      activeTab === "edificado_matrimonio_cta"
+                        ? "text-white"
+                        : "text-primary-base"
+                    }
+                  />
+                  Rodapé (CTA)
+                </button>
+              </nav>
+            </div>
+          )}
+
+          {selectedDashboard === "maf_painel" && (isAdmin || isEditorMaf) && (
+            <div>
+              <h3 className="text-[12px] font-black uppercase tracking-wider text-white bg-primary-base rounded-md mb-4 px-3 py-2 text-center">
+                Painel Escola MAF
+              </h3>
+              <nav className="space-y-1 mb-4">
+                <button
+                  onClick={() => setActiveTab("leader_profile")}
+                  className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
+                    activeTab === "leader_profile"
+                      ? "bg-primary-base text-white shadow-md border-transparent"
+                      : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
+                  }`}
+                >
+                  <UserCircle
+                    size={18}
+                    className={
+                      activeTab === "leader_profile"
+                        ? "text-white"
+                        : "text-primary-base"
+                    }
+                  />
+                  Meus Dados
+                </button>
+              </nav>
+              <h4 className="text-[10px] uppercase font-bold text-gray-400 mt-4 mb-2 pl-2">DIVISÃO: MINISTÉRIOS</h4>
+              <nav className="space-y-1">
+                <button
+                  onClick={() => setActiveTab("cursos_geral")}
+                  className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
+                    activeTab === "cursos_geral" || activeTab === "cursos"
+                      ? "bg-primary-base text-white shadow-md border-transparent"
+                      : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
+                  }`}
+                >
+                  <Settings
+                    size={18}
+                    className={
+                      activeTab === "cursos_geral" || activeTab === "cursos"
+                        ? "text-white"
+                        : "text-primary-base"
+                    }
+                  />
+                  Estrutura da Página
+                </button>
+                <button
+                  onClick={() => setActiveTab("cursos_editor")}
+                  className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
+                    activeTab === "cursos_editor"
+                      ? "bg-primary-base text-white shadow-md border-transparent"
+                      : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
+                  }`}
+                >
+                  <Grid
+                    size={18}
+                    className={
+                      activeTab === "cursos_editor"
+                        ? "text-white"
+                        : "text-primary-base"
+                    }
+                  />
+                  Gestão Visual de Cursos
+                </button>
               </nav>
             </div>
           )}
@@ -1790,12 +2051,34 @@ export default function AdminPanel() {
               "inicio",
               "quem_somos",
               "cursos",
+              "cursos_geral",
+              "cursos_editor",
               "edificado_matrimonio",
+              "edificado_matrimonio_hero",
+              "edificado_matrimonio_crencas",
+              "edificado_matrimonio_cursos_editor",
+              "edificado_matrimonio_cta",
               "contatos",
               "login",
               "footer",
             ].includes(activeTab) ? (
-            <GlobalContentPanel isEmbedded={true} embedTab={activeTab as any} />
+            <GlobalContentPanel 
+              isEmbedded={true} 
+              embedTab={
+                activeTab.startsWith("edificado_matrimonio") 
+                  ? "edificado_matrimonio" 
+                  : activeTab.startsWith("cursos") 
+                    ? "cursos" 
+                    : (activeTab as any)
+              } 
+              embedSubTab={
+                activeTab.startsWith("edificado_matrimonio_") 
+                  ? activeTab.replace("edificado_matrimonio_", "") 
+                  : activeTab.startsWith("cursos_") 
+                    ? activeTab.replace("cursos_", "") 
+                    : undefined
+              } 
+            />
           ) : [
               "leader_overview",
               "leader_profile",
@@ -4277,6 +4560,8 @@ export default function AdminPanel() {
                         >
                           <option value="leader">Líder (Padrão)</option>
                           <option value="editor">Editor (Conteúdo Site)</option>
+                          <option value="editor_edificado">Editor Edificado Matrimônio</option>
+                          <option value="editor_maf">Editor Escola MAF</option>
                           <option value="secretary">Secretaria (MFD)</option>
                           <option value="financial">
                             Financeiro (Pedidos)
@@ -5681,6 +5966,87 @@ export default function AdminPanel() {
             </motion.div>
           </div>
         )}
+      {isOrderModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[85vh]"
+          >
+            <div className="p-5 border-b border-[#e2eaf3] flex items-center justify-between bg-[#f7fafd]">
+              <h3 className="font-bold text-primary-dark">Organizar Painéis</h3>
+              <button
+                onClick={() => setIsOrderModalOpen(false)}
+                className="text-gray-400 hover:text-red-500 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-5 overflow-y-auto flex-1">
+              <p className="text-sm text-gray-500 mb-4">
+                Use as setas para reordenar a listagem dos painéis no menu lateral.
+              </p>
+              
+              <div className="space-y-2">
+                {tempOrderList.map((item, index) => (
+                  <div key={item.id} className="flex items-center gap-3 p-3 bg-white border border-[#e2eaf3] rounded-xl">
+                    <div className="flex flex-col gap-1">
+                      <button
+                        onClick={() => {
+                          if (index > 0) {
+                            const newList = [...tempOrderList];
+                            [newList[index - 1], newList[index]] = [newList[index], newList[index - 1]];
+                            setTempOrderList(newList);
+                          }
+                        }}
+                        disabled={index === 0}
+                        className={`p-1 rounded-md ${index === 0 ? "text-gray-200" : "text-gray-400 hover:bg-gray-100 hover:text-primary-base"}`}
+                      >
+                        <ArrowUp size={14} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (index < tempOrderList.length - 1) {
+                            const newList = [...tempOrderList];
+                            [newList[index + 1], newList[index]] = [newList[index], newList[index + 1]];
+                            setTempOrderList(newList);
+                          }
+                        }}
+                        disabled={index === tempOrderList.length - 1}
+                        className={`p-1 rounded-md ${index === tempOrderList.length - 1 ? "text-gray-200" : "text-gray-400 hover:bg-gray-100 hover:text-primary-base"}`}
+                      >
+                        <ArrowDown size={14} />
+                      </button>
+                    </div>
+                    
+                    <div className="w-8 h-8 rounded-full bg-[#f0f6fb] text-primary-base flex items-center justify-center shrink-0">
+                      <item.icon size={16} />
+                    </div>
+                    <span className="font-medium text-sm text-gray-700">{item.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="p-5 border-t border-[#e2eaf3] flex justify-end gap-3 bg-[#f7fafd]">
+              <button
+                onClick={() => setIsOrderModalOpen(false)}
+                className="px-4 py-2 rounded-xl text-sm font-bold text-gray-500 border border-[#e2eaf3] bg-white hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveOrder}
+                className="px-6 py-2 rounded-xl text-sm font-bold text-white bg-primary-base hover:bg-primary-dark transition-colors shadow-sm"
+              >
+                Salvar Ordem
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
       </section>
     </AdminLayout>
   );

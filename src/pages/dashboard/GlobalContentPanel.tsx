@@ -47,11 +47,13 @@ interface GlobalContentPanelProps {
     | "login"
     | "footer"
     | "header_logo";
+  embedSubTab?: string;
 }
 
 export default function GlobalContentPanel({
   isEmbedded = false,
   embedTab,
+  embedSubTab,
 }: GlobalContentPanelProps) {
   const navigate = useNavigate();
   const { user, profile } = useFirebase();
@@ -139,8 +141,25 @@ export default function GlobalContentPanel({
   const [coursePageCourseToDelete, setCoursePageCourseToDelete] = useState<
     number | null
   >(null);
-  const [coursesSubTab, setCoursesSubTab] = useState<"geral" | "editor" | "leader">("geral");
-  const [edificadoSubTab, setEdificadoSubTab] = useState<"hero" | "crencas" | "cursos_editor" | "cta">("hero");
+  const [coursesSubTab, setCoursesSubTab] = useState<"geral" | "editor" | "leader">(
+    (embedSubTab as any) || "geral"
+  );
+  const [edificadoSubTab, setEdificadoSubTab] = useState<"hero" | "crencas" | "cursos_editor" | "cta">(
+    (embedSubTab as any) || "hero"
+  );
+
+  useEffect(() => {
+    if (isEmbedded && embedSubTab && embedTab === "edificado_matrimonio") {
+      setEdificadoSubTab(embedSubTab as any);
+    }
+  }, [isEmbedded, embedSubTab, embedTab]);
+
+  useEffect(() => {
+    if (isEmbedded && embedSubTab && embedTab === "cursos") {
+      setCoursesSubTab(embedSubTab as any);
+    }
+  }, [isEmbedded, embedSubTab, embedTab]);
+
   const [editingCourseIndex, setEditingCourseIndex] = useState<number | null>(null);
   const [editingEdificadoCourseIndex, setEditingEdificadoCourseIndex] = useState<number | null>(null);
   const [principleToDelete, setPrincipleToDelete] = useState<number | null>(
@@ -3624,26 +3643,28 @@ const innerContent = (
           </button>
         </div>
 
-        <div className="flex flex-wrap gap-2 p-2 bg-white border border-[#e2eaf3] shadow-sm rounded-2xl w-full">
-          {[
-            { id: "hero", label: "Banners" },
-            { id: "crencas", label: "No que Acreditamos" },
-            { id: "cursos_editor", label: "Treinamentos" },
-            { id: "cta", label: "Rodapé (CTA)" }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setEdificadoSubTab(tab.id as any)}
-              className={`px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-                edificadoSubTab === tab.id
-                  ? "bg-[#2D6A9F] text-white shadow-md drop-shadow-sm"
-                  : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-[#2D6A9F] border border-transparent hover:border-[#c8d8e8]"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        {!embedSubTab && (
+          <div className="flex flex-wrap gap-2 p-2 bg-white border border-[#e2eaf3] shadow-sm rounded-2xl w-full">
+            {[
+              { id: "hero", label: "Banners" },
+              { id: "crencas", label: "No que Acreditamos" },
+              { id: "cursos_editor", label: "Treinamentos" },
+              { id: "cta", label: "Rodapé (CTA)" }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setEdificadoSubTab(tab.id as any)}
+                className={`px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+                  edificadoSubTab === tab.id
+                    ? "bg-[#2D6A9F] text-white shadow-md drop-shadow-sm"
+                    : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-[#2D6A9F] border border-transparent hover:border-[#c8d8e8]"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {edificadoSubTab === "hero" && (
           <div className="animate-fade-in space-y-6">
@@ -4368,27 +4389,29 @@ const innerContent = (
         </div>
 
         {/* Sub-tabs Navigation */}
-        <div className="flex flex-wrap gap-2 p-2 bg-white border border-[#e2eaf3] shadow-sm rounded-2xl w-full md:w-fit">
-          {[
-            { id: "geral", label: "Estrutura da Página", icon: "Settings" },
-            { id: "editor", label: "Gestão Visual de Cursos", icon: "Grid" }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setCoursesSubTab(tab.id as any)}
-              className={`px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-                coursesSubTab === tab.id
-                  ? "bg-[#2D6A9F] text-white shadow-md drop-shadow-sm"
-                  : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-[#2D6A9F] border border-transparent hover:border-[#c8d8e8]"
-              }`}
-            >
-              <span className="flex items-center justify-center -ml-1">
-                {/* Visual align */}
-              </span>
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        {!embedSubTab && (
+          <div className="flex flex-wrap gap-2 p-2 bg-white border border-[#e2eaf3] shadow-sm rounded-2xl w-full md:w-fit">
+            {[
+              { id: "geral", label: "Estrutura da Página", icon: "Settings" },
+              { id: "editor", label: "Gestão Visual de Cursos", icon: "Grid" }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setCoursesSubTab(tab.id as any)}
+                className={`px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+                  coursesSubTab === tab.id
+                    ? "bg-[#2D6A9F] text-white shadow-md drop-shadow-sm"
+                    : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-[#2D6A9F] border border-transparent hover:border-[#c8d8e8]"
+                }`}
+              >
+                <span className="flex items-center justify-center -ml-1">
+                  {/* Visual align */}
+                </span>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {coursesSubTab === "geral" ? (
           <div className="space-y-8 animate-fade-in">
@@ -6978,12 +7001,50 @@ return (
             },
             { id: "inicio", label: "Página Início", icon: Home },
             { id: "quem_somos", label: "Página Quem Somos", icon: Users },
+            { id: "cursos", label: "Conteúdo Escola MAF", icon: BookOpen },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveContent(item.id as any)}
+              className={`flex items-center w-full gap-3 p-3.5 rounded-xl font-bold text-sm transition-all border border-transparent ${
+                activeContent === item.id
+                  ? "bg-[#2D6A9F] text-white shadow-md drop-shadow-sm"
+                  : "bg-transparent text-gray-600 hover:bg-gray-50 hover:text-[#2D6A9F] hover:border-[#e2eaf3]"
+              }`}
+            >
+              <item.icon size={18} />
+              {item.label}
+            </button>
+          ))}
+
+          <h4 className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2 px-3 mt-4">
+            DIVISÃO: MINISTÉRIOS
+          </h4>
+          {[
             {
               id: "edificado_matrimonio",
-              label: "Edificado Matrimônio",
+              label: "Conteúdo Edificado Matrimônio",
               icon: Heart,
             },
-            { id: "cursos", label: "Página de Cursos", icon: BookOpen },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveContent(item.id as any)}
+              className={`flex items-center w-full gap-3 p-3.5 rounded-xl font-bold text-sm transition-all border border-transparent ${
+                activeContent === item.id
+                  ? "bg-[#2D6A9F] text-white shadow-md drop-shadow-sm"
+                  : "bg-transparent text-gray-600 hover:bg-gray-50 hover:text-[#2D6A9F] hover:border-[#e2eaf3]"
+              }`}
+            >
+              <item.icon size={18} />
+              {item.label}
+            </button>
+          ))}
+
+          <h4 className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2 px-3 mt-4">
+            DIVISÃO: SISTEMA
+          </h4>
+          {[
             { id: "contatos", label: "Contatos e Redes", icon: Mail },
             { id: "login", label: "Página de Login", icon: Lock },
             { id: "footer", label: "Conteúdo Rodapé", icon: Layout },

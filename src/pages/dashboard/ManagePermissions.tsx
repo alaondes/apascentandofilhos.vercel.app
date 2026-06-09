@@ -40,10 +40,27 @@ const DEFAULT_ROLES = [
     isProtected: false,
   },
   { id: "editor", label: "Editor", base: "editor", isProtected: false },
+  {
+    id: "editor_edificado",
+    label: "Editor Edificado Matrimônio",
+    base: "editor_edificado",
+    isProtected: false,
+  },
+  {
+    id: "editor_maf",
+    label: "Editor Escola MAF",
+    base: "editor_maf",
+    isProtected: false,
+  },
   { id: "pastor", label: "Pastor", base: "admin", isProtected: false },
   { id: "obreiro", label: "Obreiro", base: "leader", isProtected: false },
   { id: "admin", label: "Administrador", base: "admin", isProtected: false },
-  { id: "colunista", label: "Colunista", base: "colunista", isProtected: false },
+  {
+    id: "colunista",
+    label: "Colunista",
+    base: "colunista",
+    isProtected: false,
+  },
 ];
 
 function MultiSelectRole({
@@ -56,7 +73,6 @@ function MultiSelectRole({
   onUpdate: (roles: string[]) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const resolvedPermissao =
     member.permissao || member.role || member.papel || "membro";
@@ -66,23 +82,14 @@ function MultiSelectRole({
       ? [resolvedPermissao]
       : ["membro"];
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
+  const [isSuccess, setIsSuccess] = useState(false);
+  
   const toggleRole = (roleId: string) => {
+    const roleDef = roles.find((r) => r.id === roleId);
     let newRoles;
-    if (currentRoles.includes(roleId)) {
-      newRoles = currentRoles.filter((r: string) => r !== roleId);
+    
+    if (currentRoles.includes(roleId) || (roleDef && currentRoles.includes(roleDef.label))) {
+      newRoles = currentRoles.filter((r: string) => r !== roleId && r !== roleDef?.label);
       if (newRoles.length === 0) newRoles = ["membro"];
     } else {
       newRoles = [
@@ -90,7 +97,11 @@ function MultiSelectRole({
         roleId,
       ];
     }
+    
     onUpdate(newRoles);
+    
+    setIsSuccess(true);
+    setTimeout(() => setIsSuccess(false), 2000);
   };
 
   const currentLabels = currentRoles.map((id: string) => {
@@ -99,45 +110,79 @@ function MultiSelectRole({
   });
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      <div
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full max-w-[200px] min-h-[34px] px-3 py-1.5 border border-[#c8d8e8] rounded-md text-sm font-medium focus:border-primary-base outline-none cursor-pointer flex flex-wrap gap-1 items-center justify-between"
-      >
+    <>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <button
+          onClick={() => setIsOpen(true)}
+          className="text-white bg-primary-base hover:bg-primary-dark px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap shadow-sm text-center"
+        >
+          Editar Permissões
+        </button>
         <div className="flex flex-wrap gap-1">
-          {currentLabels.map((lbl: string) => (
+          {currentLabels.slice(0, 3).map((lbl: string) => (
             <span
               key={lbl}
-              className="bg-primary-base/10 text-primary-base px-2 py-0.5 rounded text-[11px] whitespace-nowrap"
+              className="bg-gray-100 text-gray-700 border border-gray-200 px-2 py-0.5 rounded-md text-[11px] font-medium whitespace-nowrap"
             >
               {lbl}
             </span>
           ))}
+          {currentLabels.length > 3 && (
+             <span className="bg-gray-100 text-gray-500 border border-gray-200 px-2 py-0.5 rounded-md text-[11px] font-medium whitespace-nowrap">
+               +{currentLabels.length - 3}
+             </span>
+          )}
         </div>
-        <span className="text-gray-400 text-xs ml-2">▼</span>
       </div>
 
       {isOpen && (
-        <div className="absolute z-[999] top-full left-0 mt-1 w-full max-w-[200px] bg-white border border-[#c8d8e8] rounded-md shadow-lg max-h-[200px] overflow-y-auto">
-          {roles.map((r) => (
-            <label
-              key={r.id}
-              className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                className="rounded border-gray-300 text-primary-base focus:ring-primary-base"
-                checked={
-                  currentRoles.includes(r.id) || currentRoles.includes(r.label)
-                }
-                onChange={() => toggleRole(r.id)}
-              />
-              <span className="text-sm text-gray-700">{r.label}</span>
-            </label>
-          ))}
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden animate-fade-in">
+            <div className="p-4 border-b border-[#e2eaf3] flex justify-between items-center bg-[#f7fafd]">
+              <h3 className="font-bold text-primary-dark">Permissões de {member.nome || "Usuário"}</h3>
+              <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-red-500 transition-colors">
+                 <X size={20} />
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto flex-1 space-y-2 bg-white">
+               {roles.map((r) => (
+                  <div
+                     key={r.id}
+                     onClick={(e) => {
+                       e.preventDefault();
+                       toggleRole(r.id);
+                     }}
+                     className="flex items-center gap-3 p-3 border border-gray-100 rounded-xl cursor-pointer hover:bg-[#f7fafd] hover:border-[#c8d8e8] transition-all"
+                   >
+                     <input
+                       type="checkbox"
+                       readOnly
+                       className="rounded border-gray-300 w-4 h-4 text-primary-base focus:ring-[3px] focus:ring-primary-base/20 cursor-pointer pointer-events-none"
+                       checked={
+                         currentRoles.includes(r.id) || currentRoles.includes(r.label)
+                       }
+                     />
+                     <span className="text-sm font-bold text-gray-700 pointer-events-none">{r.label}</span>
+                   </div>
+               ))}
+            </div>
+            {isSuccess && (
+              <div className="px-4 py-2 bg-green-50 text-green-700 text-xs font-bold text-center border-t border-green-100">
+                Permissão atualizada com sucesso!
+              </div>
+            )}
+            <div className="p-4 border-t border-[#e2eaf3] bg-[#f7fafd] flex justify-end">
+               <button
+                 onClick={() => setIsOpen(false)}
+                 className="px-6 py-2 bg-primary-base text-white hover:bg-primary-dark rounded-xl text-sm font-bold shadow-sm transition-colors"
+               >
+                 Concluir
+               </button>
+            </div>
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -387,7 +432,7 @@ export default function ManagePermissions() {
               />
             </div>
 
-            <div className="bg-white border rounded-xl overflow-x-auto overflow-y-visible min-h-[380px] shadow-sm">
+            <div className="bg-white border rounded-xl overflow-visible min-h-[380px] shadow-sm">
               <table className="w-full text-left border-collapse min-w-[600px]">
                 <thead>
                   <tr className="bg-[#f7fafd] text-[#2c4a63] text-xs uppercase tracking-wider font-bold">

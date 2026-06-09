@@ -33,6 +33,8 @@ export default function ManageMembers() {
     { id: "secretaria", label: "Secretaria", base: "secretary" },
     { id: "financeiro", label: "Financeiro", base: "financial" },
     { id: "editor", label: "Editor", base: "editor" },
+    { id: "editor_edificado", label: "Editor Edificado Matrimônio", base: "editor_edificado" },
+    { id: "editor_maf", label: "Editor Escola MAF", base: "editor_maf" },
     { id: "pastor", label: "Pastor", base: "admin" },
     { id: "obreiro", label: "Obreiro", base: "leader" },
     { id: "admin", label: "Administrador", base: "admin" },
@@ -123,6 +125,18 @@ export default function ManageMembers() {
               id: "editor",
               label: "Editor",
               base: "editor",
+              isProtected: false,
+            },
+            {
+              id: "editor_edificado",
+              label: "Editor Edificado Matrimônio",
+              base: "editor_edificado",
+              isProtected: false,
+            },
+            {
+              id: "editor_maf",
+              label: "Editor Escola MAF",
+              base: "editor_maf",
               isProtected: false,
             },
             {
