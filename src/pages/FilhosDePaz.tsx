@@ -120,14 +120,16 @@ export default function FilhosDePaz() {
 
       {/* Main Content Overlapping */}
       <section className="max-w-6xl mx-auto px-6 relative z-30 -mt-36">
-        <div className="flex flex-col md:flex-row gap-8 items-start">
+        <div className="flex flex-col md:flex-row gap-8 items-stretch">
           {/* Text Card */}
-          <div className="bg-white p-8 md:p-12 w-full md:w-1/2 shadow-sm rounded-[2px]">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">{data.sectionTitle}</h2>
-            <div className="space-y-6 text-sm text-gray-600 leading-relaxed font-medium">
-              <p>{data.text1}</p>
-              <p>{data.text2}</p>
-              <p>{data.text3}</p>
+          <div className="bg-white p-8 md:p-12 w-full md:w-1/2 shadow-sm rounded-[2px] flex flex-col justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">{data.sectionTitle}</h2>
+              <div className="space-y-6 text-sm text-gray-600 leading-relaxed font-medium">
+                <p>{data.text1}</p>
+                <p>{data.text2}</p>
+                <p>{data.text3}</p>
+              </div>
             </div>
             
             {/* Share */}
@@ -143,11 +145,11 @@ export default function FilhosDePaz() {
           </div>
 
           {/* Image Overlapping */}
-          <div className="w-full md:w-1/2 border-8 border-white shadow-lg bg-white transform md:-translate-y-6 lg:-translate-y-12">
+          <div className="w-full md:w-1/2 shadow-sm bg-white rounded-[2px] overflow-hidden flex min-h-[350px] md:min-h-full">
             <img 
               src={data.mainImage} 
               alt="Main Content" 
-              className="w-full h-auto object-cover"
+              className="w-full h-full object-cover"
             />
           </div>
         </div>

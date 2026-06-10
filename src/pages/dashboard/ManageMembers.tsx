@@ -20,110 +20,176 @@ import { motion, AnimatePresence } from "framer-motion";
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import firebaseConfig from "../../../firebase-applet-config.json";
+import { cpfMask, phoneMask, cepMask, numberMask, dateMask } from "../../lib/masks";
 
 function cleanOklchInCss(cssText: string): string {
   if (!cssText) return "";
   
-  // 1. Core converter for oklch
-  let result = cssText.replace(/oklch\(([^)]+)\)/g, (match, p1) => {
-    try {
-      const parts = p1.trim().split(/[\s,+/]+/);
-      if (parts.length < 3) return match;
-      
-      const L = parseFloat(parts[0]);
-      const C = parseFloat(parts[1]);
-      let H = parseFloat(parts[2]);
-      if (isNaN(L) || isNaN(C) || isNaN(H)) return match;
-      
-      let A = 1;
-      if (parts.length >= 4) {
-        const alphaStr = parts[3];
-        if (alphaStr.endsWith("%")) {
-          A = parseFloat(alphaStr) / 100;
-        } else {
-          A = parseFloat(alphaStr);
+  const targets = ["oklch(", "oklab(", "color-mix("];
+  let res = cssText;
+  
+  for (const target of targets) {
+    let idx = res.indexOf(target);
+    while (idx !== -1) {
+      let depth = 1;
+      let endIdx = -1;
+      for (let i = idx + target.length; i < res.length; i++) {
+        if (res[i] === "(") depth++;
+        else if (res[i] === ")") {
+          depth--;
+          if (depth === 0) {
+            endIdx = i;
+            break;
+          }
         }
-        if (isNaN(A)) A = 1;
       }
       
-      const hRad = (H * Math.PI) / 180;
-      const cosH = Math.cos(hRad);
-      const sinH = Math.sin(hRad);
-      
-      const aVal = C * cosH;
-      const bVal = C * sinH;
-      
-      const l_ = Math.pow(L + 0.3963377774 * aVal + 0.2158037573 * bVal, 3);
-      const m_ = Math.pow(L - 0.1055613458 * aVal - 0.0638541728 * bVal, 3);
-      const s_ = Math.pow(L - 0.0894841775 * aVal - 1.2914855480 * bVal, 3);
-      
-      const r_linear = 4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699294 * s_;
-      const g_linear = -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_;
-      const b_linear = -0.0041960863 * l_ - 0.7034186145 * m_ + 1.7076147010 * s_;
-      
-      const linearToSrgb = (x: number) => {
-        if (isNaN(x)) return 0;
-        return x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055;
-      };
-      
-      const r = Math.max(0, Math.min(255, Math.round(linearToSrgb(r_linear) * 255)));
-      const g = Math.max(0, Math.min(255, Math.round(linearToSrgb(g_linear) * 255)));
-      const b = Math.max(0, Math.min(255, Math.round(linearToSrgb(b_linear) * 255)));
-      
-      return `rgba(${r}, ${g}, ${b}, ${A})`;
-    } catch (err) {
-      console.error("Erro ao converter oklch:", err);
-      return match;
-    }
-  });
-
-  // 2. Core converter for oklab
-  result = result.replace(/oklab\(([^)]+)\)/g, (match, p1) => {
-    try {
-      const parts = p1.trim().split(/[\s,+/]+/);
-      if (parts.length < 3) return match;
-      
-      const L = parseFloat(parts[0]);
-      const aVal = parseFloat(parts[1]);
-      const bVal = parseFloat(parts[2]);
-      if (isNaN(L) || isNaN(aVal) || isNaN(bVal)) return match;
-      
-      let A = 1;
-      if (parts.length >= 4) {
-        const alphaStr = parts[3];
-        if (alphaStr.endsWith("%")) {
-          A = parseFloat(alphaStr) / 100;
-        } else {
-          A = parseFloat(alphaStr);
+      if (endIdx !== -1) {
+        const fullMatch = res.substring(idx, endIdx + 1);
+        const innerContent = res.substring(idx + target.length, endIdx);
+        
+        let replacement = "rgba(100, 110, 120, 0.5)"; // Balanced standard gray fallback
+        
+        if (target === "oklch(") {
+          try {
+            const partsBeforeSlash = innerContent.split("/")[0].trim();
+            const parts = partsBeforeSlash.split(/[\s,]+/);
+            
+            if (parts.length >= 3) {
+              let L = parseFloat(parts[0]);
+              if (parts[0].includes("%")) L = L / 100;
+              
+              let C = parseFloat(parts[1]);
+              if (parts[1].includes("%")) C = C / 100;
+              
+              const H = parseFloat(parts[2]);
+              
+              if (!isNaN(L) && !isNaN(C) && !isNaN(H)) {
+                let A = 1;
+                const slashParts = innerContent.split("/");
+                if (slashParts.length > 1) {
+                  const alphaStr = slashParts[1].trim();
+                  if (alphaStr.endsWith("%")) {
+                    A = parseFloat(alphaStr) / 100;
+                  } else {
+                    A = parseFloat(alphaStr);
+                  }
+                  if (isNaN(A)) A = 1;
+                }
+                
+                const hRad = (H * Math.PI) / 180;
+                const cosH = Math.cos(hRad);
+                const sinH = Math.sin(hRad);
+                
+                const aVal = C * cosH;
+                const bVal = C * sinH;
+                
+                const l_ = Math.pow(L + 0.3963377774 * aVal + 0.2158037573 * bVal, 3);
+                const m_ = Math.pow(L - 0.1055613458 * aVal - 0.0638541728 * bVal, 3);
+                const s_ = Math.pow(L - 0.0894841775 * aVal - 1.2914855480 * bVal, 3);
+                
+                const r_linear = 4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699294 * s_;
+                const g_linear = -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_;
+                const b_linear = -0.0041960863 * l_ - 0.7034186145 * m_ + 1.7076147010 * s_;
+                
+                const linearToSrgb = (x: number) => {
+                  if (isNaN(x)) return 0;
+                  if (x <= 0.0031308) return Math.max(0, 12.92 * x);
+                  return Math.max(0, 1.055 * Math.pow(x, 1 / 2.4) - 0.055);
+                };
+                
+                const r = Math.max(0, Math.min(255, Math.round(linearToSrgb(r_linear) * 255)));
+                const g = Math.max(0, Math.min(255, Math.round(linearToSrgb(g_linear) * 255)));
+                const b = Math.max(0, Math.min(255, Math.round(linearToSrgb(b_linear) * 255)));
+                
+                replacement = `rgba(${r}, ${g}, ${b}, ${A})`;
+              } else {
+                replacement = L > 0.75 ? "rgb(248, 250, 252)" : "rgb(30, 41, 59)";
+              }
+            }
+          } catch (e) {
+            replacement = "rgb(120, 120, 120)";
+          }
+        } else if (target === "oklab(") {
+          try {
+            const partsBeforeSlash = innerContent.split("/")[0].trim();
+            const parts = partsBeforeSlash.split(/[\s,]+/);
+            
+            if (parts.length >= 3) {
+              let L = parseFloat(parts[0]);
+              if (parts[0].includes("%")) L = L / 100;
+              
+              const aVal = parseFloat(parts[1]);
+              const bVal = parseFloat(parts[2]);
+              
+              if (!isNaN(L) && !isNaN(aVal) && !isNaN(bVal)) {
+                let A = 1;
+                const slashParts = innerContent.split("/");
+                if (slashParts.length > 1) {
+                  const alphaStr = slashParts[1].trim();
+                  if (alphaStr.endsWith("%")) {
+                    A = parseFloat(alphaStr) / 100;
+                  } else {
+                    A = parseFloat(alphaStr);
+                  }
+                  if (isNaN(A)) A = 1;
+                }
+                
+                const l_ = Math.pow(L + 0.3963377774 * aVal + 0.2158037573 * bVal, 3);
+                const m_ = Math.pow(L - 0.1055613458 * aVal - 0.0638541728 * bVal, 3);
+                const s_ = Math.pow(L - 0.0894841775 * aVal - 1.2914855480 * bVal, 3);
+                
+                const r_linear = 4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699294 * s_;
+                const g_linear = -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_;
+                const b_linear = -0.0041960863 * l_ - 0.7034186145 * m_ + 1.7076147010 * s_;
+                
+                const linearToSrgb = (x: number) => {
+                  if (isNaN(x)) return 0;
+                  if (x <= 0.0031308) return Math.max(0, 12.92 * x);
+                  return Math.max(0, 1.055 * Math.pow(x, 1 / 2.4) - 0.055);
+                };
+                
+                const r = Math.max(0, Math.min(255, Math.round(linearToSrgb(r_linear) * 255)));
+                const g = Math.max(0, Math.min(255, Math.round(linearToSrgb(g_linear) * 255)));
+                const b = Math.max(0, Math.min(255, Math.round(linearToSrgb(b_linear) * 255)));
+                
+                replacement = `rgba(${r}, ${g}, ${b}, ${A})`;
+              } else {
+                replacement = L > 0.75 ? "rgb(248, 250, 252)" : "rgb(30, 41, 59)";
+              }
+            }
+          } catch (e) {
+            replacement = "rgb(120, 120, 120)";
+          }
+        } else if (target === "color-mix(") {
+          if (innerContent.includes("#1a6496") || innerContent.includes("primary")) {
+            replacement = "#1a6496";
+          } else if (innerContent.includes("gray-50") || innerContent.includes("slate-50") || innerContent.includes("zinc-50")) {
+            replacement = "rgb(248, 250, 252)";
+          } else if (innerContent.includes("gray") || innerContent.includes("neutral") || innerContent.includes("slate") || innerContent.includes("zinc")) {
+            if (innerContent.includes("500") || innerContent.includes("600") || innerContent.includes("700") || innerContent.includes("800") || innerContent.includes("900")) {
+              replacement = "rgb(71, 85, 105)";
+            } else {
+              replacement = "rgb(241, 245, 249)";
+            }
+          } else if (innerContent.includes("white")) {
+            replacement = "rgba(255, 255, 255, 0.9)";
+          } else if (innerContent.includes("sky-50") || innerContent.includes("sky-100")) {
+            replacement = "rgb(240, 252, 255)";
+          } else {
+            replacement = "rgba(240, 244, 248, 0.9)";
+          }
         }
-        if (isNaN(A)) A = 1;
+        
+        res = res.substring(0, idx) + replacement + res.substring(endIdx + 1);
+        idx = res.indexOf(target, idx + replacement.length);
+      } else {
+        idx = res.indexOf(target, idx + target.length);
       }
-      
-      const l_ = Math.pow(L + 0.3963377774 * aVal + 0.2158037573 * bVal, 3);
-      const m_ = Math.pow(L - 0.1055613458 * aVal - 0.0638541728 * bVal, 3);
-      const s_ = Math.pow(L - 0.0894841775 * aVal - 1.2914855480 * bVal, 3);
-      
-      const r_linear = 4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699294 * s_;
-      const g_linear = -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_;
-      const b_linear = -0.0041960863 * l_ - 0.7034186145 * m_ + 1.7076147010 * s_;
-      
-      const linearToSrgb = (x: number) => {
-        if (isNaN(x)) return 0;
-        return x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055;
-      };
-      
-      const r = Math.max(0, Math.min(255, Math.round(linearToSrgb(r_linear) * 255)));
-      const g = Math.max(0, Math.min(255, Math.round(linearToSrgb(g_linear) * 255)));
-      const b = Math.max(0, Math.min(255, Math.round(linearToSrgb(b_linear) * 255)));
-      
-      return `rgba(${r}, ${g}, ${b}, ${A})`;
-    } catch (err) {
-      console.error("Erro ao converter oklab:", err);
-      return match;
     }
-  });
-
-  return result;
+  }
+  
+  return res;
 }
 
 export default function ManageMembers() {
@@ -635,9 +701,33 @@ export default function ManageMembers() {
     "Adolescentes",
   ];
 
+  const fetchAddressForMember = async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, "");
+    if (cleanCep.length !== 8) return;
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await response.json();
+      if (!data.erro) {
+        setFormData((prev) => ({
+          ...prev,
+          rua: data.logradouro || prev.rua,
+          bairro: data.bairro || prev.bairro,
+          cidade: data.localidade || prev.cidade,
+          estado: data.uf || prev.estado,
+        }));
+      }
+    } catch (error) {
+      console.error("Erro ao buscar CEP:", error);
+    }
+  };
+
   const handleChildChange = (index: number, field: string, value: string) => {
     const newList = [...formData.listaFilhos];
-    newList[index] = { ...newList[index], [field]: value };
+    let finalValue = value;
+    if (field === "dataNascimento") {
+      finalValue = dateMask(value);
+    }
+    newList[index] = { ...newList[index], [field]: finalValue };
     setFormData({ ...formData, listaFilhos: newList });
   };
 
@@ -964,11 +1054,11 @@ export default function ManageMembers() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">CPF</label>
-                          <input type="text" value={formData.cpf} onChange={(e) => setFormData({ ...formData, cpf: e.target.value })} className="modal-input" />
+                          <input type="text" placeholder="000.000.000-00" value={formData.cpf} onChange={(e) => setFormData({ ...formData, cpf: cpfMask(e.target.value) })} className="modal-input" />
                         </div>
                         <div>
                           <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Nascimento*</label>
-                          <input type="text" required placeholder="dd/mm/aaaa" value={formData.dataNascimento} onChange={(e) => setFormData({ ...formData, dataNascimento: e.target.value })} className="modal-input" />
+                          <input type="text" required placeholder="dd/mm/aaaa" value={formData.dataNascimento} onChange={(e) => setFormData({ ...formData, dataNascimento: dateMask(e.target.value) })} className="modal-input" />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
@@ -1052,41 +1142,59 @@ export default function ManageMembers() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Celular*</label>
-                          <input type="tel" required value={formData.telefone} onChange={(e) => setFormData({ ...formData, telefone: e.target.value })} className="modal-input" />
+                          <input type="tel" required placeholder="(00) 00000-0000" value={formData.telefone} onChange={(e) => setFormData({ ...formData, telefone: phoneMask(e.target.value) })} className="modal-input" />
                         </div>
                         <div>
                           <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">WhatsApp</label>
-                          <input type="tel" value={formData.whatsapp} onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })} className="modal-input" />
+                          <input type="tel" placeholder="(00) 00000-0000" value={formData.whatsapp} onChange={(e) => setFormData({ ...formData, whatsapp: phoneMask(e.target.value) })} className="modal-input" />
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-4 pt-4 border-t">
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">CEP</label>
-                          <input type="text" value={formData.cep} onChange={(e) => setFormData({ ...formData, cep: e.target.value })} className="modal-input" />
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">CEP*</label>
+                          <input 
+                            type="text" 
+                            placeholder="00000-000" 
+                            required
+                            value={formData.cep} 
+                            onChange={(e) => {
+                              const value = cepMask(e.target.value);
+                              setFormData({ ...formData, cep: value });
+                              const cleanCep = value.replace(/\D/g, "");
+                              if (cleanCep.length === 8) {
+                                fetchAddressForMember(cleanCep);
+                              }
+                            }} 
+                            className="modal-input" 
+                          />
                         </div>
                         <div className="col-span-2">
-                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Rua</label>
-                          <input type="text" value={formData.rua} onChange={(e) => setFormData({ ...formData, rua: e.target.value })} className="modal-input" />
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Rua*</label>
+                          <input type="text" required value={formData.rua} onChange={(e) => setFormData({ ...formData, rua: e.target.value })} className="modal-input" />
                         </div>
                       </div>
-                      <div className="grid grid-cols-4 gap-4">
+                      <div className="grid grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Nº</label>
-                          <input type="text" value={formData.numero} onChange={(e) => setFormData({ ...formData, numero: e.target.value })} className="modal-input" />
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Nº*</label>
+                          <input type="text" required value={formData.numero} onChange={(e) => setFormData({ ...formData, numero: numberMask(e.target.value) })} className="modal-input" />
                         </div>
-                        <div className="col-span-3">
-                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Bairro</label>
-                          <input type="text" value={formData.bairro} onChange={(e) => setFormData({ ...formData, bairro: e.target.value })} className="modal-input" />
+                        <div className="col-span-2">
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Complemento</label>
+                          <input type="text" placeholder="Apto, Casa, Bloco, etc." value={formData.complemento} onChange={(e) => setFormData({ ...formData, complemento: e.target.value })} className="modal-input" />
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Cidade</label>
-                          <input type="text" value={formData.cidade} onChange={(e) => setFormData({ ...formData, cidade: e.target.value })} className="modal-input" />
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Bairro*</label>
+                          <input type="text" required value={formData.bairro} onChange={(e) => setFormData({ ...formData, bairro: e.target.value })} className="modal-input" />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Estado</label>
-                          <input type="text" value={formData.estado} onChange={(e) => setFormData({ ...formData, estado: e.target.value })} className="modal-input" />
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Cidade*</label>
+                          <input type="text" required value={formData.cidade} onChange={(e) => setFormData({ ...formData, cidade: e.target.value })} className="modal-input" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Estado / UF*</label>
+                          <input type="text" required placeholder="Ex: SP" value={formData.estado} onChange={(e) => setFormData({ ...formData, estado: e.target.value })} className="modal-input" />
                         </div>
                       </div>
                     </div>
@@ -1098,11 +1206,11 @@ export default function ManageMembers() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Conversão</label>
-                          <input type="text" placeholder="dd/mm/aaaa" value={formData.dataConversao} onChange={(e) => setFormData({ ...formData, dataConversao: e.target.value })} className="modal-input" />
+                          <input type="text" placeholder="dd/mm/aaaa" value={formData.dataConversao} onChange={(e) => setFormData({ ...formData, dataConversao: dateMask(e.target.value) })} className="modal-input" />
                         </div>
                         <div>
                           <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Batismo</label>
-                          <input type="text" placeholder="dd/mm/aaaa" value={formData.dataBatismoAguas} onChange={(e) => setFormData({ ...formData, dataBatismoAguas: e.target.value })} className="modal-input" />
+                          <input type="text" placeholder="dd/mm/aaaa" value={formData.dataBatismoAguas} onChange={(e) => setFormData({ ...formData, dataBatismoAguas: dateMask(e.target.value) })} className="modal-input" />
                         </div>
                       </div>
                       <div className="grid grid-cols-1 gap-4">
@@ -1115,8 +1223,8 @@ export default function ManageMembers() {
                           <textarea rows={2} value={formData.cargosAnteriores} onChange={(e) => setFormData({ ...formData, cargosAnteriores: e.target.value })} className="modal-input resize-none" />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Membro Desde</label>
-                          <input type="text" placeholder="dd/mm/aaaa" value={formData.membroDesde} onChange={(e) => setFormData({ ...formData, membroDesde: e.target.value })} className="modal-input" />
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Membro Desde / Data de Recebimento</label>
+                          <input type="text" placeholder="dd/mm/aaaa" value={formData.membroDesde} onChange={(e) => setFormData({ ...formData, membroDesde: dateMask(e.target.value) })} className="modal-input" />
                         </div>
                         <div className="pt-2 border-t">
                           <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Consagração Ministerial?</label>
@@ -1160,17 +1268,21 @@ export default function ManageMembers() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Nascimento Cônjuge</label>
-                          <input type="text" placeholder="dd/mm/aaaa" value={formData.dataNascimentoConjuge} onChange={(e) => setFormData({ ...formData, dataNascimentoConjuge: e.target.value })} className="modal-input" />
+                          <input type="text" placeholder="dd/mm/aaaa" value={formData.dataNascimentoConjuge} onChange={(e) => setFormData({ ...formData, dataNascimentoConjuge: dateMask(e.target.value) })} className="modal-input" />
                         </div>
                         <div>
                           <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Data Casamento</label>
-                          <input type="text" placeholder="dd/mm/aaaa" value={formData.dataCasamento} onChange={(e) => setFormData({ ...formData, dataCasamento: e.target.value })} className="modal-input" />
+                          <input type="text" placeholder="dd/mm/aaaa" value={formData.dataCasamento} onChange={(e) => setFormData({ ...formData, dataCasamento: dateMask(e.target.value) })} className="modal-input" />
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">CPF Cônjuge</label>
+                          <input type="text" placeholder="000.000.000-00" value={formData.cpfConjuge} onChange={(e) => setFormData({ ...formData, cpfConjuge: cpfMask(e.target.value) })} className="modal-input" />
+                        </div>
                         <div>
                           <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Celular Cônjuge</label>
-                          <input type="text" placeholder="(00) 00000-0000" value={formData.celularConjuge} onChange={(e) => setFormData({ ...formData, celularConjuge: e.target.value })} className="modal-input" />
+                          <input type="text" placeholder="(00) 00000-0000" value={formData.celularConjuge} onChange={(e) => setFormData({ ...formData, celularConjuge: phoneMask(e.target.value) })} className="modal-input" />
                         </div>
                         <div>
                           <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Igreja do Cônjuge</label>
@@ -1520,92 +1632,172 @@ export default function ManageMembers() {
                       const element = document.getElementById("print-membro-ficha-viewport");
                       if (!element) return;
 
-                      // Create a hidden helper iframe securely inside same origin
+                      // Remove any existing print iframe to prevent duplicate nodes
+                      const existingIframe = document.getElementById("print-membro-ficha-iframe");
+                      if (existingIframe) {
+                        existingIframe.remove();
+                      }
+
+                      // Create unconstrained temporary iframe for isolated printing
                       const iframe = document.createElement("iframe");
+                      iframe.id = "print-membro-ficha-iframe";
                       iframe.style.position = "fixed";
                       iframe.style.right = "0";
                       iframe.style.bottom = "0";
                       iframe.style.width = "0";
                       iframe.style.height = "0";
                       iframe.style.border = "0";
-                      iframe.setAttribute("id", "print-helper-iframe");
+                      iframe.style.zIndex = "-1";
                       document.body.appendChild(iframe);
 
-                      const iframeDoc = iframe.contentWindow?.document || iframe.contentDocument;
-                      if (!iframeDoc) {
-                        alert("Não foi possível iniciar a visualização de impressão no seu navegador.");
-                        return;
-                      }
-
-                      // Load style definitions present on current view
-                      let cssText = "";
-                      try {
-                        for (const sheet of Array.from(document.styleSheets)) {
-                          try {
-                            for (const rule of Array.from(sheet.cssRules)) {
-                              cssText += rule.cssText + "\n";
-                            }
-                          } catch (e) {
-                            // Cross-origin styles read protection safe skip
-                          }
-                        }
-                      } catch (err) {
-                        console.error("Erro ao extrair estilos:", err);
-                      }
-
-                      const cleanedCss = cleanOklchInCss(cssText);
+                      const iframeDoc = iframe.contentWindow?.document;
+                      if (!iframeDoc) return;
 
                       iframeDoc.open();
+                      iframeDoc.write("<!DOCTYPE html><html><head><title>Ficha de Membro Oficial</title>");
+
+                      // Copy parent document head styles/stylesheets to ensure exact style preservation
+                      const styleSheets = document.querySelectorAll("style, link[rel='stylesheet']");
+                      styleSheets.forEach((style) => {
+                        iframeDoc.write(style.outerHTML);
+                      });
+
+                      // Introduce print-specific layout fixes and safety breaks
                       iframeDoc.write(`
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                          <title>Ficha de Membro Oficial - ${viewingMember.nome}</title>
-                          <style>
-                            ${cleanedCss}
+                        <style>
+                          @media print {
                             @page {
-                              size: A4;
-                              margin: 15mm;
+                              size: portrait;
+                              margin: 15mm 15mm 15mm 15mm;
+                            }
+                            html, body, .print-ficha-container, .print-ficha-container .space-y-6 {
+                              height: auto !important;
+                              min-height: 0 !important;
+                              overflow: visible !important;
+                              display: block !important;
                             }
                             body {
-                              background: white !important;
-                              color: black !important;
-                              font-family: ui-sans-serif, system-ui, -apple-system, sans-serif !important;
+                              background-color: #ffffff !important;
+                              color: #1e293b !important;
+                              -webkit-print-color-adjust: exact !important;
+                              print-color-adjust: exact !important;
+                              overflow: visible !important;
+                              position: relative !important;
+                              font-family: sans-serif !important;
                               padding: 0 !important;
                               margin: 0 !important;
                             }
-                            * {
-                              -webkit-print-color-adjust: exact !important;
-                              print-color-adjust: exact !important;
+                            .print-ficha-container {
+                              border: 1px solid #cbd5e1 !important;
+                              border-radius: 16px !important;
+                              padding: 30px !important;
+                              padding-bottom: 50px !important;
+                              margin: 10px auto !important;
+                              max-width: 680px !important;
+                              width: 100% !important;
+                              background-color: #ffffff !important;
+                              color: #1e293b !important;
+                              display: block !important;
+                              box-sizing: border-box !important;
+                              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
                             }
-                            #print-membro-ficha-viewport {
-                              border: none !important;
-                              box-shadow: none !important;
-                              padding: 0 !important;
-                              margin: 0 auto !important;
+                            /* Guarantee complete boxes/sections do not split mid-text across pages */
+                            .print-section {
+                              page-break-inside: avoid !important;
+                              break-inside: avoid-page !important;
+                              break-inside: avoid !important;
+                              -webkit-column-break-inside: avoid !important;
+                              display: inline-block !important;
+                              width: 100% !important;
+                              position: relative !important;
+                              margin-bottom: 24px !important;
+                              overflow: visible !important;
                             }
-                          </style>
-                        </head>
-                        <body class="bg-white">
-                          <div style="width: 100%; max-width: 800px; margin: 0 auto; padding: 10px;">
-                            ${element.innerHTML}
-                          </div>
-                        </body>
-                        </html>
+                            
+                            .print-avoid {
+                              page-break-inside: avoid !important;
+                              break-inside: avoid-page !important;
+                              break-inside: avoid !important;
+                              -webkit-column-break-inside: avoid !important;
+                              display: inline-block !important;
+                              width: 100% !important;
+                            }
+                            
+                            .print-ficha-container .whitespace-pre-wrap {
+                              white-space: pre-wrap !important;
+                              word-break: break-all !important;
+                              overflow-wrap: anywhere !important;
+                            }
+                            .print-ficha-container p, 
+                            .print-ficha-container span {
+                              word-break: break-all !important;
+                              overflow-wrap: anywhere !important;
+                            }
+                            
+                            /* Ensure desktop grid is preserved when printing, bypassing tailwind responsive stack */
+                            .print-ficha-container .grid {
+                              display: grid !important;
+                            }
+                            .print-ficha-container .grid-cols-4 {
+                              grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+                            }
+                            .print-ficha-container .grid-cols-3 {
+                              grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+                            }
+                            .print-ficha-container .grid-cols-2 {
+                              grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                            }
+                            .print-ficha-container .col-span-3 {
+                              grid-column: span 3 / span 3 !important;
+                            }
+                            .print-ficha-container .col-span-2 {
+                              grid-column: span 2 / span 2 !important;
+                            }
+                            .print-ficha-container .col-span-1 {
+                              grid-column: span 1 / span 1 !important;
+                            }
+                            .print-ficha-container .flex-row {
+                              flex-direction: row !important;
+                              display: flex !important;
+                              justify-content: space-between !important;
+                              align-items: center !important;
+                            }
+                          }
+                          body {
+                            background-color: #ffffff;
+                            margin: 10px auto;
+                            padding: 0;
+                            max-width: 680px;
+                            font-family: sans-serif;
+                          }
+                        </style>
                       `);
+                      iframeDoc.write("</head><body>");
+                      // Wrap with container to enforce exact print configurations
+                      iframeDoc.write('<div class="print-ficha-container">');
+                      iframeDoc.write(element.innerHTML);
+                      iframeDoc.write("</div>");
+                      iframeDoc.write("</body></html>");
                       iframeDoc.close();
 
+                      // Let stylesheets and styles boot up, then trigger the printing selector modal
                       setTimeout(() => {
-                        if (iframe.contentWindow) {
-                          iframe.contentWindow.focus();
-                          iframe.contentWindow.print();
+                        try {
+                          iframe.contentWindow?.focus();
+                          iframe.contentWindow?.print();
+                        } catch (err) {
+                          console.error("Falha ao abrir diálogo de impressão:", err);
+                        } finally {
+                          // Retain briefly for browser rendering, then safely remove node
                           setTimeout(() => {
-                            document.body.removeChild(iframe);
-                          }, 1500);
+                            if (document.body.contains(iframe)) {
+                              document.body.removeChild(iframe);
+                            }
+                          }, 6000);
                         }
-                      }, 600);
+                      }, 400);
                     }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100 rounded-lg text-xs font-bold transition cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100 rounded-lg text-xs font-bold transition cursor-pointer animate-pulse"
                   >
                     <Eye size={13} /> Imprimir Ficha
                   </button>
@@ -1639,13 +1831,16 @@ export default function ManageMembers() {
                         }
                         const cleanedCss = cleanOklchInCss(rawCss);
 
-                        // Create a hidden helper iframe securely inside same origin to render html2canvas nicely
+                        // Create a helper iframe inside the viewport styled with desktop width to force full grid layout
                         const iframe = document.createElement("iframe");
-                        iframe.style.position = "absolute";
+                        iframe.style.position = "fixed";
                         iframe.style.left = "-9999px";
                         iframe.style.top = "-9999px";
-                        iframe.style.width = "750px"; 
-                        iframe.style.height = "auto";
+                        iframe.style.width = "1024px"; 
+                        iframe.style.height = "5000px";
+                        iframe.style.zIndex = "-1000";
+                        iframe.style.opacity = "0";
+                        iframe.style.pointerEvents = "none";
                         iframe.style.border = "0";
                         document.body.appendChild(iframe);
                         
@@ -1665,22 +1860,30 @@ export default function ManageMembers() {
                             <style>
                               ${cleanedCss}
                               body {
-                                background: white !important;
-                                color: black !important;
+                                background: #f8fafc !important;
+                                color: #1e293b !important;
                                 font-family: ui-sans-serif, system-ui, -apple-system, sans-serif !important;
-                                padding: 0 !important;
+                                padding: 24px !important;
                                 margin: 0 !important;
                               }
                               #print-membro-ficha-viewport {
-                                border: none !important;
-                                box-shadow: none !important;
-                                padding: 0 !important;
+                                border: 1px solid #cbd5e1 !important;
+                                border-radius: 16px !important;
+                                padding: 30px !important;
+                                padding-bottom: 60px !important;
                                 margin: 0 auto !important;
+                                background-color: #ffffff !important;
+                                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+                                box-sizing: border-box !important;
+                              }
+                              /* Force visibility inside the iframe to avoid any blank rendering */
+                              * {
+                                visibility: visible !important;
                               }
                             </style>
                           </head>
-                          <body class="bg-white">
-                            <div id="print-membro-ficha-viewport" style="width: 100%; max-width: 750px; margin: 0 auto; padding: 20px;">
+                          <body class="bg-slate-50">
+                            <div id="print-membro-ficha-viewport" style="width: 100%; max-width: 680px; margin: 0 auto; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 16px; padding: 30px; padding-bottom: 60px; box-sizing: border-box;">
                               ${originalElement.innerHTML}
                             </div>
                           </body>
@@ -1694,6 +1897,56 @@ export default function ManageMembers() {
                         const targetElement = iframeDoc.getElementById("print-membro-ficha-viewport");
                         if (!targetElement) {
                           throw new Error("Elemento do visualizador não encontrado para renderização do canvas.");
+                        }
+
+                        // Calculate and inject dynamic print safety spacers to avoid boxes splitting across pages
+                        const adjustLayoutForPageBreaks = () => {
+                          const viewportRect = targetElement.getBoundingClientRect();
+                          const canvasWidth = viewportRect.width;
+                          const pxPageHeight = canvasWidth * (297 / 210);
+                          
+                          // Find all block sections that we want to prevent from splitting
+                          const sections = Array.from(targetElement.querySelectorAll(".print-section, .print-avoid")) as HTMLElement[];
+                          
+                          for (const section of sections) {
+                            const rect = section.getBoundingClientRect();
+                            const sectionTop = rect.top - viewportRect.top;
+                            const sectionBottom = rect.bottom - viewportRect.top;
+                            const sectionHeight = rect.height;
+                            
+                            // If section height can fit perfectly on a single page, but straddles a boundary
+                            if (sectionHeight < pxPageHeight - 30) {
+                              const currPageTop = Math.floor(sectionTop / pxPageHeight) * pxPageHeight;
+                              const currPageBottom = currPageTop + pxPageHeight;
+                              
+                              if (sectionBottom > currPageBottom - 10) {
+                                // Straddles the boundary! Insert safety spacer right before this section
+                                const neededSpacerHeight = (currPageBottom - sectionTop) + 6;
+                                
+                                if (neededSpacerHeight > 0 && neededSpacerHeight < pxPageHeight) {
+                                  const spacer = iframeDoc.createElement("div");
+                                  spacer.style.height = `${neededSpacerHeight}px`;
+                                  spacer.style.width = "100%";
+                                  spacer.style.backgroundColor = "#ffffff";
+                                  spacer.style.border = "none";
+                                  spacer.className = "print-spacing-spacer";
+                                  
+                                  section.parentNode?.insertBefore(spacer, section);
+                                  return true; // layout was mutated, need another pass
+                                }
+                              }
+                            }
+                          }
+                          return false; // stable layout with no splits!
+                        };
+
+                        let attempts = 0;
+                        while (attempts < 15) {
+                          const layoutChanged = adjustLayoutForPageBreaks();
+                          if (!layoutChanged) {
+                            break;
+                          }
+                          attempts++;
                         }
 
                         const canvas = await html2canvas(targetElement, {
@@ -1754,40 +2007,189 @@ export default function ManageMembers() {
               <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar bg-gray-50 bg-[#fbfcfd]" id="membro-ficha-container-scroll">
                 <div
                   id="print-membro-ficha-viewport"
-                  className="bg-white border border-gray-200 rounded-2xl p-6 md:p-10 max-w-3xl mx-auto shadow-sm text-gray-800 leading-relaxed font-sans animate-fade-in"
+                  className="bg-white border border-gray-200 rounded-2xl p-6 md:p-10 max-w-3xl mx-auto shadow-sm text-gray-800 leading-relaxed font-sans animate-fade-in print-ficha-container"
+                  style={{ backgroundColor: "#ffffff", borderColor: "#cbd5e1", color: "#1e293b", fontFamily: "sans-serif" }}
                 >
-                  <div className="border-b-2 border-[#1a6496] pb-6 mb-6 flex flex-col md:flex-row items-center md:justify-between gap-4">
-                    <div className="text-center md:text-left">
-                      <h4 className="text-xs font-black text-[#1a6496] tracking-widest uppercase mb-1">
+                  <style>{`
+                    /* General printable style fixes */
+                    .print-ficha-container {
+                      max-width: 680px !important;
+                      width: 100% !important;
+                      background-color: #ffffff !important;
+                      color: #1e293b !important;
+                    }
+                    .print-ficha-container .bg-gray-50\\/55,
+                    .print-ficha-container .print-section {
+                      background-color: #f8fafc !important;
+                      border: 1px solid #e2e8f0 !important;
+                    }
+
+                    /* 
+                       FORCE DESKTOP GRID AND FLEX LAYOUTS FOR BOTH PRINTING AND PDF EXPORT 
+                       Regardless of viewport size (prevents mobile collapse / text clipping)
+                    */
+                    .print-ficha-container .grid {
+                      display: grid !important;
+                    }
+                    
+                    /* Grid column rules */
+                    .print-ficha-container .grid-cols-4,
+                    .print-ficha-container .md\\:grid-cols-4 {
+                      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+                    }
+                    .print-ficha-container .grid-cols-3,
+                    .print-ficha-container .md\\:grid-cols-3,
+                    .print-ficha-container .grid-cols-1.md\\:grid-cols-3,
+                    .print-ficha-container .grid-cols-2.md\\:grid-cols-3 {
+                      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+                    }
+                    .print-ficha-container .grid-cols-2,
+                    .print-ficha-container .md\\:grid-cols-2,
+                    .print-ficha-container .grid-cols-1.md\\:grid-cols-2 {
+                      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                    }
+
+                    /* Span overrides */
+                    .print-ficha-container .col-span-3,
+                    .print-ficha-container .md\\:col-span-3,
+                    .print-ficha-container .col-span-2.md\\:col-span-3,
+                    .print-ficha-container .col-span-1.md\\:col-span-3 {
+                      grid-column: span 3 / span 3 !important;
+                    }
+                    .print-ficha-container .col-span-2,
+                    .print-ficha-container .md\\:col-span-2 {
+                      grid-column: span 2 / span 2 !important;
+                    }
+                    .print-ficha-container .col-span-1 {
+                      grid-column: span 1 / span 1 !important;
+                    }
+
+                    /* Flex row rules */
+                    .print-ficha-container .flex-row,
+                    .print-ficha-container .flex-col.md\\:flex-row {
+                      flex-direction: row !important;
+                      display: flex !important;
+                      justify-content: space-between !important;
+                      align-items: center !important;
+                    }
+                    .print-ficha-container .flex-col.sm\\:flex-row {
+                      flex-direction: row !important;
+                      display: flex !important;
+                      justify-content: space-between !important;
+                      align-items: center !important;
+                    }
+
+                    /* Text overflow prevention */
+                    .print-ficha-container .whitespace-pre-wrap {
+                      white-space: pre-wrap !important;
+                      word-break: break-all !important;
+                      overflow-wrap: anywhere !important;
+                    }
+                    .print-ficha-container p, 
+                    .print-ficha-container span {
+                      word-break: break-all !important;
+                      overflow-wrap: anywhere !important;
+                    }
+
+                    /* Avoid breaking layout inside containers on page splits */
+                    .print-ficha-container .print-section {
+                      page-break-inside: avoid !important;
+                      break-inside: avoid !important;
+                      -webkit-column-break-inside: avoid !important;
+                      display: inline-block !important;
+                      width: 100% !important;
+                      overflow: visible !important;
+                    }
+
+                    .print-ficha-container .print-avoid {
+                      page-break-inside: avoid !important;
+                      break-inside: avoid !important;
+                      -webkit-column-break-inside: avoid !important;
+                      display: inline-block !important;
+                      width: 100% !important;
+                    }
+
+                    .print-ficha-container .text-gray-400,
+                    .print-ficha-container span[style*="color: #94a3b8"],
+                    .print-ficha-container span[style*="opacity: 0.5"] {
+                      color: #475569 !important;
+                      font-weight: 700 !important;
+                      opacity: 1 !important;
+                    }
+                    
+                    @media print {
+                      @page {
+                        size: portrait;
+                        margin: 15mm 15mm 15mm 15mm;
+                      }
+                      html, body, .print-ficha-container, .print-ficha-container .space-y-6 {
+                        height: auto !important;
+                        min-height: 0 !important;
+                        overflow: visible !important;
+                        display: block !important;
+                      }
+                      body {
+                        background-color: #ffffff !important;
+                        color: #1e293b !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                      }
+                      .print-ficha-container {
+                        border: 1px solid #cbd5e1 !important;
+                        border-radius: 16px !important;
+                        padding: 30px !important;
+                        padding-bottom: 50px !important;
+                        margin: 10px auto !important;
+                        width: 100% !important;
+                        max-width: 680px !important;
+                        box-sizing: border-box !important;
+                        background-color: #ffffff !important;
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+                      }
+                      /* Hide page-split overflow and scrollbars */
+                      html, body {
+                        overflow: visible !important;
+                        height: auto !important;
+                      }
+                    }
+                  `}</style>
+                  <div className="print-section border-b-2 border-[#1a6496] pb-6 mb-6 flex flex-row items-center justify-between gap-4" style={{ borderBottomColor: "#1a6496" }}>
+                    <div className="text-left">
+                      <h4 className="text-xs font-black text-[#1a6496] tracking-widest uppercase mb-1" style={{ color: "#1a6496" }}>
                         Ministério Apascentando Filhos
                       </h4>
-                      <h1 className="text-2xl font-black font-serif text-primary-dark tracking-tight">
+                      <h1 className="text-2xl font-black font-serif text-primary-dark tracking-tight" style={{ color: "#0f172a" }}>
                         FICHA DE MEMBRO OFICIAL
                       </h1>
-                      <div className="flex flex-wrap gap-2 items-center justify-center md:justify-start mt-2 text-xs text-gray-400 font-bold uppercase tracking-wider">
+                      <div className="flex flex-wrap gap-2 items-center justify-start mt-2 text-xs text-gray-400 font-bold uppercase tracking-wider" style={{ color: "#94a3b8" }}>
                         <span>Gerado em: {new Date().toLocaleDateString("pt-BR")}</span>
                         <span>•</span>
-                        <span className="uppercase font-bold text-[#1a6496]">
+                        <span className="uppercase font-bold text-[#1a6496]" style={{ color: "#1a6496" }}>
                           Ref: MEM-{viewingMember.id?.substring(0, 8).toUpperCase() || "NOVO"}
                         </span>
                       </div>
                     </div>
-                    <div className="flex flex-col items-center md:items-end">
+                    <div className="flex flex-col items-end">
                       <span
                         className={`px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
                           viewingMember.status === "ativo"
                             ? "bg-emerald-50 text-emerald-850 border-emerald-200"
                             : "bg-rose-50 text-rose-850 border-rose-200"
                         }`}
+                        style={{
+                          backgroundColor: viewingMember.status === "ativo" ? "#ecfdf5" : "#fff1f2",
+                          color: viewingMember.status === "ativo" ? "#065f46" : "#9f1239",
+                          borderColor: viewingMember.status === "ativo" ? "#a7f3d0" : "#fecdd3",
+                        }}
                       >
                         Status: {viewingMember.status === "pendente_aprovacao" ? "Pendente" : viewingMember.status || "Ativo"}
                       </span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 pb-6 border-b border-gray-100">
+                  <div className="print-section grid grid-cols-4 gap-6 mb-8 pb-6 border-b border-gray-100" style={{ borderBottomColor: "#e2e8f0" }}>
                     <div className="col-span-1 flex flex-col items-center">
-                      <div className="w-32 h-32 rounded-2xl bg-gray-50 border-2 border-gray-150 overflow-hidden shadow-inner flex items-center justify-center relative">
+                      <div className="w-32 h-32 rounded-2xl bg-gray-50 border-2 border-gray-150 overflow-hidden shadow-inner flex items-center justify-center relative" style={{ backgroundColor: "#f8fafc", borderColor: "#cbd5e1" }}>
                         {viewingMember.foto ? (
                           <img
                             src={viewingMember.foto}
@@ -1797,38 +2199,38 @@ export default function ManageMembers() {
                             crossOrigin="anonymous"
                           />
                         ) : (
-                          <User size={64} className="text-gray-300" />
+                          <User size={64} className="text-gray-300" style={{ color: "#cbd5e1" }} />
                         )}
                       </div>
-                      <span className="text-[9px] font-black text-gray-400 mt-2 uppercase tracking-wide">
+                      <span className="text-[9px] font-black text-gray-400 mt-2 uppercase tracking-wide" style={{ color: "#94a3b8" }}>
                         Foto do Membro
                       </span>
                     </div>
-                    <div className="md:col-span-3 flex flex-col justify-center space-y-4">
+                    <div className="col-span-3 flex flex-col justify-center space-y-4">
                       <div>
-                        <span className="text-[10px] uppercase font-black tracking-wider text-gray-400 block">
+                        <span className="text-[10px] uppercase font-black tracking-wider text-gray-400 block" style={{ color: "#94a3b8" }}>
                           Nome Completo
                         </span>
-                        <span className="text-xl font-bold text-gray-900 font-serif">
+                        <span className="text-xl font-bold text-gray-900 font-serif" style={{ color: "#0f172a" }}>
                           {viewingMember.nome}
                         </span>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <span className="text-[10px] uppercase font-black tracking-wider text-gray-400 block">
+                          <span className="text-[10px] uppercase font-black tracking-wider text-gray-400 block" style={{ color: "#94a3b8" }}>
                             Perfil de Acesso
                           </span>
-                          <span className="inline-block mt-1 px-2.5 py-0.5 rounded text-[10px] bg-sky-50 text-[#1a6496] font-bold uppercase border border-sky-200">
+                          <span className="inline-block mt-1 px-2.5 py-0.5 rounded text-[10px] bg-sky-50 text-[#1a6496] font-bold uppercase border border-sky-200" style={{ backgroundColor: "#f0f9ff", color: "#1a6496", borderColor: "#bae6fd" }}>
                             {Array.isArray(viewingMember.permissao)
                               ? viewingMember.permissao.join(", ")
                               : viewingMember.permissao || "Membro"}
                           </span>
                         </div>
                         <div>
-                          <span className="text-[10px] uppercase font-black tracking-wider text-gray-400 block">
+                          <span className="text-[10px] uppercase font-black tracking-wider text-gray-400 block" style={{ color: "#94a3b8" }}>
                             Data de Nascimento
                           </span>
-                          <span className="text-sm font-semibold text-gray-800 mt-1 block">
+                          <span className="text-sm font-semibold text-gray-800 mt-1 block" style={{ color: "#1e293b" }}>
                             {viewingMember.dataNascimento || "-"}
                           </span>
                         </div>
@@ -1837,226 +2239,268 @@ export default function ManageMembers() {
                   </div>
 
                   <div className="space-y-6">
-                    <div className="bg-gray-50/55 rounded-xl p-5 border border-gray-100">
-                      <h5 className="text-xs font-bold text-[#1a6496] tracking-widest uppercase mb-4 border-b pb-1.5">
+                    <div className="print-section bg-gray-50/55 rounded-xl p-5 border border-gray-100" style={{ backgroundColor: "#f8fafc", borderColor: "#e2e8f0" }}>
+                      <h5 className="text-xs font-bold text-[#1a6496] tracking-widest uppercase mb-4 border-b pb-1.5" style={{ color: "#1a6496", borderBottomColor: "#e2e8f0" }}>
                         1. Informações Pessoais
                       </h5>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-2 text-xs">
+                      <div className="grid grid-cols-4 gap-y-4 gap-x-2 text-xs">
                         <div>
-                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">CPF</span>
-                          <span className="font-semibold text-gray-800">{viewingMember.cpf || "Não Informado"}</span>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>CPF</span>
+                          <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.cpf || "Não Informado"}</span>
                         </div>
                         <div>
-                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Sexo</span>
-                          <span className="font-semibold text-gray-800">{viewingMember.sexo || "Não Informado"}</span>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Sexo</span>
+                          <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.sexo || "Não Informado"}</span>
                         </div>
                         <div>
-                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Estado Civil</span>
-                          <span className="font-semibold text-gray-800">{viewingMember.estadoCivil || "Não Informado"}</span>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Estado Civil</span>
+                          <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.estadoCivil || "Não Informado"}</span>
                         </div>
                         <div>
-                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Escolaridade</span>
-                          <span className="font-semibold text-gray-800">{viewingMember.escolaridade || "Não Informado"}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Profissão</span>
-                          <span className="font-semibold text-gray-800">{viewingMember.profissao || "Não Informado"}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Naturalidade</span>
-                          <span className="font-semibold text-gray-800">
-                            {viewingMember.naturalidade ? `${viewingMember.naturalidade}/${viewingMember.naturalidadeEstado || ""}` : "Não Informado"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-gray-50/55 rounded-xl p-5 border border-gray-100">
-                      <h5 className="text-xs font-bold text-[#1a6496] tracking-widest uppercase mb-4 border-b pb-1.5">
-                        2. Contato e Residência
-                      </h5>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4 gap-x-2 text-xs">
-                        <div>
-                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">E-mail</span>
-                          <span className="font-semibold text-gray-800">{viewingMember.email || "Não Informado"}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Telefone Principal</span>
-                          <span className="font-semibold text-gray-805">{viewingMember.telefone || "Não Informado"}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">WhatsApp</span>
-                          <span className="font-semibold text-gray-805">{viewingMember.whatsapp || "Não Informado"}</span>
-                        </div>
-                        <div className="md:col-span-3">
-                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Endereço Completo</span>
-                          <span className="font-semibold text-gray-800 block mt-0.5">
-                            {viewingMember.rua ? (
-                              <>
-                                {viewingMember.rua}, {viewingMember.numero || "S/N"}
-                                {viewingMember.complemento ? `, ${viewingMember.complemento}` : ""}
-                                {viewingMember.bairro ? ` - Bairro: ${viewingMember.bairro}` : ""}
-                                {viewingMember.cidade ? ` - ${viewingMember.cidade}/${viewingMember.estado || ""}` : ""}
-                                {viewingMember.cep ? ` (CEP: ${viewingMember.cep})` : ""}
-                              </>
-                            ) : (
-                              "Não Informado"
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-gray-50/55 rounded-xl p-5 border border-gray-100">
-                      <h5 className="text-xs font-bold text-[#1a6496] tracking-widest uppercase mb-4 border-b pb-1.5">
-                        3. Histórico Eclesiástico / Espiritual
-                      </h5>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-2 text-xs">
-                        <div>
-                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Conversão</span>
-                          <span className="font-semibold text-gray-800">{viewingMember.dataConversao || "Não Informada"}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Batismo em Águas</span>
-                          <span className="font-semibold text-gray-800">{viewingMember.dataBatismoAguas || "Não Informada"}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Membro Desde</span>
-                          <span className="font-semibold text-gray-800">{viewingMember.membroDesde || "Não Informado"}</span>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>UF Naturalidade</span>
+                          <span className="font-semibold text-gray-800 uppercase" style={{ color: "#1e293b" }}>{viewingMember.naturalidadeEstado || "Não Informado"}</span>
                         </div>
                         <div className="col-span-2">
-                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Igreja de Origem / Anterior</span>
-                          <span className="font-semibold text-gray-800">{viewingMember.igrejaAnterior || "Nenhuma"}</span>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Naturalidade (Cidade)</span>
+                          <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.naturalidade || "Não Informada"}</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Escolaridade</span>
+                          <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.escolaridade || "Não Informado"}</span>
+                        </div>
+                        <div className="col-span-4">
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Profissão</span>
+                          <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.profissao || "Não Informado"}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="print-section bg-gray-50/55 rounded-xl p-5 border border-gray-100" style={{ backgroundColor: "#f8fafc", borderColor: "#e2e8f0" }}>
+                      <h5 className="text-xs font-bold text-[#1a6496] tracking-widest uppercase mb-4 border-b pb-1.5" style={{ color: "#1a6496", borderBottomColor: "#e2e8f0" }}>
+                        2. Contato e Residência
+                      </h5>
+                      <div className="grid grid-cols-3 gap-y-4 gap-x-2 text-xs">
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>E-mail</span>
+                          <span className="font-semibold text-gray-850" style={{ color: "#1e293b" }}>{viewingMember.email || "Não Informado"}</span>
                         </div>
                         <div>
-                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Consagrado?</span>
-                          <span className="font-semibold text-gray-800 uppercase">
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Telefone Principal</span>
+                          <span className="font-semibold text-gray-805" style={{ color: "#1e293b" }}>{viewingMember.telefone || "Não Informado"}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>WhatsApp</span>
+                          <span className="font-semibold text-gray-805" style={{ color: "#1e293b" }}>{viewingMember.whatsapp || "Não Informado"}</span>
+                        </div>
+                        <div className="col-span-3 grid grid-cols-3 gap-y-4 gap-x-2 pt-2 border-t border-gray-100/50" style={{ borderTopColor: "#e2e8f0" }}>
+                          <div>
+                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>CEP</span>
+                            <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.cep || "Não Informado"}</span>
+                          </div>
+                          <div className="col-span-2">
+                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Rua / Logradouro</span>
+                            <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.rua || "Não Informado"}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Número</span>
+                            <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.numero || "S/N"}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Complemento</span>
+                            <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.complemento || "Nenhum"}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Bairro</span>
+                            <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.bairro || "Não Informado"}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Cidade</span>
+                            <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.cidade || "Não Informado"}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Estado / UF</span>
+                            <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.estado || "Não Informado"}</span>
+                          </div>
+                          {viewingMember.endereco && (
+                            <div className="col-span-3">
+                              <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Endereço Completo (Auxiliar)</span>
+                              <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.endereco}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="print-section bg-gray-50/55 rounded-xl p-5 border border-gray-100" style={{ backgroundColor: "#f8fafc", borderColor: "#e2e8f0" }}>
+                      <h5 className="text-xs font-bold text-[#1a6496] tracking-widest uppercase mb-4 border-b pb-1.5" style={{ color: "#1a6496", borderBottomColor: "#e2e8f0" }}>
+                        3. Histórico Eclesiástico / Espiritual
+                      </h5>
+                      <div className="grid grid-cols-3 gap-y-4 gap-x-2 text-xs">
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Conversão</span>
+                          <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.dataConversao || "Não Informada"}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Batismo em Águas</span>
+                          <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.dataBatismoAguas || "Não Informada"}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Membro Desde / Recebido em</span>
+                          <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.membroDesde || "Não Informado"}</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Igreja de Origem / Anterior</span>
+                          <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.igrejaAnterior || "Nenhuma"}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Consagrado?</span>
+                          <span className="font-semibold text-gray-800 uppercase" style={{ color: "#1e293b" }}>
                             {viewingMember.consagrado === "sim" ? `Sim (${viewingMember.cargoConsagracao || "Consagração"})` : "Não"}
                           </span>
                         </div>
-                        <div className="col-span-2 md:col-span-3">
-                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Cargos de Liderança Anteriores</span>
-                          <p className="font-medium text-gray-700 italic mt-1">{viewingMember.cargosAnteriores || "Nenhum histórico listado"}</p>
+                        <div className="col-span-3">
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Cargos de Liderança Anteriores</span>
+                          <p className="font-medium text-gray-700 italic mt-1" style={{ color: "#475569" }}>{viewingMember.cargosAnteriores || "Nenhum histórico listado"}</p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="bg-gray-50/55 rounded-xl p-5 border border-gray-100">
-                      <h5 className="text-xs font-bold text-[#1a6496] tracking-widest uppercase mb-4 border-b pb-1.5">
+                    <div className="print-section bg-gray-50/55 rounded-xl p-5 border border-gray-100" style={{ backgroundColor: "#f8fafc", borderColor: "#e2e8f0" }}>
+                      <h5 className="text-xs font-bold text-[#1a6496] tracking-widest uppercase mb-4 border-b pb-1.5" style={{ color: "#1a6496", borderBottomColor: "#e2e8f0" }}>
                         4. Família & Filhos
                       </h5>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4 gap-x-2 text-xs">
+                      <div className="grid grid-cols-3 gap-y-4 gap-x-2 text-xs">
                         {viewingMember.nomeConjuge ? (
                           <>
-                            <div>
-                              <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Nome do Cônjuge</span>
-                              <span className="font-semibold text-gray-800">{viewingMember.nomeConjuge}</span>
+                            <div className="col-span-2">
+                              <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Nome do Cônjuge</span>
+                              <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.nomeConjuge}</span>
                             </div>
                             <div>
-                              <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Data de Casamento</span>
-                              <span className="font-semibold text-gray-800">{viewingMember.dataCasamento || "Não Informada"}</span>
+                              <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>CPF do Cônjuge</span>
+                              <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.cpfConjuge || "Não Informado"}</span>
                             </div>
                             <div>
-                              <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Contato do Cônjuge</span>
-                              <span className="font-semibold text-gray-800">{viewingMember.celularConjuge || "Não Informado"}</span>
+                              <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Nascimento do Cônjuge</span>
+                              <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.dataNascimentoConjuge || "Não Informado"}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Contato do Cônjuge</span>
+                              <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.celularConjuge || "Não Informado"}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Data de Casamento</span>
+                              <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.dataCasamento || "Não Informada"}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Igreja do Cônjuge</span>
+                              <span className="font-semibold text-gray-800" style={{ color: "#1e293b" }}>{viewingMember.igrejaConjuge || "Não Informada"}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Cônjuge Convertido?</span>
+                              <span className="font-semibold text-gray-800 uppercase" style={{ color: "#1e293b" }}>{viewingMember.conjugeConvertido || "Não"}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Cônjuge Batizado?</span>
+                              <span className="font-semibold text-gray-800 uppercase" style={{ color: "#1e293b" }}>{viewingMember.conjugeBatizado || "Não"}</span>
                             </div>
                           </>
                         ) : (
-                          <div className="col-span-3 font-medium text-gray-500 italic pb-2">Sem informações de cônjuge cadastrado.</div>
+                          <div className="col-span-3 font-medium text-gray-500 italic pb-2" style={{ color: "#64748b" }}>Sem informações de cônjuge cadastrado.</div>
                         )}
 
-                        <div className="md:col-span-3 pt-4 border-t border-gray-100">
-                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px] mb-2">Filhos Cadastrados ({viewingMember.listaFilhos?.length || 0})</span>
+                        <div className="col-span-3 pt-4 border-t border-gray-100" style={{ borderTopColor: "#e2e8f0" }}>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px] mb-2" style={{ color: "#94a3b8" }}>Filhos Cadastrados ({viewingMember.listaFilhos?.length || 0})</span>
                           {viewingMember.listaFilhos && viewingMember.listaFilhos.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-1">
+                            <div className="grid grid-cols-2 gap-2 mt-1">
                               {viewingMember.listaFilhos.map((filho: any, fidx: number) => (
-                                <div key={fidx} className="bg-white p-2.5 rounded-lg border border-gray-200 flex justify-between items-center text-xs">
-                                  <span className="font-bold text-gray-800">{filho.nome}</span>
-                                  <div className="text-gray-500 space-x-2">
+                                <div key={fidx} className="bg-white p-2.5 rounded-lg border border-gray-200 flex justify-between items-center text-xs" style={{ backgroundColor: "#ffffff", borderColor: "#cbd5e1" }}>
+                                  <span className="font-bold text-gray-800" style={{ color: "#1e293b" }}>{filho.nome}</span>
+                                  <div className="text-gray-500 space-x-2" style={{ color: "#475569" }}>
                                     <span>Nasc: {filho.dataNascimento || "-"}</span>
                                     <span>•</span>
-                                    <span className="uppercase font-bold text-gray-400 text-[10px]">{filho.sexo || "-"}</span>
+                                    <span className="uppercase font-bold text-gray-400 text-[10px]" style={{ color: "#94a3b8" }}>{filho.sexo || "-"}</span>
                                   </div>
                                 </div>
                               ))}
                             </div>
                           ) : (
-                            <p className="text-gray-405 italic5">Não possui filhos cadastrados.</p>
+                            <p className="text-gray-400 italic" style={{ color: "#64748b" }}>Não possui filhos cadastrados.</p>
                           )}
                         </div>
                       </div>
                     </div>
 
-                    <div className="bg-gray-50/55 rounded-xl p-5 border border-gray-100">
-                      <h5 className="text-xs font-bold text-[#1a6496] tracking-widest uppercase mb-4 border-b pb-1.5">
+                    <div className="print-section bg-gray-50/55 rounded-xl p-5 border border-gray-100" style={{ backgroundColor: "#f8fafc", borderColor: "#e2e8f0" }}>
+                      <h5 className="text-xs font-bold text-[#1a6496] tracking-widest uppercase mb-4 border-b pb-1.5" style={{ color: "#1a6496", borderBottomColor: "#e2e8f0" }}>
                         5. Atuação Governamental & Serviços
                       </h5>
                       <div className="space-y-4 text-xs">
                         <div>
-                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px] mb-2">Interesses Especiais em Departamentos / Ministérios</span>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px] mb-2" style={{ color: "#94a3b8" }}>Interesses Especiais em Departamentos / Ministérios</span>
                           {viewingMember.ministeriosInteresse && viewingMember.ministeriosInteresse.length > 0 ? (
                             <div className="flex flex-wrap gap-1.5 mt-1">
                               {viewingMember.ministeriosInteresse.map((m: string) => (
-                                <span key={m} className="px-2.5 py-1 bg-sky-50 text-[#1a6496] border border-sky-105 font-bold rounded-md text-[9px] uppercase">
+                                <span key={m} className="px-2.5 py-1 bg-sky-50 text-[#1a6496] border border-sky-105 font-bold rounded-md text-[9px] uppercase" style={{ backgroundColor: "#e0f2fe", color: "#1a6496", borderColor: "#bae6fd" }}>
                                   {m}
                                 </span>
                               ))}
                             </div>
                           ) : (
-                            <p className="text-gray-400 italic">Nenhum departamento pré-selecionado.</p>
+                            <p className="text-gray-400 italic" style={{ color: "#64748b" }}>Nenhum departamento pré-selecionado.</p>
                           )}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-gray-100">
+                        <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-100" style={{ borderTopColor: "#e2e8f0" }}>
                           <div>
-                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Talentário / Aptidões Principais</span>
-                            <p className="font-medium text-gray-700 mt-1">{viewingMember.talentos || "Nenhum informado"}</p>
+                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Talentário / Aptidões Principais</span>
+                            <p className="font-medium text-gray-700 mt-1" style={{ color: "#334155" }}>{viewingMember.talentos || "Nenhum informado"}</p>
                           </div>
                           <div>
-                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Instâncias & Observações Especiais</span>
-                            <p className="font-medium text-gray-700 mt-1">{viewingMember.observacoes || "Nenhuma observação privativa cadastrada."}</p>
+                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Instâncias & Observações Especiais</span>
+                            <p className="font-medium text-gray-700 mt-1" style={{ color: "#334155" }}>{viewingMember.observacoes || "Nenhuma observação privativa cadastrada."}</p>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100 font-sans">
+                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100 font-sans" style={{ borderTopColor: "#e2e8f0" }}>
                           <div>
-                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px] mb-1">Categorias Vinculadas</span>
+                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px] mb-1" style={{ color: "#94a3b8" }}>Categorias Vinculadas</span>
                             <div className="flex flex-wrap gap-1.5 mt-1">
                               {viewingMember.categorias && viewingMember.categorias.length > 0 ? (
                                 viewingMember.categorias.map((c: string) => (
-                                  <span key={c} className="bg-neutral-100 text-neutral-700 border border-neutral-200 px-2.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">
+                                  <span key={c} className="bg-neutral-100 text-neutral-700 border border-neutral-200 px-2.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider" style={{ backgroundColor: "#f1f5f9", color: "#334155", borderColor: "#cbd5e1" }}>
                                     {c}
                                   </span>
                                 ))
                               ) : (
-                                <span className="text-gray-400 italic">Membro Padrão</span>
+                                <span className="text-gray-400 italic" style={{ color: "#64748b" }}>Membro Padrão</span>
                               )}
                             </div>
                           </div>
                           <div>
-                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px] mb-1">Cargos Eclesiásticos Oficiais</span>
+                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px] mb-1" style={{ color: "#94a3b8" }}>Cargos Eclesiásticos Oficiais</span>
                             <div className="flex flex-wrap gap-1.5 mt-1">
                               {viewingMember.cargos && viewingMember.cargos.length > 0 ? (
                                 viewingMember.cargos.map((cargo: string) => (
-                                  <span key={cargo} className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">
+                                  <span key={cargo} className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider" style={{ backgroundColor: "#ecfdf5", color: "#065f46", borderColor: "#a7f3d0" }}>
                                     {cargo}
                                   </span>
                                 ))
                               ) : (
-                                <span className="text-gray-400 italic">Membro Regular</span>
+                                <span className="text-gray-400 italic" style={{ color: "#64748b" }}>Membro Regular</span>
                               )}
                             </div>
                           </div>
                         </div>
 
                         {viewingMember.camposAdicionais && viewingMember.camposAdicionais.length > 0 && (
-                          <div className="pt-4 border-t border-gray-100 space-y-3">
-                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Campos Suplementares Extra</span>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="pt-4 border-t border-gray-100 space-y-3 min-w-0 w-full" style={{ borderTopColor: "#e2e8f0" }}>
+                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]" style={{ color: "#94a3b8" }}>Campos Suplementares Extra</span>
+                            <div className="grid grid-cols-2 gap-3 min-w-0 w-full">
                               {viewingMember.camposAdicionais.map((campo: any, idx: number) => (
-                                <div key={idx} className="bg-white p-3 rounded-xl border border-gray-150">
-                                  <span className="text-[10px] uppercase font-bold text-[#1a6496] block">{campo.titulo}</span>
-                                  <span className="text-xs text-gray-700 font-medium mt-1 block whitespace-pre-wrap">{campo.valor}</span>
+                                <div key={idx} className="print-avoid bg-white p-3 rounded-xl border border-gray-150 min-w-0 w-full overflow-hidden break-all break-words" style={{ backgroundColor: "#ffffff", borderColor: "#cbd5e1" }}>
+                                  <span className="text-[10px] uppercase font-bold text-[#1a6496] block truncate break-all break-words" style={{ color: "#1a6496" }}>{campo.titulo}</span>
+                                  <span className="text-xs text-gray-700 font-medium mt-1 block whitespace-pre-wrap break-all break-words" style={{ color: "#334155" }}>{campo.valor}</span>
                                 </div>
                               ))}
                             </div>
@@ -2064,19 +2508,19 @@ export default function ManageMembers() {
                         )}
 
                         {viewingMember.anotacoesSecretaria && (
-                          <div className="p-3.5 bg-rose-50/40 rounded-xl border border-rose-100/50 mt-4 font-sans">
-                            <span className="text-rose-700 font-bold uppercase tracking-wider block text-[9px] mb-1">Anotações Importantes da Secretaria (RESTRITO COORDENAÇÃO)</span>
-                            <p className="text-xs text-rose-900 font-semibold whitespace-pre-wrap">{viewingMember.anotacoesSecretaria}</p>
+                          <div className="print-avoid p-3.5 bg-rose-50/40 rounded-xl border border-rose-100/50 mt-4 font-sans min-w-0 w-full overflow-hidden break-all break-words" style={{ backgroundColor: "#fff5f5", borderColor: "#feb2b2", marginTop: "1rem" }}>
+                            <span className="text-rose-700 font-bold uppercase tracking-wider block text-[9px] mb-1 break-all break-words" style={{ color: "#9b2c2c" }}>Anotações Importantes da Secretaria (RESTRITO COORDENAÇÃO)</span>
+                            <p className="text-xs text-rose-900 font-semibold whitespace-pre-wrap break-all break-words" style={{ color: "#742a2a" }}>{viewingMember.anotacoesSecretaria}</p>
                           </div>
                         )}
                       </div>
                     </div>
                   </div>
 
-                  <div className="border-t-2 border-[#1a6496] mt-8 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-[9px] text-gray-400 font-black tracking-widest uppercase mb-1">
-                    <span>Secretaria Ministerial</span>
-                    <span>© Apascentando Filhos</span>
-                    <span>Assinatura do Coordenador _____________________</span>
+                  <div className="print-section border-t-2 border-[#1a6496] mt-8 pt-6 flex flex-row justify-between items-center gap-4 text-[9px] text-gray-400 font-black tracking-widest uppercase mb-1" style={{ borderTop: "2px solid #1a6496", color: "#94a3b8" }}>
+                    <span style={{ color: "#94a3b8" }}>Secretaria Ministerial</span>
+                    <span style={{ color: "#94a3b8" }}>© Apascentando Filhos</span>
+                    <span style={{ color: "#94a3b8" }}>Assinatura do Coordenador _____________________</span>
                   </div>
                 </div>
               </div>
@@ -2149,15 +2593,17 @@ const styles = `
     }
     #print-membro-ficha-viewport {
       display: block !important;
-      border: none !important;
-      box-shadow: none !important;
-      padding: 0 !important;
-      margin: 0 !important;
+      border: 1px solid #cbd5e1 !important;
+      border-radius: 16px !important;
+      padding: 30px !important;
+      padding-bottom: 50px !important;
+      margin: 10px auto !important;
       width: 100% !important;
-      max-width: 100% !important;
-      position: absolute !important;
-      left: 0 !important;
-      top: 0 !important;
+      max-width: 680px !important;
+      position: relative !important;
+      background-color: #ffffff !important;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+      box-sizing: border-box !important;
     }
     .no-print {
       display: none !important;

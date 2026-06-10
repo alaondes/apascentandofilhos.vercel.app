@@ -1084,13 +1084,13 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                       </div>
 
                       {membroData.camposAdicionais && membroData.camposAdicionais.length > 0 && (
-                        <div>
+                        <div className="min-w-0 w-full">
                           <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Outras Informações</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0 w-full">
                             {membroData.camposAdicionais.map((campo: any, index: number) => (
-                              <div key={campo.id || index} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                                <p className="text-xs text-gray-500 font-bold mb-2 uppercase">{campo.titulo || "Informação"}</p>
-                                <p className="text-sm font-medium text-gray-800 whitespace-pre-wrap">{campo.valor}</p>
+                              <div key={campo.id || index} className="bg-gray-50 rounded-xl p-4 border border-gray-100 min-w-0 w-full overflow-hidden break-all break-words">
+                                <p className="text-xs text-gray-500 font-bold mb-2 uppercase break-all break-words">{campo.titulo || "Informação"}</p>
+                                <p className="text-sm font-medium text-gray-800 whitespace-pre-wrap break-all break-words">{campo.valor}</p>
                               </div>
                             ))}
                           </div>
@@ -1098,9 +1098,9 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                       )}
 
                       {membroData.anotacoesSecretaria && (
-                        <div>
+                        <div className="min-w-0 w-full">
                           <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Anotações Relevantes</h4>
-                          <div className="bg-orange-50 rounded-xl p-5 border border-orange-100 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+                          <div className="bg-orange-50 rounded-xl p-5 border border-orange-100 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed break-all break-words min-w-0 w-full overflow-hidden">
                             {membroData.anotacoesSecretaria}
                           </div>
                         </div>

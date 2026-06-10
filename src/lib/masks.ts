@@ -39,6 +39,17 @@ export const numberMask = (value: string) => {
   return value.replace(/\D/g, "");
 };
 
+export const dateMask = (value: string) => {
+  const v = value.replace(/\D/g, "").slice(0, 8);
+  if (v.length > 4) {
+    return `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4, 8)}`;
+  }
+  if (v.length > 2) {
+    return `${v.slice(0, 2)}/${v.slice(2, 4)}`;
+  }
+  return v;
+};
+
 export const currencyMask = (value: string) => {
   let v = value.replace(/\D/g, "");
   if (v === "") return "";
