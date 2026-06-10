@@ -119,7 +119,7 @@ export default function FilhosDePaz() {
       </section>
 
       {/* Main Content Overlapping */}
-      <section className="max-w-6xl mx-auto px-6 relative z-30 -mt-36">
+      <section className="max-w-6xl mx-auto px-6 relative z-30 mt-12">
         <div className="flex flex-col md:flex-row gap-8 items-stretch">
           {/* Text Card */}
           <div className="bg-white p-8 md:p-12 w-full md:w-1/2 shadow-sm rounded-[2px] flex flex-col justify-between">
