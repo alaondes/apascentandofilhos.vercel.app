@@ -1632,6 +1632,30 @@ export default function AdminPanel() {
                   ))}
                 </nav>
               </div>
+
+              <div>
+                <h4 className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2 px-3 mt-4">
+                  Divisão: Agenda
+                </h4>
+                <nav className="space-y-1">
+                  <button
+                    onClick={() => setActiveTab("agenda_eventos")}
+                    className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
+                      activeTab === "agenda_eventos"
+                        ? "bg-primary-base text-white shadow-md border-transparent"
+                        : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
+                    }`}
+                  >
+                    <Calendar
+                      size={18}
+                      className={
+                        activeTab === "agenda_eventos" ? "text-white" : "text-primary-base"
+                      }
+                    />
+                    <span>Configurar Agenda</span>
+                  </button>
+                </nav>
+              </div>
             </div>
           )}
 
@@ -1757,11 +1781,6 @@ export default function AdminPanel() {
                     id: "quem_somos",
                     label: "Conteúdo Quem Somos",
                     icon: Users,
-                  },
-                  {
-                    id: "agenda_eventos",
-                    label: "Gerenciar Agenda",
-                    icon: Calendar,
                   },
                 ].map((item) => (
                   <button

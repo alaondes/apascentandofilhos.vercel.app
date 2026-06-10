@@ -23,6 +23,7 @@ export default defineConfig({
           'vendor-router': ['react-router-dom'],
           'vendor-firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
           'vendor-icons': ['lucide-react'],
+          'vendor-pdf-canvas': ['jspdf', 'html2canvas'],
         }
       }
     }

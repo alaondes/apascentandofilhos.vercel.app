@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { collection, onSnapshot, doc, setDoc } from "firebase/firestore";
-import { db } from "../lib/firebase";
+import { collection, onSnapshot, doc } from "firebase/firestore";
+import { db, handleFirestoreError, OperationType } from "../lib/firebase";
 import { motion, AnimatePresence } from "motion/react";
 import { MapPin, Search, Calendar, RefreshCw } from "lucide-react";
 
@@ -31,7 +31,7 @@ const MONTHS = [
   { short: "DEZ", name: "DEZEMBRO", num: 12 },
 ];
 
-const DEFAULT_EVENTS: AgendaEvent[] = [
+export const DEFAULT_EVENTS: AgendaEvent[] = [
   {
     id: "jun-02",
     day: "02",
@@ -122,25 +122,81 @@ const DEFAULT_EVENTS: AgendaEvent[] = [
   }
 ];
 
+interface AgendaConfig {
+  watermarkYear: string;
+  bannerTitle: string;
+  bannerYear: string;
+  churchLabel: string;
+  sloganTitle: string;
+  sloganSub: string;
+  gradientFrom: string;
+  gradientTo: string;
+  activeTabBgHex: string;
+  activeTabLineHex: string;
+  eventTypes: { id: string; label: string; colorHex: string }[];
+}
+
+const DEFAULT_CONFIG: AgendaConfig = {
+  watermarkYear: "2026",
+  bannerTitle: "AGENDA",
+  bannerYear: "2026",
+  churchLabel: "IGREJA DO EVANGELHO QUADRANGULAR",
+  sloganTitle: "Avante",
+  sloganSub: "e sem parar",
+  gradientFrom: "#214fe6",
+  gradientTo: "#142fa3",
+  activeTabBgHex: "#0e2063",
+  activeTabLineHex: "#ffffff",
+  eventTypes: [
+    { id: "PRESENCIAL", label: "PRESENCIAL (Banner Azul)", colorHex: "#2b56f5" },
+    { id: "ONLINE", label: "ONLINE (Banner Roxo)", colorHex: "#7e3af2" },
+    { id: "PRESENCIAL / ONLINE", label: "PRESENCIAL + ONLINE (Banner Preto)", colorHex: "#18181a" }
+  ]
+};
+
 export default function Agenda() {
   const [selectedMonth, setSelectedMonth] = useState("JUN");
   const [events, setEvents] = useState<AgendaEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [config, setConfig] = useState<AgendaConfig>(DEFAULT_CONFIG);
 
   useEffect(() => {
+    // Listen to agenda config
+    const unsubConfig = onSnapshot(
+      doc(db, "content", "agenda_config"),
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          setConfig({
+            watermarkYear: data.watermarkYear || DEFAULT_CONFIG.watermarkYear,
+            bannerTitle: data.bannerTitle || DEFAULT_CONFIG.bannerTitle,
+            bannerYear: data.bannerYear || DEFAULT_CONFIG.bannerYear,
+            churchLabel: data.churchLabel || DEFAULT_CONFIG.churchLabel,
+            sloganTitle: data.sloganTitle || DEFAULT_CONFIG.sloganTitle,
+            sloganSub: data.sloganSub || DEFAULT_CONFIG.sloganSub,
+            gradientFrom: data.gradientFrom || DEFAULT_CONFIG.gradientFrom,
+            gradientTo: data.gradientTo || DEFAULT_CONFIG.gradientTo,
+            activeTabBgHex: data.activeTabBgHex || DEFAULT_CONFIG.activeTabBgHex,
+            activeTabLineHex: data.activeTabLineHex || DEFAULT_CONFIG.activeTabLineHex,
+            eventTypes: data.eventTypes || DEFAULT_CONFIG.eventTypes,
+          });
+        }
+      },
+      (error) => {
+        try {
+          handleFirestoreError(error, OperationType.GET, "content/agenda_config");
+        } catch (wrappedErr) {
+          console.error("Config load error on agenda:", wrappedErr);
+        }
+      }
+    );
+
     // Listen to agenda collection
     const unsub = onSnapshot(
       collection(db, "agenda_events"),
-      async (snapshot) => {
+      (snapshot) => {
         if (snapshot.empty) {
-          // Auto-seed with default elements to match high-fidelity view
-          try {
-            for (const ev of DEFAULT_EVENTS) {
-              await setDoc(doc(db, "agenda_events", ev.id), ev);
-            }
-          } catch (e) {
-            console.error("Error seeding default events:", e);
-          }
+          // If Firestore is empty, we fall back to high-fidelity static events safely
           setEvents(DEFAULT_EVENTS);
         } else {
           const list: AgendaEvent[] = [];
@@ -152,14 +208,21 @@ export default function Agenda() {
         setLoading(false);
       },
       (error) => {
-        console.error("Firestore listening error on agenda:", error);
+        try {
+          handleFirestoreError(error, OperationType.LIST, "agenda_events");
+        } catch (wrappedErr) {
+          console.error("Firestore listening error on agenda:", wrappedErr);
+        }
         // Fallback to static items
         setEvents(DEFAULT_EVENTS);
         setLoading(false);
       }
     );
 
-    return () => unsub();
+    return () => {
+      unsub();
+      unsubConfig();
+    };
   }, []);
 
   const activeMonthData = MONTHS.find((m) => m.short === selectedMonth);
@@ -173,80 +236,35 @@ export default function Agenda() {
   return (
     <div className="bg-slate-50 min-h-screen pt-[74px] md:pt-[84px] text-[#222222]">
       {/* 1. Header Hero Banner - Faithful to the image */}
-      <section className="relative w-full bg-gradient-to-r from-[#214fe6] to-[#142fa3] text-white py-12 md:py-20 px-4 md:px-12 flex flex-col md:flex-row md:items-center justify-between overflow-hidden shadow-md">
+      <section 
+        className="relative w-full text-white py-12 md:py-20 px-4 md:px-12 flex flex-col items-center justify-center overflow-hidden shadow-md"
+        style={{
+          background: `linear-gradient(135deg, ${config.gradientFrom} 0%, ${config.gradientTo} 100%)`
+        }}
+      >
         {/* Background Watermark "2026" */}
         <div className="absolute inset-0 flex items-center justify-center opacity-[0.05] pointer-events-none select-none">
           <span className="text-[18rem] md:text-[34rem] font-sans font-black tracking-tight leading-none text-white select-none">
-            2026
+            {config.watermarkYear}
           </span>
-        </div>
-
-        {/* Left Side: Quadrangular Shield Logo */}
-        <div className="flex items-center gap-4 z-10 shrink-0 mb-8 md:mb-0">
-          <div className="flex flex-col items-center">
-            {/* Quadrangular SVG Icon */}
-            <div className="w-16 h-16 md:w-20 md:h-20 bg-transparent border-2 border-white rounded-[4px] p-1 flex flex-col relative justify-between">
-              <div className="grid grid-cols-2 gap-1 flex-grow">
-                {/* Cross - Red segment */}
-                <div className="bg-white/10 hover:bg-red-500/30 transition-colors flex items-center justify-center rounded-[2px] p-0.5">
-                  <svg viewBox="0 0 24 24" className="w-full h-full text-white" fill="currentColor">
-                    <path d="M10,2 H14 V6 H18 V10 H14 V22 H10 V10 H6 V6 H10 Z" />
-                  </svg>
-                </div>
-                {/* Crown - Purple segment */}
-                <div className="bg-white/10 hover:bg-amber-500/30 transition-colors flex items-center justify-center rounded-[2px] p-0.5">
-                  <svg viewBox="0 0 24 24" className="w-full h-full text-white" fill="currentColor">
-                    <path d="M5,16 L3,8 L8,11 L12,5 L16,11 L21,8 L19,16 Z M5,18 H19 V20 H5 Z" />
-                  </svg>
-                </div>
-                {/* Chalice - Yellow segment */}
-                <div className="bg-white/10 hover:bg-yellow-500/30 transition-colors flex items-center justify-center rounded-[2px] p-0.5">
-                  <svg viewBox="0 0 24 24" className="w-full h-full text-white" fill="currentColor">
-                    <path d="M6,3 H18 V5 C18,9 15,12 13,12 V18 H17 V20 H7 V18 H11 V12 C9,12 6,9 6,5 Z" />
-                  </svg>
-                </div>
-                {/* Dove - Blue segment */}
-                <div className="bg-white/10 hover:bg-blue-500/30 transition-colors flex items-center justify-center rounded-[2px] p-1">
-                  <svg viewBox="0 0 24 24" className="w-full h-full text-white" fill="currentColor">
-                    <path d="M12,2A3,3,0,0,1,15,5C15,6.5,13.5,8,12,8C10.5,8,9,6.5,9,5A3,3,0,0,1,12,2M12,10C16,10,21,12,21,15V18C21,19.1,20.1,20,19,20H5A2,2,0,0,1,3,18V15C3,12,8,10,12,10Z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-            <span className="text-[10px] md:text-xs font-sans font-black tracking-[0.2em] whitespace-nowrap pt-2 text-white h-4 block">
-              QUADRANGULAR
-            </span>
-          </div>
         </div>
 
         {/* Center: Title Stack */}
         <div className="flex flex-col items-center justify-center text-center z-10 select-none">
           <h1 className="text-[3.5rem] md:text-[5.5rem] font-sans font-black tracking-normal leading-[0.85] text-white">
-            AGENDA
+            {config.bannerTitle}
           </h1>
           <h1 className="text-[4rem] md:text-[6.2rem] font-sans font-black tracking-normal leading-[0.85] text-white mt-1">
-            2026
+            {config.bannerYear}
           </h1>
           <p className="text-[8px] md:text-[11px] font-bold tracking-[0.3em] uppercase text-white/90 mt-4 max-w-md">
-            IGREJA DO EVANGELHO QUADRANGULAR
+            {config.churchLabel}
           </p>
-        </div>
-
-        {/* Right Side: Cursive brand image style */}
-        <div className="hidden md:flex flex-col items-end z-10 shrink-0">
-          <div className="text-right">
-            <span className="block text-4xl font-serif font-medium tracking-tight text-white/90 hover:scale-105 transition-transform duration-200 cursor-default select-none pt-2 font-mono italic">
-              Avante
-            </span>
-            <span className="block text-[11px] font-black uppercase tracking-[0.14em] text-white/70">
-              e sem parar
-            </span>
-          </div>
         </div>
       </section>
 
       {/* 2. Months Navigation Bar - Match image perfectly */}
-      <section className="bg-[#0e2063] text-white h-12 relative flex items-center shadow-md">
+      <section className="text-white h-12 relative flex items-center shadow-md bg-[#0e2063]" style={{ backgroundColor: config.activeTabBgHex }}>
         <div className="max-w-7xl mx-auto w-full px-4 md:px-8 flex overflow-x-auto scrollbar-hide select-none">
           <div className="flex items-center justify-between w-full min-w-max gap-4 md:gap-7 py-3 mx-auto">
             {MONTHS.map((m) => {
@@ -264,7 +282,7 @@ export default function Agenda() {
                     <motion.div
                       layoutId="activeMonthLine"
                       className="absolute bottom-0 left-0 right-0 h-1 bg-white"
-                      style={{ bottom: "0px" }}
+                      style={{ bottom: "0px", backgroundColor: config.activeTabLineHex }}
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
                     />
                   )}
@@ -328,16 +346,9 @@ export default function Agenda() {
                 id="events-grid-container"
               >
                 {filteredEvents.map((ev) => {
-                  // Determine header dynamic colors based on type
-                  let headerBgClass = "bg-[#2b56f5]"; // Blue
-                  let badgeLabel = "PRESENCIAL";
-                  if (ev.type === "ONLINE") {
-                    headerBgClass = "bg-[#7e3af2]"; // Purple
-                    badgeLabel = "ONLINE";
-                  } else if (ev.type === "PRESENCIAL / ONLINE") {
-                    headerBgClass = "bg-[#18181a]"; // Dark
-                    badgeLabel = "PRES./ONLINE";
-                  }
+                  const eventTypeConf = config.eventTypes?.find(t => t.id === ev.type);
+                  const headerBgHex = eventTypeConf?.colorHex || "#2b56f5"; 
+                  const badgeLabel = eventTypeConf?.label.replace(/ \(.+\)$/, "").trim() || "PRESENCIAL";
 
                   return (
                     <motion.div
@@ -347,7 +358,7 @@ export default function Agenda() {
                       id={`event-card-${ev.id}`}
                     >
                       {/* Card Header Section */}
-                      <div className={`${headerBgClass} p-4 text-white flex justify-between items-center shrink-0 select-none`}>
+                      <div style={{ backgroundColor: headerBgHex }} className={`p-4 text-white flex justify-between items-center shrink-0 select-none`}>
                         <div className="flex flex-col">
                           <span className="text-3xl font-black tracking-tight leading-none">
                             {ev.day}

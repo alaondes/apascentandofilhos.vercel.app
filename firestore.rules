@@ -177,6 +177,11 @@ service cloud.firestore {
       allow write: if isSignedIn();
     }
 
+    match /agenda_events/{eventId} {
+      allow read: if true;
+      allow write: if isAdmin() || isSecretary();
+    }
+
     match /course_forms/{formId} {
       allow read: if true;
       allow write: if isAdmin() || isEditor();

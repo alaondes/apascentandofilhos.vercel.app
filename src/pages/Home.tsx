@@ -199,14 +199,32 @@ export default function Home({
   useEffect(() => {
     setIsDataLoading(true);
     let loadedCount = 0;
+    let isFinished = false;
+
     const checkLoaded = () => {
       loadedCount++;
-      if (loadedCount >= 4) setIsDataLoading(false);
+      if (loadedCount >= 4 && !isFinished) {
+        isFinished = true;
+        setIsDataLoading(false);
+      }
     };
+
+    // Safety fallback timeout: force load after 3.5 seconds anyway
+    const safetyTimeout = setTimeout(() => {
+      if (!isFinished) {
+        isFinished = true;
+        setIsDataLoading(false);
+        console.warn("Safety fallback loaded: Some dashboard/home documents could not be loaded in time.");
+      }
+    }, 3500);
 
     const unsubHome = onSnapshot(doc(db, "content", "home"), (snap) => {
       if (snap.exists()) setHomeData(snap.data());
       else setHomeData({});
+      checkLoaded();
+    }, (error) => {
+      console.error("Erro ao buscar home content:", error);
+      setHomeData({});
       checkLoaded();
     });
 
@@ -214,11 +232,19 @@ export default function Home({
       if (snap.exists()) setEdificadoData(snap.data());
       else setEdificadoData({});
       checkLoaded();
+    }, (error) => {
+      console.error("Erro ao buscar edificado_matrimonio content:", error);
+      setEdificadoData({});
+      checkLoaded();
     });
 
     const unsubCursos = onSnapshot(doc(db, "content", "cursos"), (snap) => {
       if (snap.exists()) setCoursesData(snap.data());
       else setCoursesData({});
+      checkLoaded();
+    }, (error) => {
+      console.error("Erro ao buscar cursos content:", error);
+      setCoursesData({});
       checkLoaded();
     });
 
@@ -238,6 +264,7 @@ export default function Home({
     });
 
     return () => {
+      clearTimeout(safetyTimeout);
       unsubHome();
       unsubEdif();
       unsubCursos();

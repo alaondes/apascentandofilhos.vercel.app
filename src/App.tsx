@@ -17,11 +17,10 @@ import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import ThemeProvider from "./components/ThemeProvider";
-
 import Home from "./pages/Home";
-import AdminPanel from "./pages/dashboard/AdminPanel";
 
 // Lazy load pages
+import AdminPanel from "./pages/dashboard/AdminPanel";
 const QuemSomos = lazy(() => import("./pages/QuemSomos"));
 const Noticias = lazy(() => import("./pages/Noticias"));
 const EdificadoMatrimonio = lazy(() => import("./pages/EdificadoMatrimonio"));
