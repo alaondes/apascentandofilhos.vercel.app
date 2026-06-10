@@ -82,6 +82,7 @@ import MeusDados from "./MeusDados";
 import RestrictedEditionPanel from "./RestrictedEditionPanel";
 import ColunistaPanelComponent from "./ColunistaPanelComponent";
 import FilhosDePazPanel from "./FilhosDePazPanel";
+import AgendaPanel from "./AgendaPanel";
 
 const COURSES_LIST = [
   "Casados para Sempre",
@@ -1757,6 +1758,11 @@ export default function AdminPanel() {
                     label: "Conteúdo Quem Somos",
                     icon: Users,
                   },
+                  {
+                    id: "agenda_eventos",
+                    label: "Gerenciar Agenda",
+                    icon: Calendar,
+                  },
                 ].map((item) => (
                   <button
                     key={item.id}
@@ -2241,6 +2247,10 @@ export default function AdminPanel() {
             ].includes(activeTab) ? (
             <div className="w-full bg-[#f4f7f9] min-h-screen p-4 xl:p-8">
               <FilhosDePazPanel activeSection={activeTab} />
+            </div>
+          ) : activeTab === "agenda_eventos" ? (
+            <div className="w-full bg-[#f4f7f9] min-h-screen p-4 xl:p-8">
+              <AgendaPanel />
             </div>
           ) : [
               "colunista_meus_artigos",

@@ -17,6 +17,7 @@ export default function FilhosDePaz() {
     visaoText1: "Jesus em Lucas 10, deixou a estratégia simples e eficaz no processo de evangelização de casa em casa.\nTodo o processo começa com a preparação dos líderes dos Filhos de Paz. A formação e o treinamento acontecem dentro de um mês aproximadamente.",
     visaoText2: "No treinamento detalhamos toda a estratégia de Jesus para alcançarmos os \"não-crentes\" a partir da casa deles.\nPara participar do treinamento dos Filhos de Paz é preciso ser membro da Abba Church Marlboro, ter frequentado a classe de membresia e a escola de DNA e Fundamentos da Visão e Cultura da Abba Church Marlboro.",
     whatsappLink: "https://wa.me/55000000000",
+    whatsappText: "Clique aqui e fale com a gente!",
     redesBgColor: "#d6965f",
     redesTitle: "Temos outras\nredes e ministérios",
     redesSub: "Veja qual delas você mais se identifica",
@@ -166,7 +167,7 @@ export default function FilhosDePaz() {
 
           <div className="mt-12 flex justify-center pb-12">
             <a href={data.whatsappLink} target="_blank" rel="noopener noreferrer" className="bg-[#fc5d46] text-white px-8 py-2.5 rounded-full font-bold text-xs hover:bg-[#e04b36] transition-colors shadow-sm">
-              Clique aqui e fale com a gente!
+              {data.whatsappText || "Clique aqui e fale com a gente!"}
             </a>
           </div>
         </div>

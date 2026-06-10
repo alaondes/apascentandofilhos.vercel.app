@@ -22,6 +22,7 @@ interface FilhosDePazData {
   visaoText1: string;
   visaoText2: string;
   whatsappLink: string;
+  whatsappText: string;
   redesBgColor: string;
   redesTitle: string;
   redesSub: string;
@@ -40,6 +41,7 @@ const defaultData: FilhosDePazData = {
   visaoText1: "Jesus em Lucas 10, deixou a estratégia simples e eficaz no processo de evangelização de casa em casa.\nTodo o processo começa com a preparação dos líderes dos Filhos de Paz. A formação e o treinamento acontecem dentro de um mês aproximadamente.",
   visaoText2: "No treinamento detalhamos toda a estratégia de Jesus para alcançarmos os \"não-crentes\" a partir da casa deles.\nPara participar do treinamento dos Filhos de Paz é preciso ser membro da Abba Church Marlboro, ter frequentado a classe de membresia e a escola de DNA e Fundamentos da Visão e Cultura da Abba Church Marlboro.",
   whatsappLink: "https://wa.me/55000000000",
+  whatsappText: "Clique aqui e fale com a gente!",
   redesBgColor: "#d6965f",
   redesTitle: "Temos outras\nredes e ministérios",
   redesSub: "Veja qual delas você mais se identifica",
@@ -476,6 +478,17 @@ export default function FilhosDePazPanel({ activeSection = "filhos_de_paz_hero" 
                   name="whatsappLink"
                   value={data.whatsappLink}
                   onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Texto do Botão WhatsApp</label>
+                <input
+                  type="text"
+                  name="whatsappText"
+                  value={data.whatsappText || ""}
+                  onChange={handleChange}
+                  placeholder="Ex: Clique aqui e fale com a gente!"
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
                 />
             </div>

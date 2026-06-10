@@ -56,6 +56,19 @@ export default function Navbar() {
             }
         }
 
+        // Ensure "Agenda" exists and points to /agenda
+        const agendaIdxCheck = fetchedLinks.findIndex((l: any) => l.name.toLowerCase() === "agenda" || l.path === "/agenda");
+        if (agendaIdxCheck === -1) {
+          const contatoIdxCheck = fetchedLinks.findIndex((l: any) => l.name === "Contato");
+          if (contatoIdxCheck !== -1) {
+            fetchedLinks.splice(contatoIdxCheck, 0, { name: "Agenda", path: "/agenda" });
+          } else {
+            fetchedLinks.push({ name: "Agenda", path: "/agenda" });
+          }
+        } else {
+          fetchedLinks[agendaIdxCheck].path = "/agenda";
+        }
+
         setHeaderLogo({
           logoUrl: data.logoUrl || "",
           title: data.logoTitle || data.title || "",
@@ -75,6 +88,7 @@ export default function Navbar() {
               ]
             },
             { name: "Cursos", path: "/cursos" },
+            { name: "Agenda", path: "/agenda" },
             { name: "Contato", path: "/contato" },
           ],
         });
@@ -98,6 +112,7 @@ export default function Navbar() {
               ]
             },
             { name: "Cursos", path: "/cursos" },
+            { name: "Agenda", path: "/agenda" },
             { name: "Contato", path: "/contato" },
           ]
         })
