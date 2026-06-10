@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Link2, Linkedin, Twitter, MessageCircle } from "lucide-react";
-import { db } from "../lib/firebase";
-import { doc, onSnapshot } from "firebase/firestore";
+import { db, handleFirestoreError, OperationType } from "../lib/firebase";
+import { doc, onSnapshot, collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 export default function FilhosDePaz() {
   const [data, setData] = useState<any>({
@@ -24,23 +24,33 @@ export default function FilhosDePaz() {
       {
         title: "Rede de Mulheres",
         image: "https://images.unsplash.com/photo-1510255562709-322ce64821db?auto=format&fit=crop&q=80&w=600",
+        link: "/cursos"
       },
       {
         title: "Rede de Homens",
         image: "https://images.unsplash.com/photo-1506869640319-fea1a2ab8e9c?auto=format&fit=crop&q=80&w=600",
+        link: "/cursos"
       },
       {
         title: "Flow Up Rede de Jovens",
         image: "https://images.unsplash.com/photo-1523580456209-567a5b3a32f6?auto=format&fit=crop&q=80&w=600",
+        link: "/cursos"
       },
       {
         title: "RISYTH Rede de Adolescentes",
         image: "https://images.unsplash.com/photo-1511632765486-a01c80cb8fa4?auto=format&fit=crop&q=80&w=600",
+        link: "/cursos"
       },
     ],
   });
 
-  const [visibleCount, setVisibleCount] = useState(4);
+  const [subName, setSubName] = useState("");
+  const [subEmail, setSubEmail] = useState("");
+  const [subWhatsapp, setSubWhatsapp] = useState("");
+  const [agreedLgpd, setAgreedLgpd] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newsletterSuccess, setNewsletterSuccess] = useState("");
+  const [newsletterError, setNewsletterError] = useState("");
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, "content", "filhos_de_paz"), (snap) => {
@@ -50,6 +60,43 @@ export default function FilhosDePaz() {
     });
     return () => unsub();
   }, []);
+
+  const handleSubmitNewsletter = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!subName || !subEmail || !subWhatsapp) {
+      setNewsletterError("Por favor, preencha todos os campos obrigatórios.");
+      return;
+    }
+    if (!agreedLgpd) {
+      setNewsletterError("Você precisa concordar em compartilhar seus dados de acordo com a LGPD.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setNewsletterError("");
+    setNewsletterSuccess("");
+
+    try {
+      await addDoc(collection(db, "newsletter_subscribers"), {
+        name: subName,
+        email: subEmail,
+        whatsapp: subWhatsapp,
+        createdAt: serverTimestamp(),
+        concordoLgpd: true
+      });
+      setNewsletterSuccess("Inscrição realizada com sucesso! Obrigado por se inscrever.");
+      setSubName("");
+      setSubEmail("");
+      setSubWhatsapp("");
+      setAgreedLgpd(false);
+    } catch (err) {
+      console.error("Error submitting newsletter subscription:", err);
+      setNewsletterError("Ocorreu um erro ao enviar sua inscrição. Por favor, tente novamente.");
+      handleFirestoreError(err, OperationType.CREATE, "newsletter_subscribers");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="pt-20 bg-[#f7f7f7] min-h-screen">
@@ -131,12 +178,8 @@ export default function FilhosDePaz() {
       `}</style>
       
       {/* Outras redes section */}
-      <section className="mt-16 relative custom-redes-bg pt-[400px]">
-        {/* We want the grid to overlap the transition from #f7f7f7 to custom color, so we do it with absolute positioning or negative margin */}
-      </section>
-      
-      <section className="relative custom-redes-bg pb-20">
-        <div className="max-w-6xl mx-auto px-6 relative z-10 -mt-[450px]">
+      <section className="mt-16 relative custom-redes-bg py-24">
+        <div className="max-w-6xl mx-auto px-6 relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight leading-[1.1] whitespace-pre-line">
               {data.redesTitle || "Temos outras\nredes e ministérios"}
@@ -148,29 +191,69 @@ export default function FilhosDePaz() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Dynamic Cards */}
-            {data.redesList && data.redesList.slice(0, visibleCount).map((rede: any, idx: number) => (
-              <div key={idx} className="relative h-[340px] group overflow-hidden bg-black flex items-center justify-center">
-                <img
-                  src={rede.image || "https://images.unsplash.com/photo-1510255562709-322ce64821db?auto=format&fit=crop&q=80&w=600"}
-                  className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700"
-                  alt={rede.title}
-                  referrerPolicy="no-referrer"
-                />
-                <h3 className="relative z-10 text-white font-black text-lg text-center px-4 w-full">{rede.title}</h3>
-              </div>
-            ))}
-          </div>
+            {data.redesList && data.redesList.map((rede: any, idx: number) => {
+              const CardContent = (
+                <>
+                  <img
+                    src={rede.image || "https://images.unsplash.com/photo-1510255562709-322ce64821db?auto=format&fit=crop&q=80&w=600"}
+                    className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:opacity-75 group-hover:scale-110 transition-all duration-700"
+                    alt={rede.title}
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-500" />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-6 z-10 flex flex-col items-center">
+                    <h3 className="text-white font-black text-lg text-center px-4 w-full group-hover:-translate-y-1 transition-transform duration-300">
+                      {rede.title}
+                    </h3>
+                    {rede.link && (
+                      <span className="text-[10px] font-extrabold text-[#fc5d46] tracking-[0.2em] uppercase mt-2 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-1 select-none">
+                        <Link2 size={12} className="inline" /> ver mais
+                      </span>
+                    )}
+                  </div>
+                </>
+              );
 
-          {data.redesList && data.redesList.length > visibleCount && (
-            <div className="mt-12 flex justify-center">
-              <button
-                onClick={() => setVisibleCount((prev) => prev + 4)}
-                className="bg-[#fc5d46] text-white px-8 py-2.5 rounded-full font-bold text-xs hover:bg-[#e04b36] transition-colors shadow-sm"
-              >
-                carregar mais
-              </button>
-            </div>
-          )}
+              const cardClasses = "relative h-[340px] group overflow-hidden bg-black flex items-end justify-center rounded-lg shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-white/5";
+
+              if (rede.link) {
+                const isExternal = rede.link.startsWith("http") || rede.link.startsWith("wa.me") || rede.link.startsWith("//");
+                if (isExternal) {
+                  let url = rede.link;
+                  if (rede.link.startsWith("wa.me")) {
+                    url = "https://" + rede.link;
+                  }
+                  return (
+                    <a
+                      key={idx}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cardClasses}
+                    >
+                      {CardContent}
+                    </a>
+                  );
+                } else {
+                  return (
+                    <Link
+                      key={idx}
+                      to={rede.link}
+                      className={cardClasses}
+                    >
+                      {CardContent}
+                    </Link>
+                  );
+                }
+              }
+
+              return (
+                <div key={idx} className={cardClasses}>
+                  {CardContent}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </section>
 
@@ -180,21 +263,70 @@ export default function FilhosDePaz() {
           <h3 className="text-sm font-bold text-gray-800 mb-8 font-sans">
             Receba nosso informativo da semana!
           </h3>
-          <form className="w-full flex-col flex items-center gap-6">
+          <form onSubmit={handleSubmitNewsletter} className="w-full flex-col flex items-center gap-6">
             <div className="flex flex-col md:flex-row gap-3 w-full justify-center">
-              <input type="text" placeholder="Nome" className="border border-gray-300 px-4 py-2.5 text-xs w-full md:w-56 outline-none focus:border-[#fc5d46] rounded-[2px]" />
-              <input type="email" placeholder="E-mail" className="border border-gray-300 px-4 py-2.5 text-xs w-full md:w-56 outline-none focus:border-[#fc5d46] rounded-[2px]" />
-              <input type="tel" placeholder="WhatsApp" className="border border-gray-300 px-4 py-2.5 text-xs w-full md:w-56 outline-none focus:border-[#fc5d46] rounded-[2px]" />
-              <button type="submit" className="bg-[#fc5d46] hover:bg-[#e04b36] text-white font-bold px-8 py-2.5 text-xs min-w-[120px] rounded-[2px] transition-colors">
-                Enviar
+              <input
+                type="text"
+                placeholder="Nome"
+                value={subName}
+                onChange={(e) => setSubName(e.target.value)}
+                disabled={isSubmitting}
+                required
+                className="border border-gray-300 px-4 py-2.5 text-xs w-full md:w-56 outline-none focus:border-[#fc5d46] rounded-[2px]"
+              />
+              <input
+                type="email"
+                placeholder="E-mail"
+                value={subEmail}
+                onChange={(e) => setSubEmail(e.target.value)}
+                disabled={isSubmitting}
+                required
+                className="border border-gray-300 px-4 py-2.5 text-xs w-full md:w-56 outline-none focus:border-[#fc5d46] rounded-[2px]"
+              />
+              <input
+                type="tel"
+                placeholder="WhatsApp"
+                value={subWhatsapp}
+                onChange={(e) => setSubWhatsapp(e.target.value)}
+                disabled={isSubmitting}
+                required
+                className="border border-gray-300 px-4 py-2.5 text-xs w-full md:w-56 outline-none focus:border-[#fc5d46] rounded-[2px]"
+              />
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-[#fc5d46] hover:bg-[#e04b36] text-white font-bold px-8 py-2.5 text-xs min-w-[120px] rounded-[2px] transition-colors disabled:opacity-55"
+              >
+                {isSubmitting ? "Enviando..." : "Enviar"}
               </button>
             </div>
-            <label className="flex items-start gap-3 mt-2 max-w-3xl cursor-pointer text-left">
-              <input type="checkbox" className="mt-1 border-gray-300 text-[#fc5d46] outline-none rounded-[2px]" required />
-              <span className="text-[9px] text-gray-500 font-medium leading-tight">
-                Concordo que os dados preenchidos acima serão usados para o envio de conteúdo informativo, analítico e publicitário sobre produtos, serviços e assuntos gerais, nos termos da Lei Geral de Proteção de Dados.
-              </span>
-            </label>
+            
+            <div className="w-full max-w-3xl flex flex-col items-center gap-2">
+              <label className="flex items-start gap-3 mt-2 cursor-pointer text-left">
+                <input
+                  type="checkbox"
+                  checked={agreedLgpd}
+                  onChange={(e) => setAgreedLgpd(e.target.checked)}
+                  disabled={isSubmitting}
+                  className="mt-1 border-gray-300 text-[#fc5d46] outline-none rounded-[2px]"
+                  required
+                />
+                <span className="text-[9px] text-gray-500 font-medium leading-tight">
+                  Concordo que os dados preenchidos acima serão usados para o envio de conteúdo informativo, analítico e publicitário sobre produtos, serviços e assuntos gerais, nos termos da Lei Geral de Proteção de Dados.
+                </span>
+              </label>
+
+              {newsletterSuccess && (
+                <p className="text-xs font-bold text-green-600 mt-2 p-2 bg-green-50 border border-green-200 rounded w-full max-w-lg text-center">
+                  {newsletterSuccess}
+                </p>
+              )}
+              {newsletterError && (
+                <p className="text-xs font-bold text-red-600 mt-2 p-2 bg-red-50 border border-red-200 rounded w-full max-w-lg text-center">
+                  {newsletterError}
+                </p>
+              )}
+            </div>
           </form>
         </div>
       </section>

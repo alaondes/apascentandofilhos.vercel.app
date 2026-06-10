@@ -21,12 +21,127 @@ import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import firebaseConfig from "../../../firebase-applet-config.json";
 
+function cleanOklchInCss(cssText: string): string {
+  if (!cssText) return "";
+  
+  // 1. Core converter for oklch
+  let result = cssText.replace(/oklch\(([^)]+)\)/g, (match, p1) => {
+    try {
+      const parts = p1.trim().split(/[\s,+/]+/);
+      if (parts.length < 3) return match;
+      
+      const L = parseFloat(parts[0]);
+      const C = parseFloat(parts[1]);
+      let H = parseFloat(parts[2]);
+      if (isNaN(L) || isNaN(C) || isNaN(H)) return match;
+      
+      let A = 1;
+      if (parts.length >= 4) {
+        const alphaStr = parts[3];
+        if (alphaStr.endsWith("%")) {
+          A = parseFloat(alphaStr) / 100;
+        } else {
+          A = parseFloat(alphaStr);
+        }
+        if (isNaN(A)) A = 1;
+      }
+      
+      const hRad = (H * Math.PI) / 180;
+      const cosH = Math.cos(hRad);
+      const sinH = Math.sin(hRad);
+      
+      const aVal = C * cosH;
+      const bVal = C * sinH;
+      
+      const l_ = Math.pow(L + 0.3963377774 * aVal + 0.2158037573 * bVal, 3);
+      const m_ = Math.pow(L - 0.1055613458 * aVal - 0.0638541728 * bVal, 3);
+      const s_ = Math.pow(L - 0.0894841775 * aVal - 1.2914855480 * bVal, 3);
+      
+      const r_linear = 4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699294 * s_;
+      const g_linear = -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_;
+      const b_linear = -0.0041960863 * l_ - 0.7034186145 * m_ + 1.7076147010 * s_;
+      
+      const linearToSrgb = (x: number) => {
+        if (isNaN(x)) return 0;
+        return x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055;
+      };
+      
+      const r = Math.max(0, Math.min(255, Math.round(linearToSrgb(r_linear) * 255)));
+      const g = Math.max(0, Math.min(255, Math.round(linearToSrgb(g_linear) * 255)));
+      const b = Math.max(0, Math.min(255, Math.round(linearToSrgb(b_linear) * 255)));
+      
+      return `rgba(${r}, ${g}, ${b}, ${A})`;
+    } catch (err) {
+      console.error("Erro ao converter oklch:", err);
+      return match;
+    }
+  });
+
+  // 2. Core converter for oklab
+  result = result.replace(/oklab\(([^)]+)\)/g, (match, p1) => {
+    try {
+      const parts = p1.trim().split(/[\s,+/]+/);
+      if (parts.length < 3) return match;
+      
+      const L = parseFloat(parts[0]);
+      const aVal = parseFloat(parts[1]);
+      const bVal = parseFloat(parts[2]);
+      if (isNaN(L) || isNaN(aVal) || isNaN(bVal)) return match;
+      
+      let A = 1;
+      if (parts.length >= 4) {
+        const alphaStr = parts[3];
+        if (alphaStr.endsWith("%")) {
+          A = parseFloat(alphaStr) / 100;
+        } else {
+          A = parseFloat(alphaStr);
+        }
+        if (isNaN(A)) A = 1;
+      }
+      
+      const l_ = Math.pow(L + 0.3963377774 * aVal + 0.2158037573 * bVal, 3);
+      const m_ = Math.pow(L - 0.1055613458 * aVal - 0.0638541728 * bVal, 3);
+      const s_ = Math.pow(L - 0.0894841775 * aVal - 1.2914855480 * bVal, 3);
+      
+      const r_linear = 4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699294 * s_;
+      const g_linear = -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_;
+      const b_linear = -0.0041960863 * l_ - 0.7034186145 * m_ + 1.7076147010 * s_;
+      
+      const linearToSrgb = (x: number) => {
+        if (isNaN(x)) return 0;
+        return x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055;
+      };
+      
+      const r = Math.max(0, Math.min(255, Math.round(linearToSrgb(r_linear) * 255)));
+      const g = Math.max(0, Math.min(255, Math.round(linearToSrgb(g_linear) * 255)));
+      const b = Math.max(0, Math.min(255, Math.round(linearToSrgb(b_linear) * 255)));
+      
+      return `rgba(${r}, ${g}, ${b}, ${A})`;
+    } catch (err) {
+      console.error("Erro ao converter oklab:", err);
+      return match;
+    }
+  });
+
+  return result;
+}
+
 export default function ManageMembers() {
   const [members, setMembers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
+  const [viewingMember, setViewingMember] = useState<any | null>(null);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+
+  const handleOpenFicha = (member: any) => {
+    setViewingMember(member);
+  };
+
+  const handleCloseFicha = () => {
+    setViewingMember(null);
+  };
   const [roles, setRoles] = useState<any[]>([
     { id: "membro", label: "Membro", base: "membro" },
     { id: "lider", label: "Líder", base: "leader" },
@@ -691,56 +806,63 @@ export default function ManageMembers() {
               {filteredMembers.map((member) => (
                 <tr
                   key={member.id}
-                  className="border-b border-gray-100 hover:bg-gray-50/50 transition duration-150"
+                  className="border-b border-gray-100 hover:bg-[#f7fafd]/40 transition duration-150"
                 >
-                  <td className="py-3 px-4 font-medium text-primary-dark">
+                  <td className="py-3.5 px-4 font-bold text-gray-900 text-sm">
                     {member.nome}
                   </td>
-                  <td className="py-3 px-4 text-sm text-gray-600">
-                    <div>{member.email}</div>
-                    <div className="text-gray-500">{member.telefone}</div>
+                  <td className="py-3.5 px-4 text-xs text-gray-600">
+                    <div className="font-semibold">{member.email || "-"}</div>
+                    <div className="text-gray-400 mt-0.5">{member.telefone || member.whatsapp || "-"}</div>
                   </td>
-                  <td className="py-3 px-4 text-sm text-gray-600">
-                    {member.dataNascimento}
+                  <td className="py-3.5 px-4 text-xs text-gray-500 font-medium whitespace-nowrap">
+                    {member.dataNascimento || "-"}
                   </td>
-                  <td className="py-3 px-4">
-                    <span className="px-2 py-1 rounded text-[10px] bg-[#f0f6fb] text-primary-base font-bold uppercase tracking-wider">
+                  <td className="py-3.5 px-4">
+                    <span className="px-2.5 py-1 rounded-md text-[9px] bg-sky-50 text-[#1a6496] font-bold uppercase tracking-wider border border-sky-200">
                       {Array.isArray(member.permissao) ? member.permissao.join(', ') : member.permissao || "Membro"}
                     </span>
                   </td>
-                  <td className="py-3 px-4">
+                  <td className="py-3.5 px-4">
                     <span
-                      className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
+                      className={`inline-flex px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
                         member.status === "ativo"
-                          ? "bg-green-100 text-green-700"
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                           : member.status === "pendente_aprovacao"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-red-100 text-red-700"
+                          ? "bg-amber-50 text-amber-700 border border-amber-200"
+                          : "bg-rose-50 text-rose-700 border border-rose-200"
                       }`}
                     >
-                      {member.status === "pendente_aprovacao" ? "Pendente" : member.status}
+                      {member.status === "pendente_aprovacao" ? "Pendente" : member.status || "Ativo"}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-right space-x-2">
+                  <td className="py-3.5 px-4 text-right space-x-1 whitespace-nowrap">
                     {member.status === "pendente_aprovacao" && (
                       <button
                         onClick={() => handleApproveMember(member.id)}
-                        className="p-1.5 text-green-600 hover:bg-green-50 rounded-md transition"
+                        className="p-1 px-2.5 bg-emerald-50 border border-emerald-250 text-emerald-700 hover:bg-emerald-100 rounded-lg transition inline-flex items-center gap-1 text-xs font-bold"
                         title="Aprovar Membro"
                       >
-                        <Check size={16} />
+                        <Check size={14} /> <span className="text-[10px]">Aprovar</span>
                       </button>
                     )}
                     <button
-                      onClick={() => handleOpenModal(member)}
-                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition"
-                      title="Ver Ficha / Editar"
+                      onClick={() => handleOpenFicha(member)}
+                      className="p-1.5 text-[#1a6496] hover:bg-[#1a6496]/5 rounded-lg transition"
+                      title="Visualizar Ficha Completa"
                     >
                       <Eye size={16} />
                     </button>
                     <button
+                      onClick={() => handleOpenModal(member)}
+                      className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                      title="Editar Cadastro"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button
                       onClick={() => confirmDelete(member.id)}
-                      className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition"
+                      className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition"
                       title="Remover"
                     >
                       <Trash2 size={16} />
@@ -1363,11 +1485,685 @@ export default function ManageMembers() {
           </div>
         )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {viewingMember && (
+          <div className="fixed inset-0 bg-primary-dark/55 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col h-[90vh]"
+            >
+              <div className="bg-[#f7fafd] border-b border-[#c8d8e8] px-6 py-4 flex flex-col md:flex-row justify-between md:items-center gap-4 no-print flex-shrink-0">
+                <div className="flex items-center gap-2">
+                  <User size={22} className="text-[#1a6496]" />
+                  <h3 className="font-bold font-serif text-lg text-primary-dark">
+                    Ficha de Membro Oficial
+                  </h3>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const memberToEdit = viewingMember;
+                      handleCloseFicha();
+                      handleOpenModal(memberToEdit);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 rounded-lg text-xs font-bold transition cursor-pointer"
+                  >
+                    <Edit2 size={13} /> Editar Dados
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const element = document.getElementById("print-membro-ficha-viewport");
+                      if (!element) return;
+
+                      // Create a hidden helper iframe securely inside same origin
+                      const iframe = document.createElement("iframe");
+                      iframe.style.position = "fixed";
+                      iframe.style.right = "0";
+                      iframe.style.bottom = "0";
+                      iframe.style.width = "0";
+                      iframe.style.height = "0";
+                      iframe.style.border = "0";
+                      iframe.setAttribute("id", "print-helper-iframe");
+                      document.body.appendChild(iframe);
+
+                      const iframeDoc = iframe.contentWindow?.document || iframe.contentDocument;
+                      if (!iframeDoc) {
+                        alert("Não foi possível iniciar a visualização de impressão no seu navegador.");
+                        return;
+                      }
+
+                      // Load style definitions present on current view
+                      let cssText = "";
+                      try {
+                        for (const sheet of Array.from(document.styleSheets)) {
+                          try {
+                            for (const rule of Array.from(sheet.cssRules)) {
+                              cssText += rule.cssText + "\n";
+                            }
+                          } catch (e) {
+                            // Cross-origin styles read protection safe skip
+                          }
+                        }
+                      } catch (err) {
+                        console.error("Erro ao extrair estilos:", err);
+                      }
+
+                      const cleanedCss = cleanOklchInCss(cssText);
+
+                      iframeDoc.open();
+                      iframeDoc.write(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                          <title>Ficha de Membro Oficial - ${viewingMember.nome}</title>
+                          <style>
+                            ${cleanedCss}
+                            @page {
+                              size: A4;
+                              margin: 15mm;
+                            }
+                            body {
+                              background: white !important;
+                              color: black !important;
+                              font-family: ui-sans-serif, system-ui, -apple-system, sans-serif !important;
+                              padding: 0 !important;
+                              margin: 0 !important;
+                            }
+                            * {
+                              -webkit-print-color-adjust: exact !important;
+                              print-color-adjust: exact !important;
+                            }
+                            #print-membro-ficha-viewport {
+                              border: none !important;
+                              box-shadow: none !important;
+                              padding: 0 !important;
+                              margin: 0 auto !important;
+                            }
+                          </style>
+                        </head>
+                        <body class="bg-white">
+                          <div style="width: 100%; max-width: 800px; margin: 0 auto; padding: 10px;">
+                            ${element.innerHTML}
+                          </div>
+                        </body>
+                        </html>
+                      `);
+                      iframeDoc.close();
+
+                      setTimeout(() => {
+                        if (iframe.contentWindow) {
+                          iframe.contentWindow.focus();
+                          iframe.contentWindow.print();
+                          setTimeout(() => {
+                            document.body.removeChild(iframe);
+                          }, 1500);
+                        }
+                      }, 600);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100 rounded-lg text-xs font-bold transition cursor-pointer"
+                  >
+                    <Eye size={13} /> Imprimir Ficha
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setIsExportingPDF(true);
+                      try {
+                        const jsPDFModule = await import("jspdf");
+                        const jsPDFClass = jsPDFModule.jsPDF || jsPDFModule.default;
+                        const html2canvasModule = await import("html2canvas");
+                        const html2canvas = (html2canvasModule.default || html2canvasModule) as any;
+                        
+                        const originalElement = document.getElementById("print-membro-ficha-viewport");
+                        if (!originalElement) return;
+
+                        // Extract and clean styles from parent document to avoid html2canvas OKLCH crash
+                        let rawCss = "";
+                        try {
+                          for (const sheet of Array.from(document.styleSheets)) {
+                            try {
+                              for (const rule of Array.from(sheet.cssRules)) {
+                                rawCss += rule.cssText + "\n";
+                              }
+                            } catch (e) {
+                              // Cross-origin styles protection skip
+                            }
+                          }
+                        } catch (err) {
+                          console.error("Erro ao extrair estilos para PDF:", err);
+                        }
+                        const cleanedCss = cleanOklchInCss(rawCss);
+
+                        // Create a hidden helper iframe securely inside same origin to render html2canvas nicely
+                        const iframe = document.createElement("iframe");
+                        iframe.style.position = "absolute";
+                        iframe.style.left = "-9999px";
+                        iframe.style.top = "-9999px";
+                        iframe.style.width = "750px"; 
+                        iframe.style.height = "auto";
+                        iframe.style.border = "0";
+                        document.body.appendChild(iframe);
+                        
+                        const iframeDoc = iframe.contentWindow?.document || iframe.contentDocument;
+                        if (!iframeDoc) {
+                          throw new Error("Não foi possível acessar o documento do iframe para geração de PDF.");
+                        }
+
+                        // Write cleaned content to the offscreen iframe
+                        iframeDoc.open();
+                        iframeDoc.write(`
+                          <!DOCTYPE html>
+                          <html>
+                          <head>
+                            <meta charset="utf-8">
+                            <title>Ficha de Membro Oficial</title>
+                            <style>
+                              ${cleanedCss}
+                              body {
+                                background: white !important;
+                                color: black !important;
+                                font-family: ui-sans-serif, system-ui, -apple-system, sans-serif !important;
+                                padding: 0 !important;
+                                margin: 0 !important;
+                              }
+                              #print-membro-ficha-viewport {
+                                border: none !important;
+                                box-shadow: none !important;
+                                padding: 0 !important;
+                                margin: 0 auto !important;
+                              }
+                            </style>
+                          </head>
+                          <body class="bg-white">
+                            <div id="print-membro-ficha-viewport" style="width: 100%; max-width: 750px; margin: 0 auto; padding: 20px;">
+                              ${originalElement.innerHTML}
+                            </div>
+                          </body>
+                          </html>
+                        `);
+                        iframeDoc.close();
+
+                        // Timeout to lay out elements inside the iframe
+                        await new Promise((resolve) => setTimeout(resolve, 350));
+
+                        const targetElement = iframeDoc.getElementById("print-membro-ficha-viewport");
+                        if (!targetElement) {
+                          throw new Error("Elemento do visualizador não encontrado para renderização do canvas.");
+                        }
+
+                        const canvas = await html2canvas(targetElement, {
+                          scale: 2, // Retinal display rendering quality
+                          useCORS: true,
+                          allowTaint: true,
+                          backgroundColor: "#ffffff",
+                          logging: false,
+                          window: iframe.contentWindow || window,
+                          document: iframeDoc
+                        });
+                        
+                        // Clean up offscreen iframe
+                        document.body.removeChild(iframe);
+                        
+                        const imgData = canvas.toDataURL("image/png");
+                        const pdf = new jsPDFClass("p", "mm", "a4");
+                        const imgWidth = 210;
+                        const pageHeight = 297;
+                        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                        let heightLeft = imgHeight;
+                        let position = 0;
+                        
+                        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                        
+                        while (heightLeft >= 0) {
+                          position = heightLeft - imgHeight;
+                          pdf.addPage();
+                          pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+                          heightLeft -= pageHeight;
+                        }
+                        
+                        const fileName = `ficha-membro-${viewingMember.nome.toLowerCase().replace(/\s+/g, "-")}.pdf`;
+                        pdf.save(fileName);
+                      } catch (err) {
+                        console.error("Erro ao gerar PDF:", err);
+                        alert("Houve uma falha ao renderizar o PDF de forma automatizada. Você pode usar a opção de Imprimir e escolher 'Salvar como PDF' na caixa de diálogo de impressão.");
+                      } finally {
+                        setIsExportingPDF(false);
+                      }
+                    }}
+                    disabled={isExportingPDF}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-bold transition disabled:opacity-50 cursor-pointer"
+                  >
+                    {isExportingPDF ? "Gerando..." : "Baixar PDF"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCloseFicha}
+                    className="text-gray-500 hover:text-gray-800 transition p-1 cursor-pointer"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar bg-gray-50 bg-[#fbfcfd]" id="membro-ficha-container-scroll">
+                <div
+                  id="print-membro-ficha-viewport"
+                  className="bg-white border border-gray-200 rounded-2xl p-6 md:p-10 max-w-3xl mx-auto shadow-sm text-gray-800 leading-relaxed font-sans animate-fade-in"
+                >
+                  <div className="border-b-2 border-[#1a6496] pb-6 mb-6 flex flex-col md:flex-row items-center md:justify-between gap-4">
+                    <div className="text-center md:text-left">
+                      <h4 className="text-xs font-black text-[#1a6496] tracking-widest uppercase mb-1">
+                        Ministério Apascentando Filhos
+                      </h4>
+                      <h1 className="text-2xl font-black font-serif text-primary-dark tracking-tight">
+                        FICHA DE MEMBRO OFICIAL
+                      </h1>
+                      <div className="flex flex-wrap gap-2 items-center justify-center md:justify-start mt-2 text-xs text-gray-400 font-bold uppercase tracking-wider">
+                        <span>Gerado em: {new Date().toLocaleDateString("pt-BR")}</span>
+                        <span>•</span>
+                        <span className="uppercase font-bold text-[#1a6496]">
+                          Ref: MEM-{viewingMember.id?.substring(0, 8).toUpperCase() || "NOVO"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-center md:items-end">
+                      <span
+                        className={`px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
+                          viewingMember.status === "ativo"
+                            ? "bg-emerald-50 text-emerald-850 border-emerald-200"
+                            : "bg-rose-50 text-rose-850 border-rose-200"
+                        }`}
+                      >
+                        Status: {viewingMember.status === "pendente_aprovacao" ? "Pendente" : viewingMember.status || "Ativo"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 pb-6 border-b border-gray-100">
+                    <div className="col-span-1 flex flex-col items-center">
+                      <div className="w-32 h-32 rounded-2xl bg-gray-50 border-2 border-gray-150 overflow-hidden shadow-inner flex items-center justify-center relative">
+                        {viewingMember.foto ? (
+                          <img
+                            src={viewingMember.foto}
+                            alt={viewingMember.nome}
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                            crossOrigin="anonymous"
+                          />
+                        ) : (
+                          <User size={64} className="text-gray-300" />
+                        )}
+                      </div>
+                      <span className="text-[9px] font-black text-gray-400 mt-2 uppercase tracking-wide">
+                        Foto do Membro
+                      </span>
+                    </div>
+                    <div className="md:col-span-3 flex flex-col justify-center space-y-4">
+                      <div>
+                        <span className="text-[10px] uppercase font-black tracking-wider text-gray-400 block">
+                          Nome Completo
+                        </span>
+                        <span className="text-xl font-bold text-gray-900 font-serif">
+                          {viewingMember.nome}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <span className="text-[10px] uppercase font-black tracking-wider text-gray-400 block">
+                            Perfil de Acesso
+                          </span>
+                          <span className="inline-block mt-1 px-2.5 py-0.5 rounded text-[10px] bg-sky-50 text-[#1a6496] font-bold uppercase border border-sky-200">
+                            {Array.isArray(viewingMember.permissao)
+                              ? viewingMember.permissao.join(", ")
+                              : viewingMember.permissao || "Membro"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] uppercase font-black tracking-wider text-gray-400 block">
+                            Data de Nascimento
+                          </span>
+                          <span className="text-sm font-semibold text-gray-800 mt-1 block">
+                            {viewingMember.dataNascimento || "-"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="bg-gray-50/55 rounded-xl p-5 border border-gray-100">
+                      <h5 className="text-xs font-bold text-[#1a6496] tracking-widest uppercase mb-4 border-b pb-1.5">
+                        1. Informações Pessoais
+                      </h5>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-2 text-xs">
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">CPF</span>
+                          <span className="font-semibold text-gray-800">{viewingMember.cpf || "Não Informado"}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Sexo</span>
+                          <span className="font-semibold text-gray-800">{viewingMember.sexo || "Não Informado"}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Estado Civil</span>
+                          <span className="font-semibold text-gray-800">{viewingMember.estadoCivil || "Não Informado"}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Escolaridade</span>
+                          <span className="font-semibold text-gray-800">{viewingMember.escolaridade || "Não Informado"}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Profissão</span>
+                          <span className="font-semibold text-gray-800">{viewingMember.profissao || "Não Informado"}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Naturalidade</span>
+                          <span className="font-semibold text-gray-800">
+                            {viewingMember.naturalidade ? `${viewingMember.naturalidade}/${viewingMember.naturalidadeEstado || ""}` : "Não Informado"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50/55 rounded-xl p-5 border border-gray-100">
+                      <h5 className="text-xs font-bold text-[#1a6496] tracking-widest uppercase mb-4 border-b pb-1.5">
+                        2. Contato e Residência
+                      </h5>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4 gap-x-2 text-xs">
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">E-mail</span>
+                          <span className="font-semibold text-gray-800">{viewingMember.email || "Não Informado"}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Telefone Principal</span>
+                          <span className="font-semibold text-gray-805">{viewingMember.telefone || "Não Informado"}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">WhatsApp</span>
+                          <span className="font-semibold text-gray-805">{viewingMember.whatsapp || "Não Informado"}</span>
+                        </div>
+                        <div className="md:col-span-3">
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Endereço Completo</span>
+                          <span className="font-semibold text-gray-800 block mt-0.5">
+                            {viewingMember.rua ? (
+                              <>
+                                {viewingMember.rua}, {viewingMember.numero || "S/N"}
+                                {viewingMember.complemento ? `, ${viewingMember.complemento}` : ""}
+                                {viewingMember.bairro ? ` - Bairro: ${viewingMember.bairro}` : ""}
+                                {viewingMember.cidade ? ` - ${viewingMember.cidade}/${viewingMember.estado || ""}` : ""}
+                                {viewingMember.cep ? ` (CEP: ${viewingMember.cep})` : ""}
+                              </>
+                            ) : (
+                              "Não Informado"
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50/55 rounded-xl p-5 border border-gray-100">
+                      <h5 className="text-xs font-bold text-[#1a6496] tracking-widest uppercase mb-4 border-b pb-1.5">
+                        3. Histórico Eclesiástico / Espiritual
+                      </h5>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-2 text-xs">
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Conversão</span>
+                          <span className="font-semibold text-gray-800">{viewingMember.dataConversao || "Não Informada"}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Batismo em Águas</span>
+                          <span className="font-semibold text-gray-800">{viewingMember.dataBatismoAguas || "Não Informada"}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Membro Desde</span>
+                          <span className="font-semibold text-gray-800">{viewingMember.membroDesde || "Não Informado"}</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Igreja de Origem / Anterior</span>
+                          <span className="font-semibold text-gray-800">{viewingMember.igrejaAnterior || "Nenhuma"}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Consagrado?</span>
+                          <span className="font-semibold text-gray-800 uppercase">
+                            {viewingMember.consagrado === "sim" ? `Sim (${viewingMember.cargoConsagracao || "Consagração"})` : "Não"}
+                          </span>
+                        </div>
+                        <div className="col-span-2 md:col-span-3">
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Cargos de Liderança Anteriores</span>
+                          <p className="font-medium text-gray-700 italic mt-1">{viewingMember.cargosAnteriores || "Nenhum histórico listado"}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50/55 rounded-xl p-5 border border-gray-100">
+                      <h5 className="text-xs font-bold text-[#1a6496] tracking-widest uppercase mb-4 border-b pb-1.5">
+                        4. Família & Filhos
+                      </h5>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4 gap-x-2 text-xs">
+                        {viewingMember.nomeConjuge ? (
+                          <>
+                            <div>
+                              <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Nome do Cônjuge</span>
+                              <span className="font-semibold text-gray-800">{viewingMember.nomeConjuge}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Data de Casamento</span>
+                              <span className="font-semibold text-gray-800">{viewingMember.dataCasamento || "Não Informada"}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Contato do Cônjuge</span>
+                              <span className="font-semibold text-gray-800">{viewingMember.celularConjuge || "Não Informado"}</span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="col-span-3 font-medium text-gray-500 italic pb-2">Sem informações de cônjuge cadastrado.</div>
+                        )}
+
+                        <div className="md:col-span-3 pt-4 border-t border-gray-100">
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px] mb-2">Filhos Cadastrados ({viewingMember.listaFilhos?.length || 0})</span>
+                          {viewingMember.listaFilhos && viewingMember.listaFilhos.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-1">
+                              {viewingMember.listaFilhos.map((filho: any, fidx: number) => (
+                                <div key={fidx} className="bg-white p-2.5 rounded-lg border border-gray-200 flex justify-between items-center text-xs">
+                                  <span className="font-bold text-gray-800">{filho.nome}</span>
+                                  <div className="text-gray-500 space-x-2">
+                                    <span>Nasc: {filho.dataNascimento || "-"}</span>
+                                    <span>•</span>
+                                    <span className="uppercase font-bold text-gray-400 text-[10px]">{filho.sexo || "-"}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-gray-405 italic5">Não possui filhos cadastrados.</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50/55 rounded-xl p-5 border border-gray-100">
+                      <h5 className="text-xs font-bold text-[#1a6496] tracking-widest uppercase mb-4 border-b pb-1.5">
+                        5. Atuação Governamental & Serviços
+                      </h5>
+                      <div className="space-y-4 text-xs">
+                        <div>
+                          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px] mb-2">Interesses Especiais em Departamentos / Ministérios</span>
+                          {viewingMember.ministeriosInteresse && viewingMember.ministeriosInteresse.length > 0 ? (
+                            <div className="flex flex-wrap gap-1.5 mt-1">
+                              {viewingMember.ministeriosInteresse.map((m: string) => (
+                                <span key={m} className="px-2.5 py-1 bg-sky-50 text-[#1a6496] border border-sky-105 font-bold rounded-md text-[9px] uppercase">
+                                  {m}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-gray-400 italic">Nenhum departamento pré-selecionado.</p>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-gray-100">
+                          <div>
+                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Talentário / Aptidões Principais</span>
+                            <p className="font-medium text-gray-700 mt-1">{viewingMember.talentos || "Nenhum informado"}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Instâncias & Observações Especiais</span>
+                            <p className="font-medium text-gray-700 mt-1">{viewingMember.observacoes || "Nenhuma observação privativa cadastrada."}</p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100 font-sans">
+                          <div>
+                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px] mb-1">Categorias Vinculadas</span>
+                            <div className="flex flex-wrap gap-1.5 mt-1">
+                              {viewingMember.categorias && viewingMember.categorias.length > 0 ? (
+                                viewingMember.categorias.map((c: string) => (
+                                  <span key={c} className="bg-neutral-100 text-neutral-700 border border-neutral-200 px-2.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">
+                                    {c}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-gray-400 italic">Membro Padrão</span>
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px] mb-1">Cargos Eclesiásticos Oficiais</span>
+                            <div className="flex flex-wrap gap-1.5 mt-1">
+                              {viewingMember.cargos && viewingMember.cargos.length > 0 ? (
+                                viewingMember.cargos.map((cargo: string) => (
+                                  <span key={cargo} className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">
+                                    {cargo}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-gray-400 italic">Membro Regular</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {viewingMember.camposAdicionais && viewingMember.camposAdicionais.length > 0 && (
+                          <div className="pt-4 border-t border-gray-100 space-y-3">
+                            <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Campos Suplementares Extra</span>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              {viewingMember.camposAdicionais.map((campo: any, idx: number) => (
+                                <div key={idx} className="bg-white p-3 rounded-xl border border-gray-150">
+                                  <span className="text-[10px] uppercase font-bold text-[#1a6496] block">{campo.titulo}</span>
+                                  <span className="text-xs text-gray-700 font-medium mt-1 block whitespace-pre-wrap">{campo.valor}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {viewingMember.anotacoesSecretaria && (
+                          <div className="p-3.5 bg-rose-50/40 rounded-xl border border-rose-100/50 mt-4 font-sans">
+                            <span className="text-rose-700 font-bold uppercase tracking-wider block text-[9px] mb-1">Anotações Importantes da Secretaria (RESTRITO COORDENAÇÃO)</span>
+                            <p className="text-xs text-rose-900 font-semibold whitespace-pre-wrap">{viewingMember.anotacoesSecretaria}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t-2 border-[#1a6496] mt-8 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-[9px] text-gray-400 font-black tracking-widest uppercase mb-1">
+                    <span>Secretaria Ministerial</span>
+                    <span>© Apascentando Filhos</span>
+                    <span>Assinatura do Coordenador _____________________</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {deleteConfirmId && (
+          <div className="fixed inset-0 bg-primary-dark/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-xl w-full max-w-sm shadow-xl p-6 text-center"
+            >
+              <Trash2
+                size={48}
+                className="mx-auto text-red-500 mb-4 opacity-80"
+              />
+              <h3 className="font-bold text-lg text-primary-dark mb-2">
+                Excluir Membro
+              </h3>
+              <p className="text-gray-500 text-sm mb-6">
+                Tem certeza que deseja remover este membro? Esta ação não pode
+                ser desfeita.
+              </p>
+              <div className="flex justify-center gap-3">
+                <button
+                  onClick={() => setDeleteConfirmId(null)}
+                  className="px-4 py-2 font-bold text-gray-500 hover:bg-gray-100 rounded-md transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-md transition"
+                >
+                  Sim, Excluir
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
 const styles = `
+  @media print {
+    body * {
+      visibility: hidden !important;
+    }
+    #membro-ficha-container-scroll, #print-membro-ficha-viewport, #print-membro-ficha-viewport * {
+      visibility: visible !important;
+    }
+    #membro-ficha-container-scroll {
+      position: fixed !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      background: white !important;
+      z-index: 9999999 !important;
+      overflow: visible !important;
+    }
+    #print-membro-ficha-viewport {
+      display: block !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+    }
+    .no-print {
+      display: none !important;
+    }
+  }
+
   .form-input-m {
     width: 100%;
     background: #fdfdfe;

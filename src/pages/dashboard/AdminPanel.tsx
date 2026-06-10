@@ -371,7 +371,7 @@ export default function AdminPanel() {
       else if (selectedDashboard === "maf_painel")
         setActiveTab("cursos_geral" as any);
       else if (selectedDashboard === "filhos_de_paz_painel")
-        setActiveTab("filhos_de_paz_editor" as any);
+        setActiveTab("filhos_de_paz_hero" as any);
       else if (selectedDashboard === "colunista")
         setActiveTab("colunista_meus_artigos" as any);
     }
@@ -2004,12 +2004,33 @@ export default function AdminPanel() {
                   Meus Dados
                 </button>
               </nav>
+              <h4 className="text-[10px] uppercase font-bold text-gray-400 mt-4 mb-2 pl-2">EDIÇÃO DA PÁGINA</h4>
               <nav className="space-y-1">
                 {[
                   {
-                    id: "filhos_de_paz_editor",
-                    label: "Edição da Página",
-                    icon: Edit3,
+                    id: "filhos_de_paz_hero",
+                    label: "Seção Hero (Topo)",
+                    icon: ImageIcon,
+                  },
+                  {
+                    id: "filhos_de_paz_main",
+                    label: "Conteúdo Principal",
+                    icon: FileText,
+                  },
+                  {
+                    id: "filhos_de_paz_visao",
+                    label: "Seção Visão de Jesus",
+                    icon: Heart,
+                  },
+                  {
+                    id: "filhos_de_paz_redes",
+                    label: "Seção Outras Redes e Ministérios",
+                    icon: Grid,
+                  },
+                  {
+                    id: "filhos_de_paz_subscribers",
+                    label: "Inscritos (Informativo)",
+                    icon: Mail,
                   },
                 ].map((item) => (
                   <button
@@ -2210,9 +2231,16 @@ export default function AdminPanel() {
               )}
               {activeTab === "leader_support" && <Duvidas isEmbedded={true} />}
             </div>
-          ) : activeTab === "filhos_de_paz_editor" ? (
+          ) : [
+              "filhos_de_paz_editor",
+              "filhos_de_paz_hero",
+              "filhos_de_paz_main",
+              "filhos_de_paz_visao",
+              "filhos_de_paz_redes",
+              "filhos_de_paz_subscribers",
+            ].includes(activeTab) ? (
             <div className="w-full bg-[#f4f7f9] min-h-screen p-4 xl:p-8">
-              <FilhosDePazPanel />
+              <FilhosDePazPanel activeSection={activeTab} />
             </div>
           ) : [
               "colunista_meus_artigos",

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Save, Upload, Plus, Trash2 } from "lucide-react";
-import { db } from "../../lib/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { Save, Upload, Plus, Trash2, Search, Mail, Download, RefreshCw, FileText } from "lucide-react";
+import { db, handleFirestoreError, OperationType } from "../../lib/firebase";
+import { doc, getDoc, setDoc, collection, query, orderBy, onSnapshot, deleteDoc } from "firebase/firestore";
+import { motion } from "motion/react";
 
 interface RedeItem {
   title: string;
   image: string;
+  link?: string;
 }
 
 interface FilhosDePazData {
@@ -45,18 +47,22 @@ const defaultData: FilhosDePazData = {
     {
       title: "Rede de Mulheres",
       image: "https://images.unsplash.com/photo-1510255562709-322ce64821db?auto=format&fit=crop&q=80&w=600",
+      link: "/cursos"
     },
     {
       title: "Rede de Homens",
       image: "https://images.unsplash.com/photo-1506869640319-fea1a2ab8e9c?auto=format&fit=crop&q=80&w=600",
+      link: "/cursos"
     },
     {
       title: "Flow Up Rede de Jovens",
       image: "https://images.unsplash.com/photo-1523580456209-567a5b3a32f6?auto=format&fit=crop&q=80&w=600",
+      link: "/cursos"
     },
     {
       title: "RISYTH Rede de Adolescentes",
       image: "https://images.unsplash.com/photo-1511632765486-a01c80cb8fa4?auto=format&fit=crop&q=80&w=600",
+      link: "/cursos"
     },
   ],
 };
@@ -98,15 +104,91 @@ const compressImage = (file: File): Promise<string> => {
   });
 };
 
-export default function FilhosDePazPanel() {
+interface FilhosDePazPanelProps {
+  activeSection?: string;
+}
+
+export default function FilhosDePazPanel({ activeSection = "filhos_de_paz_hero" }: FilhosDePazPanelProps) {
   const [data, setData] = useState<FilhosDePazData>(defaultData);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
+  // Subscribers states
+  const [subscribers, setSubscribers] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isLoadingSubs, setIsLoadingSubs] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (activeSection === "filhos_de_paz_subscribers") {
+      setIsLoadingSubs(true);
+      const q = query(collection(db, "newsletter_subscribers"), orderBy("createdAt", "desc"));
+      const unsub = onSnapshot(q, (snapshot) => {
+        const subsList: any[] = [];
+        snapshot.forEach((doc) => {
+          subsList.push({ id: doc.id, ...doc.data() });
+        });
+        setSubscribers(subsList);
+        setIsLoadingSubs(false);
+      }, (error) => {
+         console.error("Error setting up subscribers listener:", error);
+         setIsLoadingSubs(false);
+         handleFirestoreError(error, OperationType.LIST, "newsletter_subscribers");
+      });
+      return () => unsub();
+    }
+  }, [activeSection]);
+
+  const handleDeleteSubscriber = (id: string) => {
+    setDeleteConfirmId(id);
+  };
+
+  const confirmDeleteSubscriber = async () => {
+    if (!deleteConfirmId) return;
+    setIsDeleting(true);
+    try {
+      await deleteDoc(doc(db, "newsletter_subscribers", deleteConfirmId));
+      setDeleteConfirmId(null);
+    } catch (error) {
+      console.error("Error deleting subscriber:", error);
+      handleFirestoreError(error, OperationType.DELETE, `newsletter_subscribers/${deleteConfirmId}`);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (subscribers.length === 0) {
+      alert("Nenhum inscrito para exportar.");
+      return;
+    }
+    const headers = ["Nome", "E-mail", "WhatsApp", "Data de Cadastro"];
+    const rows = subscribers.map((sub) => {
+      const dateStr = sub.createdAt?.seconds 
+        ? new Date(sub.createdAt.seconds * 1000).toLocaleString("pt-BR") 
+        : "";
+      return [sub.name, sub.email, sub.whatsapp, dateStr];
+    });
+
+    const csvContent = "\uFEFF" + [headers, ...rows]
+      .map((e) => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `inscritos_informativo_filhos_de_paz_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const fetchData = async () => {
     try {
@@ -166,372 +248,571 @@ export default function FilhosDePazPanel() {
 
   if (isLoading) return <div className="p-8 text-center text-gray-500">Carregando painel...</div>;
 
+  const showHero = activeSection === "filhos_de_paz_hero" || activeSection === "filhos_de_paz_editor";
+  const showMain = activeSection === "filhos_de_paz_main";
+  const showVisao = activeSection === "filhos_de_paz_visao";
+  const showRedes = activeSection === "filhos_de_paz_redes";
+  const showSubscribers = activeSection === "filhos_de_paz_subscribers";
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fadeIn">
       <div>
         <h2 className="text-xl font-bold text-primary-dark">Painel Filhos de Paz</h2>
-        <p className="text-gray-500 text-sm mt-1">Gerencie os textos e a imagem da página Filhos de Paz.</p>
+        <p className="text-gray-500 text-sm mt-1">
+          {showHero && "Gerencie o banner principal e a imagem de fundo do topo."}
+          {showMain && "Gerencie o conteúdo principal, títulos e imagem auxiliar."}
+          {showVisao && "Gerencie a estratégia e textos explicativos da Visão de Jesus."}
+          {showRedes && "Gerencie outras redes, ministérios e links correspondentes."}
+          {showSubscribers && "Gerencie a lista de contatos inscritos pelo formulário informativo."}
+        </p>
       </div>
 
-      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
-        <h3 className="text-lg font-bold text-gray-800 border-b pb-2">Seção Hero (Topo)</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
-              <input
-                type="text"
-                name="heroTitle"
-                value={data.heroTitle}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
-              />
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">URL da Imagem de Fundo (Topo)</label>
-              <div className="flex gap-2">
+      {showHero && (
+        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+          <h3 className="text-lg font-bold text-gray-800 border-b pb-2">Seção Hero (Topo)</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
                 <input
                   type="text"
-                  name="heroImage"
-                  value={data.heroImage}
+                  name="heroTitle"
+                  value={data.heroTitle}
                   onChange={handleChange}
-                  className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
-                  placeholder="Cole a URL ou faça um upload"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
                 />
-                <label className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer font-bold text-sm transition-colors cursor-pointer border border-gray-200 whitespace-nowrap">
-                  <Upload size={16} />
-                  <span>Upload</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        try {
-                          const base64 = await compressImage(file);
-                          setData({ ...data, heroImage: base64 });
-                        } catch (err) {
-                          alert("Erro ao processar imagem.");
-                        }
-                      }
-                    }}
-                  />
-                </label>
               </div>
-              {data.heroImage && (
-                <div className="mt-3">
-                   <span className="block text-xs font-bold text-gray-400 uppercase mb-2">Visualização</span>
-                   <img src={data.heroImage || "https://images.unsplash.com/photo-1544256718-3baf24732b4f?auto=format&fit=crop&q=80&w=2000"} alt="Preview Fundo" className="h-32 w-full object-cover rounded-lg border border-gray-200 shadow-sm" />
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">URL da Imagem de Fundo (Topo)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    name="heroImage"
+                    value={data.heroImage}
+                    onChange={handleChange}
+                    className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
+                    placeholder="Cole a URL ou faça um upload"
+                  />
+                  <label className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer font-bold text-sm transition-colors cursor-pointer border border-gray-200 whitespace-nowrap">
+                    <Upload size={16} />
+                    <span>Upload</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          try {
+                            const base64 = await compressImage(file);
+                            setData({ ...data, heroImage: base64 });
+                          } catch (err) {
+                            alert("Erro ao processar imagem.");
+                          }
+                        }
+                      }}
+                    />
+                  </label>
                 </div>
-              )}
+                {data.heroImage && (
+                  <div className="mt-3">
+                     <span className="block text-xs font-bold text-gray-400 uppercase mb-2">Visualização</span>
+                     <img src={data.heroImage || "https://images.unsplash.com/photo-1544256718-3baf24732b4f?auto=format&fit=crop&q=80&w=2000"} alt="Preview Fundo" className="h-32 w-full object-cover rounded-lg border border-gray-200 shadow-sm" />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
+          <div className="flex justify-end pt-4 mt-4 border-t border-gray-100 items-center gap-4">
+            {successMessage && <span className="text-green-600 font-medium text-sm">{successMessage}</span>}
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="bg-primary-base hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-bold shadow-sm transition-colors flex items-center gap-2 text-sm"
+            >
+              {isSaving ? "Salvando..." : <><Save size={16} /> Salvar Alterações</>}
+            </button>
+          </div>
         </div>
-        <div className="flex justify-end pt-4 mt-4 border-t border-gray-100 items-center gap-4">
-          {successMessage && <span className="text-green-600 font-medium text-sm">{successMessage}</span>}
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="bg-primary-base hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-bold shadow-sm transition-colors flex items-center gap-2 text-sm"
-          >
-            {isSaving ? "Salvando..." : <><Save size={16} /> Salvar Alterações</>}
-          </button>
-        </div>
-      </div>
+      )}
 
-      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
-        <h3 className="text-lg font-bold text-gray-800 border-b pb-2">Conteúdo Principal</h3>
-        <div className="space-y-4">
-          <div>
+      {showMain && (
+        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+          <h3 className="text-lg font-bold text-gray-800 border-b pb-2">Conteúdo Principal</h3>
+          <div className="space-y-4">
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Título da Seção</label>
+                <input
+                  type="text"
+                  name="sectionTitle"
+                  value={data.sectionTitle}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Texto Principal 1</label>
+                <textarea
+                  name="text1"
+                  value={data.text1}
+                  onChange={handleChange}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Texto Principal 2</label>
+                <textarea
+                  name="text2"
+                  value={data.text2}
+                  onChange={handleChange}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Texto Principal 3 (Destaque)</label>
+                <textarea
+                  name="text3"
+                  value={data.text3}
+                  onChange={handleChange}
+                  rows={2}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">URL Imagem Principal (Família)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    name="mainImage"
+                    value={data.mainImage}
+                    onChange={handleChange}
+                    className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
+                    placeholder="Cole a URL ou faça um upload"
+                  />
+                  <label className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer font-bold text-sm transition-colors cursor-pointer border border-gray-200 whitespace-nowrap">
+                    <Upload size={16} />
+                    <span>Upload</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          try {
+                            const base64 = await compressImage(file);
+                            setData({ ...data, mainImage: base64 });
+                          } catch (err) {
+                            alert("Erro ao processar imagem.");
+                          }
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+                {data.mainImage && (
+                  <div className="mt-3">
+                     <span className="block text-xs font-bold text-gray-400 uppercase mb-2">Visualização</span>
+                     <img src={data.mainImage || "https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&q=80&w=800"} alt="Preview Principal" className="h-40 w-auto object-cover rounded-lg border border-gray-200 shadow-sm" />
+                  </div>
+                )}
+            </div>
+          </div>
+          <div className="flex justify-end pt-4 mt-4 border-t border-gray-100 items-center gap-4">
+            {successMessage && <span className="text-green-600 font-medium text-sm">{successMessage}</span>}
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="bg-primary-base hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-bold shadow-sm transition-colors flex items-center gap-2 text-sm"
+            >
+              {isSaving ? "Salvando..." : <><Save size={16} /> Salvar Alterações</>}
+            </button>
+          </div>
+        </div>
+      )}
+
+       {showVisao && (
+        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+          <h3 className="text-lg font-bold text-gray-800 border-b pb-2">Seção Visão de Jesus</h3>
+          <div className="space-y-4">
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
+                <input
+                  type="text"
+                  name="visaoTitle"
+                  value={data.visaoTitle}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Texto 1</label>
+                <textarea
+                  name="visaoText1"
+                  value={data.visaoText1}
+                  onChange={handleChange}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Texto 2</label>
+                <textarea
+                  name="visaoText2"
+                  value={data.visaoText2}
+                  onChange={handleChange}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Link WhatsApp</label>
+                <input
+                  type="text"
+                  name="whatsappLink"
+                  value={data.whatsappLink}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
+                />
+            </div>
+          </div>
+          <div className="flex justify-end pt-4 mt-4 border-t border-gray-100 items-center gap-4">
+            {successMessage && <span className="text-green-600 font-medium text-sm">{successMessage}</span>}
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="bg-primary-base hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-bold shadow-sm transition-colors flex items-center gap-2 text-sm"
+            >
+              {isSaving ? "Salvando..." : <><Save size={16} /> Salvar Alterações</>}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showRedes && (
+        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+          <h3 className="text-lg font-bold text-gray-800 border-b pb-2">Seção Outras Redes e Ministérios</h3>
+          
+          {/* Background Color Picker & Titles */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Cor de Fundo da Seção</label>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  name="redesBgColor"
+                  value={data.redesBgColor || "#d6965f"}
+                  onChange={handleChange}
+                  className="w-10 h-10 border border-gray-200 rounded-lg cursor-pointer p-1"
+                />
+                <input
+                  type="text"
+                  name="redesBgColor"
+                  value={data.redesBgColor || "#d6965f"}
+                  onChange={handleChange}
+                  placeholder="#d6965f"
+                  className="flex-1 px-3 py-1 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none uppercase font-mono"
+                />
+              </div>
+            </div>
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Título da Seção</label>
               <input
                 type="text"
-                name="sectionTitle"
-                value={data.sectionTitle}
+                name="redesTitle"
+                value={data.redesTitle || ""}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
+                placeholder="Ex: Temos outras\nredes e ministérios"
               />
-          </div>
-          <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Texto Principal 1</label>
-              <textarea
-                name="text1"
-                value={data.text1}
-                onChange={handleChange}
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
-              />
-          </div>
-          <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Texto Principal 2</label>
-              <textarea
-                name="text2"
-                value={data.text2}
-                onChange={handleChange}
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
-              />
-          </div>
-          <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Texto Principal 3 (Destaque)</label>
-              <textarea
-                name="text3"
-                value={data.text3}
-                onChange={handleChange}
-                rows={2}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
-              />
-          </div>
-          <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">URL Imagem Principal (Família)</label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  name="mainImage"
-                  value={data.mainImage}
-                  onChange={handleChange}
-                  className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
-                  placeholder="Cole a URL ou faça um upload"
-                />
-                <label className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer font-bold text-sm transition-colors cursor-pointer border border-gray-200 whitespace-nowrap">
-                  <Upload size={16} />
-                  <span>Upload</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        try {
-                          const base64 = await compressImage(file);
-                          setData({ ...data, mainImage: base64 });
-                        } catch (err) {
-                          alert("Erro ao processar imagem.");
-                        }
-                      }
-                    }}
-                  />
-                </label>
-              </div>
-              {data.mainImage && (
-                <div className="mt-3">
-                   <span className="block text-xs font-bold text-gray-400 uppercase mb-2">Visualização</span>
-                   <img src={data.mainImage || "https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&q=80&w=800"} alt="Preview Principal" className="h-40 w-auto object-cover rounded-lg border border-gray-200 shadow-sm" />
-                </div>
-              )}
-          </div>
-        </div>
-        <div className="flex justify-end pt-4 mt-4 border-t border-gray-100 items-center gap-4">
-          {successMessage && <span className="text-green-600 font-medium text-sm">{successMessage}</span>}
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="bg-primary-base hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-bold shadow-sm transition-colors flex items-center gap-2 text-sm"
-          >
-            {isSaving ? "Salvando..." : <><Save size={16} /> Salvar Alterações</>}
-          </button>
-        </div>
-      </div>
-
-       <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
-        <h3 className="text-lg font-bold text-gray-800 border-b pb-2">Seção Visão de Jesus</h3>
-        <div className="space-y-4">
-          <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Subtítulo da Seção</label>
               <input
                 type="text"
-                name="visaoTitle"
-                value={data.visaoTitle}
+                name="redesSub"
+                value={data.redesSub || ""}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
-              />
-          </div>
-          <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Texto 1</label>
-              <textarea
-                name="visaoText1"
-                value={data.visaoText1}
-                onChange={handleChange}
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
-              />
-          </div>
-          <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Texto 2</label>
-              <textarea
-                name="visaoText2"
-                value={data.visaoText2}
-                onChange={handleChange}
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
-              />
-          </div>
-          <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Link WhatsApp</label>
-              <input
-                type="text"
-                name="whatsappLink"
-                value={data.whatsappLink}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
-              />
-          </div>
-        </div>
-        <div className="flex justify-end pt-4 mt-4 border-t border-gray-100 items-center gap-4">
-          {successMessage && <span className="text-green-600 font-medium text-sm">{successMessage}</span>}
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="bg-primary-base hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-bold shadow-sm transition-colors flex items-center gap-2 text-sm"
-          >
-            {isSaving ? "Salvando..." : <><Save size={16} /> Salvar Alterações</>}
-          </button>
-        </div>
-      </div>
-
-      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
-        <h3 className="text-lg font-bold text-gray-800 border-b pb-2">Seção Outras Redes e Ministérios</h3>
-        
-        {/* Background Color Picker & Titles */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Cor de Fundo da Seção</label>
-            <div className="flex gap-2">
-              <input
-                type="color"
-                name="redesBgColor"
-                value={data.redesBgColor || "#d6965f"}
-                onChange={handleChange}
-                className="w-10 h-10 border border-gray-200 rounded-lg cursor-pointer p-1"
-              />
-              <input
-                type="text"
-                name="redesBgColor"
-                value={data.redesBgColor || "#d6965f"}
-                onChange={handleChange}
-                placeholder="#d6965f"
-                className="flex-1 px-3 py-1 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none uppercase font-mono"
+                placeholder="Ex: Veja qual delas você mais se identifica"
               />
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Título da Seção</label>
-            <input
-              type="text"
-              name="redesTitle"
-              value={data.redesTitle || ""}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
-              placeholder="Ex: Temos outras\nredes e ministérios"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Subtítulo da Seção</label>
-            <input
-              type="text"
-              name="redesSub"
-              value={data.redesSub || ""}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base focus:border-transparent outline-none"
-              placeholder="Ex: Veja qual delas você mais se identifica"
-            />
-          </div>
-        </div>
 
-        {/* List of networks */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h4 className="text-sm font-bold text-gray-700">Lista de Redes/Ministérios ({data.redesList?.length || 0})</h4>
-            <button
-              type="button"
-              onClick={handleAddRede}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700 rounded-lg text-xs font-bold transition-colors"
-            >
-              <Plus size={14} />
-              Adicionar Rede
-            </button>
-          </div>
+          {/* List of networks */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h4 className="text-sm font-bold text-gray-700">Lista de Redes/Ministérios ({data.redesList?.length || 0})</h4>
+              <button
+                type="button"
+                onClick={handleAddRede}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700 rounded-lg text-xs font-bold transition-colors"
+              >
+                <Plus size={14} />
+                Adicionar Rede
+              </button>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {data.redesList?.map((rede, idx) => (
-              <div key={idx} className="p-4 border border-gray-100 rounded-lg bg-gray-50/50 space-y-3 relative">
-                <button
-                  type="button"
-                  onClick={() => handleDeleteRede(idx)}
-                  className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500 rounded transition-colors"
-                  title="Excluir"
-                >
-                  <Trash2 size={16} />
-                </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {data.redesList?.map((rede, idx) => (
+                <div key={idx} className="p-4 border border-gray-100 rounded-lg bg-gray-50/50 space-y-3 relative">
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteRede(idx)}
+                    className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500 rounded transition-colors"
+                    title="Excluir"
+                  >
+                    <Trash2 size={16} />
+                  </button>
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Título da Rede #{idx + 1}</label>
-                  <input
-                    type="text"
-                    value={rede.title}
-                    onChange={(e) => handleRedeChange(idx, "title", e.target.value)}
-                    className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base outline-none bg-white"
-                    placeholder="Ex: Rede de Mulheres"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Imagem da Rede #{idx + 1}</label>
-                  <div className="flex gap-2">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Título da Rede #{idx + 1}</label>
                     <input
                       type="text"
-                      value={rede.image}
-                      onChange={(e) => handleRedeChange(idx, "image", e.target.value)}
-                      className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base outline-none bg-white"
-                      placeholder="Cole a URL ou faça um upload"
+                      value={rede.title}
+                      onChange={(e) => handleRedeChange(idx, "title", e.target.value)}
+                      className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base outline-none bg-white"
+                      placeholder="Ex: Rede de Mulheres"
                     />
-                    <label className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-gray-700 rounded-lg hover:bg-gray-100 cursor-pointer text-xs font-bold transition-colors border border-gray-200 whitespace-nowrap">
-                      <Upload size={14} />
-                      <span>Upload</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            try {
-                              const base64 = await compressImage(file);
-                              handleRedeChange(idx, "image", base64);
-                            } catch (err) {
-                              alert("Erro ao processar imagem.");
-                            }
-                          }
-                        }}
-                      />
-                    </label>
                   </div>
-                  {rede.image && (
-                    <div className="mt-2 text-center">
-                      <img src={rede.image} alt={rede.title} className="h-20 max-w-full mx-auto object-cover rounded border border-gray-200 shadow-xs" referrerPolicy="no-referrer" />
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Link de Redirecionamento #{idx + 1}</label>
+                    <input
+                      type="text"
+                      value={rede.link || ""}
+                      onChange={(e) => handleRedeChange(idx, "link", e.target.value)}
+                      className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base outline-none bg-white font-mono text-xs"
+                      placeholder="Ex: /cursos, /galeria ou link completo (https://...)"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Imagem da Rede #{idx + 1}</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={rede.image}
+                        onChange={(e) => handleRedeChange(idx, "image", e.target.value)}
+                        className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-base outline-none bg-white"
+                        placeholder="Cole a URL ou faça um upload"
+                      />
+                      <label className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-gray-700 rounded-lg hover:bg-gray-100 cursor-pointer text-xs font-bold transition-colors border border-gray-200 whitespace-nowrap">
+                        <Upload size={14} />
+                        <span>Upload</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              try {
+                                const base64 = await compressImage(file);
+                                handleRedeChange(idx, "image", base64);
+                              } catch (err) {
+                                alert("Erro ao processar imagem.");
+                              }
+                            }
+                          }}
+                        />
+                      </label>
                     </div>
-                  )}
+                    {rede.image && (
+                      <div className="mt-2 text-center">
+                        <img src={rede.image} alt={rede.title} className="h-20 max-w-full mx-auto object-cover rounded border border-gray-200 shadow-xs" referrerPolicy="no-referrer" />
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4 mt-4 border-t border-gray-100 items-center gap-4">
+            {successMessage && <span className="text-green-600 font-medium text-sm">{successMessage}</span>}
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="bg-primary-base hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-bold shadow-sm transition-colors flex items-center gap-2 text-sm"
+            >
+              {isSaving ? "Salvando..." : <><Save size={16} /> Salvar Alterações</>}
+            </button>
           </div>
         </div>
+      )}
 
-        <div className="flex justify-end pt-4 mt-4 border-t border-gray-100 items-center gap-4">
-          {successMessage && <span className="text-green-600 font-medium text-sm">{successMessage}</span>}
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="bg-primary-base hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-bold shadow-sm transition-colors flex items-center gap-2 text-sm"
-          >
-            {isSaving ? "Salvando..." : <><Save size={16} /> Salvar Alterações</>}
-          </button>
+      {showSubscribers && (
+        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4">
+            <div>
+              <h3 className="text-lg font-bold text-gray-800">Contatos do Informativo</h3>
+              <p className="text-gray-500 text-xs mt-1">
+                Total de inscritos: <span className="font-bold text-primary-base">{subscribers.length}</span>
+              </p>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={handleExportCSV}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-xs shadow-xs transition-colors flex items-center gap-1.5"
+              >
+                <Download size={14} /> Exportar CSV
+              </button>
+            </div>
+          </div>
+
+          {/* Search bar */}
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar por nome, e-mail ou whatsapp..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 pr-4 py-2 w-full text-xs border border-gray-200 bg-gray-50/50 rounded-lg focus:bg-white focus:ring-2 focus:ring-primary-base outline-none transition-all"
+            />
+          </div>
+
+          {isLoadingSubs ? (
+            <div className="p-12 text-center text-gray-500 flex flex-col items-center gap-3">
+              <RefreshCw className="animate-spin text-primary-base" size={24} />
+              <span>Carregando inscrições...</span>
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border border-gray-100">
+              <table className="min-w-full divide-y divide-gray-100 text-left text-sm">
+                <thead className="bg-gray-50 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                  <tr>
+                    <th className="px-6 py-3">Inscrito</th>
+                    <th className="px-6 py-3">E-mail</th>
+                    <th className="px-6 py-3">WhatsApp</th>
+                    <th className="px-6 py-3">Data de Cadastro</th>
+                    <th className="px-6 py-3 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 bg-white">
+                  {subscribers.filter(sub => {
+                    const term = searchTerm.toLowerCase();
+                    return (
+                      sub.name?.toLowerCase().includes(term) ||
+                      sub.email?.toLowerCase().includes(term) ||
+                      sub.whatsapp?.toLowerCase().includes(term)
+                    );
+                  }).length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-12 text-center text-gray-400 font-medium">
+                        <div className="flex flex-col items-center gap-2">
+                          <Mail size={32} className="text-gray-300" />
+                          <span>Nenhum inscrito correspondente encontrado.</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    subscribers.filter(sub => {
+                      const term = searchTerm.toLowerCase();
+                      return (
+                        sub.name?.toLowerCase().includes(term) ||
+                        sub.email?.toLowerCase().includes(term) ||
+                        sub.whatsapp?.toLowerCase().includes(term)
+                      );
+                    }).map((sub) => {
+                      const rawPhone = sub.whatsapp || "";
+                      const formattedPhone = rawPhone.replace(/\D/g, "");
+                      const waUrl = formattedPhone ? `https://wa.me/${formattedPhone}` : null;
+                      const dateStr = sub.createdAt?.seconds 
+                        ? new Date(sub.createdAt.seconds * 1000).toLocaleString("pt-BR") 
+                        : "Sem data";
+
+                      return (
+                        <tr key={sub.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="whitespace-nowrap px-6 py-4 font-bold text-gray-900">
+                            {sub.name}
+                          </td>
+                          <td className="whitespace-nowrap px-6 py-4 text-gray-600 font-medium font-mono text-xs">
+                            {sub.email}
+                          </td>
+                          <td className="whitespace-nowrap px-6 py-4">
+                            {waUrl ? (
+                              <a
+                                href={waUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-primary-base hover:text-primary-dark font-semibold text-xs bg-primary-light/10 px-2 py-1 rounded"
+                              >
+                                {sub.whatsapp}
+                              </a>
+                            ) : (
+                              <span className="text-gray-400 italic text-xs">{sub.whatsapp || "-"}</span>
+                            )}
+                          </td>
+                          <td className="whitespace-nowrap px-6 py-4 text-gray-500 text-xs">
+                            {dateStr}
+                          </td>
+                          <td className="whitespace-nowrap px-6 py-4 text-right">
+                            <button
+                              onClick={() => handleDeleteSubscriber(sub.id)}
+                              className="text-gray-400 hover:text-red-500 p-1.5 rounded hover:bg-red-50/80 transition-all inline-flex items-center"
+                              title="Remover inscrito"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
-      </div>
+      )}
+
+      {/* Delete Confirm Modal */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" id="delete-confirm-modal-overlay">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl p-6 text-center"
+            id="delete-confirm-modal-box"
+          >
+            <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4" id="delete-confirm-modal-icon">
+              <Trash2 size={32} />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2" id="delete-confirm-modal-heading">
+              Confirmar Exclusão
+            </h3>
+            <p className="text-gray-500 text-sm mb-6" id="delete-confirm-modal-description">
+              Tem certeza que deseja excluir este inscrito? Essa ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-3" id="delete-confirm-modal-buttons">
+              <button
+                id="delete-confirm-modal-cancel-btn"
+                disabled={isDeleting}
+                onClick={() => setDeleteConfirmId(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                id="delete-confirm-modal-confirm-btn"
+                disabled={isDeleting}
+                onClick={confirmDeleteSubscriber}
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+              >
+                {isDeleting ? "Excluindo..." : "Excluir"}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
     </div>
   );

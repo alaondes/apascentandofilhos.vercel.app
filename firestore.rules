@@ -14,26 +14,32 @@ service cloud.firestore {
              (request.auth.token.email == 'alaondez@gmail.com' || 
               request.auth.token.email == 'alaondez@gmail.com'); 
     }
-    function getUserData() {
-      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) 
-        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data 
-        : (exists(/databases/$(database)/documents/membros/$(request.auth.uid)) 
-           ? get(/databases/$(database)/documents/membros/$(request.auth.uid)).data 
-           : {});
+    function checkUserRole(roleStr1, roleStr2) {
+      let path = /databases/$(database)/documents/users/$(request.auth.uid);
+      return exists(path) && (
+        get(path).data.get('role', '') == roleStr1 || get(path).data.get('role', '') == roleStr2 || 
+        get(path).data.get('permissao', '') == roleStr1 || get(path).data.get('permissao', '') == roleStr2 || 
+        get(path).data.get('papel', '') == roleStr1 || get(path).data.get('papel', '') == roleStr2 ||
+        (get(path).data.get('role', '') is list && (roleStr1 in get(path).data.get('role', '') || roleStr2 in get(path).data.get('role', ''))) ||
+        (get(path).data.get('permissao', '') is list && (roleStr1 in get(path).data.get('permissao', '') || roleStr2 in get(path).data.get('permissao', ''))) ||
+        (get(path).data.get('papel', '') is list && (roleStr1 in get(path).data.get('papel', '') || roleStr2 in get(path).data.get('papel', '')))
+      );
+    }
+
+    function checkMembroRole(roleStr1, roleStr2) {
+      let path = /databases/$(database)/documents/membros/$(request.auth.uid);
+      return exists(path) && (
+        get(path).data.get('role', '') == roleStr1 || get(path).data.get('role', '') == roleStr2 || 
+        get(path).data.get('permissao', '') == roleStr1 || get(path).data.get('permissao', '') == roleStr2 || 
+        get(path).data.get('papel', '') == roleStr1 || get(path).data.get('papel', '') == roleStr2 ||
+        (get(path).data.get('role', '') is list && (roleStr1 in get(path).data.get('role', '') || roleStr2 in get(path).data.get('role', ''))) ||
+        (get(path).data.get('permissao', '') is list && (roleStr1 in get(path).data.get('permissao', '') || roleStr2 in get(path).data.get('permissao', ''))) ||
+        (get(path).data.get('papel', '') is list && (roleStr1 in get(path).data.get('papel', '') || roleStr2 in get(path).data.get('papel', '')))
+      );
     }
 
     function checkRole(roleStr1, roleStr2) {
-      let data = getUserData();
-      let roleVal = data.keys().hasAll(['role']) ? data.role : '';
-      let permVal = data.keys().hasAll(['permissao']) ? data.permissao : '';
-      let papelVal = data.keys().hasAll(['papel']) ? data.papel : '';
-      // Simple string comparison for now. A user could have multiple permissions in an array but we assume string for simplicity or check if string matches.
-      return roleVal == roleStr1 || roleVal == roleStr2 || 
-             permVal == roleStr1 || permVal == roleStr2 || 
-             papelVal == roleStr1 || papelVal == roleStr2 ||
-             (roleVal is list && (roleStr1 in roleVal || roleStr2 in roleVal)) ||
-             (permVal is list && (roleStr1 in permVal || roleStr2 in permVal)) ||
-             (papelVal is list && (roleStr1 in papelVal || roleStr2 in papelVal));
+      return checkUserRole(roleStr1, roleStr2) || checkMembroRole(roleStr1, roleStr2);
     }
 
     function isAdmin() { 
@@ -94,6 +100,13 @@ service cloud.firestore {
         && data.total is number && data.total >= 0
         && data.status in ['Pendente', 'Processando', 'Enviado', 'Cancelado']
         && data.createdAt == request.time;
+    }
+
+    function isValidNewsletterSubscriber(data) {
+      return data.keys().hasAll(['name', 'email', 'whatsapp'])
+        && data.name is string && data.name.size() <= 250
+        && data.email is string && data.email.size() <= 250
+        && data.whatsapp is string && data.whatsapp.size() <= 50;
     }
 
     // --- Rules ---
@@ -187,6 +200,12 @@ service cloud.firestore {
     match /artigos/{artigoId} {
       allow read: if true;
       allow write: if isSignedIn();
+    }
+
+    match /newsletter_subscribers/{subId} {
+      allow create: if isValidNewsletterSubscriber(incoming());
+      allow get, list, delete: if isAdmin() || isSecretary() || isEditor() || (isSignedIn() && (request.auth.token.email == 'alaondez@gmail.com' || request.auth.token.email == 'Alaondez@gmail.com' || request.auth.token.email == 'ALAONDEZ@GMAIL.COM'));
+      allow update: if false;
     }
 
     match /member_notes/{userId} {

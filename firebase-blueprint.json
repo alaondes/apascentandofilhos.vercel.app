@@ -145,6 +145,19 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["courseTitle", "formData"]
+    },
+    "NewsletterSubscriber": {
+      "title": "Inscrito do Informativo",
+      "description": "Lista de contatos que assinaram o informativo semanal",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Nome do contato" },
+        "email": { "type": "string", "format": "email", "description": "Endereço de e-mail do contato" },
+        "whatsapp": { "type": "string", "description": "Número do Whatsapp do contato" },
+        "concordoLgpd": { "type": "boolean", "description": "Consentimento com a LGPD" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp de cadastro no servidor" }
+      },
+      "required": ["name", "email", "whatsapp", "concordoLgpd"]
     }
   },
   "firestore": {
@@ -175,6 +188,10 @@
     "course_registrations/{regId}": {
       "schema": "CourseRegistration",
       "description": "Registros de inscrições nos cursos públicos"
+    },
+    "newsletter_subscribers/{subId}": {
+      "schema": "NewsletterSubscriber",
+      "description": "Inscritos que assinaram receber o boletim informativo semanal de Filhos de Paz"
     }
   }
 }
