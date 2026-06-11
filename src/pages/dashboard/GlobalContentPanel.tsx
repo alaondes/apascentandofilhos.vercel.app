@@ -3669,7 +3669,98 @@ const innerContent = (
         {edificadoSubTab === "hero" && (
           <div className="animate-fade-in space-y-6">
 
-          {/* Carousel Section */}
+            {/* Configurações: Cadastro de Líder */}
+            <div id="section-leader-dedicated" className="bg-white border border-[#e2eaf3] p-8 rounded-2xl space-y-6 scroll-mt-6 shadow-sm">
+              <h4 className="font-bold text-primary-dark mb-2 flex items-center gap-2">
+                <Lock className="text-primary-base" size={20} />
+                Configurações: Cadastro de Líder
+              </h4>
+              <p className="text-xs text-gray-500 mb-4 italic">
+                Edite os textos que aparecem na tela de login/cadastro para novos líderes.
+              </p>
+              <div className="grid grid-cols-1 gap-6">
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase pl-1">Título</label>
+                  <input
+                    type="text"
+                    className="w-full p-2.5 border border-[#c8d8e8] rounded-xl font-bold text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                    value={loginData.title || ""}
+                    onChange={(e) =>
+                      setLoginData({ ...loginData, title: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase pl-1">Subtítulo</label>
+                  <input
+                    type="text"
+                    className="w-full p-2.5 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                    value={loginData.subtitle || ""}
+                    onChange={(e) =>
+                      setLoginData({
+                        ...loginData,
+                        subtitle: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase pl-1">Texto do Quadro Informativo</label>
+                  <textarea
+                    rows={3}
+                    className="w-full p-2.5 border border-[#c8d8e8] rounded-xl text-xs bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                    value={loginData.boxText || ""}
+                    onChange={(e) =>
+                      setLoginData({
+                        ...loginData,
+                        boxText: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase pl-1">Texto de Aviso (Atenção)</label>
+                  <textarea
+                    rows={2}
+                    className="w-full p-2.5 border border-[#c8d8e8] rounded-xl text-xs bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                    value={loginData.warningText || ""}
+                    onChange={(e) =>
+                      setLoginData({
+                        ...loginData,
+                        warningText: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase pl-1">Texto Secundário (Armazenamento)</label>
+                  <textarea
+                    rows={2}
+                    className="w-full p-2.5 border border-[#c8d8e8] rounded-xl text-xs bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all"
+                    value={loginData.infoText || ""}
+                    onChange={(e) =>
+                      setLoginData({
+                        ...loginData,
+                        infoText: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+            
+              <div className="pt-6 mt-4 border-t border-[#e2eaf3] flex justify-end">
+                <button 
+                  onClick={handleSaveLeaderRegistration} 
+                  disabled={isLoading} 
+                  className="flex items-center gap-2 px-6 py-2 bg-[#2D6A9F] font-bold text-white rounded-lg text-sm hover:bg-[#245785] shadow-sm disabled:bg-gray-400 transition cursor-pointer"
+                >
+                  {isLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} 
+                  Salvar Cadastro de Líder
+                </button>
+              </div>
+            </div>
+
+            {/* Carousel Section */}
           <div className="bg-[#f8fafc] border border-[#e2eaf3] rounded-2xl overflow-hidden shadow-sm">
             {/* Header section matching image style */}
             <div className="bg-[#2D6A9F] text-white p-8 space-y-3 flex flex-col items-center justify-center text-center">
@@ -4260,110 +4351,6 @@ const innerContent = (
 <div className="pt-6 mt-4 border-t border-[#e2eaf3] flex justify-end"><button onClick={handleSaveCursos} disabled={isLoading} className="flex items-center gap-2 px-6 py-2 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition">{isLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Salvar Configuração</button></div>
 </div>
         )}
-      </div>
-    ) : activeContent === "login" ? (
-      <div className="aba-login space-y-6 animate-fade-in">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#e2eaf3] shadow-sm">
-          <div>
-            <h3 className="text-2xl font-black text-[#2D6A9F] tracking-tight">
-              Página de Login
-            </h3>
-            <p className="text-sm text-gray-500 font-medium mt-1">Configure o visual e os textos da tela de login do aplicativo</p>
-          </div>
-          <button
-            onClick={handleSaveLeaderRegistration}
-            disabled={isLoading}
-            className="flex items-center justify-center gap-2 px-8 py-3 bg-[#2D6A9F] text-white rounded-xl font-bold text-sm hover:bg-[#245785] shadow-md disabled:bg-gray-400 transition"
-          >
-            {isLoading ? (
-              <Loader2 className="animate-spin" size={18} />
-            ) : (
-              <Save size={18} />
-            )}
-            Salvar Cadastro de Líder
-          </button>
-        </div>
-
-        <div id="section-leader-dedicated" className="bg-[#fcfdfe] border border-[#e2eaf3] p-8 rounded-2xl space-y-6 scroll-mt-6">
-          <h4 className="font-bold text-primary-dark mb-2 flex items-center gap-2">
-            <Lock className="text-primary-base" size={20} />
-            Configurações: Cadastro de Líder
-          </h4>
-          <p className="text-xs text-gray-500 mb-4 italic">
-            Edite os textos que aparecem na tela de login/cadastro para novos líderes.
-          </p>
-          <div className="grid grid-cols-1 gap-6">
-            <div className="space-y-1">
-              <label className="text-[10px] text-gray-400 font-bold uppercase">Título</label>
-              <input
-                type="text"
-                className="w-full p-2 border border-[#c8d8e8] rounded-lg font-bold text-sm"
-                value={loginData.title || ""}
-                onChange={(e) =>
-                  setLoginData({ ...loginData, title: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] text-gray-400 font-bold uppercase">Subtítulo</label>
-              <input
-                type="text"
-                className="w-full p-2 border border-[#c8d8e8] rounded-lg text-sm"
-                value={loginData.subtitle || ""}
-                onChange={(e) =>
-                  setLoginData({
-                    ...loginData,
-                    subtitle: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] text-gray-400 font-bold uppercase">Texto do Quadro Informativo</label>
-              <textarea
-                rows={3}
-                className="w-full p-2 border border-[#c8d8e8] rounded-lg text-xs"
-                value={loginData.boxText || ""}
-                onChange={(e) =>
-                  setLoginData({
-                    ...loginData,
-                    boxText: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] text-gray-400 font-bold uppercase">Texto de Aviso (Atenção)</label>
-              <textarea
-                rows={2}
-                className="w-full p-2 border border-[#c8d8e8] rounded-lg text-xs"
-                value={loginData.warningText || ""}
-                onChange={(e) =>
-                  setLoginData({
-                    ...loginData,
-                    warningText: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] text-gray-400 font-bold uppercase">Texto Secundário (Armazenamento)</label>
-              <textarea
-                rows={2}
-                className="w-full p-2 border border-[#c8d8e8] rounded-lg text-xs"
-                value={loginData.infoText || ""}
-                onChange={(e) =>
-                  setLoginData({
-                    ...loginData,
-                    infoText: e.target.value,
-                  })
-                }
-              />
-            </div>
-          </div>
-        
-<div className="pt-6 mt-4 border-t border-[#e2eaf3] flex justify-end"><button onClick={handleSaveCursos} disabled={isLoading} className="flex items-center gap-2 px-6 py-2 bg-primary-base text-white rounded-lg font-bold text-sm hover:bg-primary-dark shadow-sm disabled:bg-gray-400 transition">{isLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Salvar Configuração</button></div>
-</div>
       </div>
     ) : activeContent === "cursos" ? (
       <div className="aba-gestao-cursos space-y-6 animate-fade-in">
@@ -7046,7 +7033,6 @@ return (
           </h4>
           {[
             { id: "contatos", label: "Contatos e Redes", icon: Mail },
-            { id: "login", label: "Página de Login", icon: Lock },
             { id: "footer", label: "Conteúdo Rodapé", icon: Layout },
           ].map((item) => (
             <button

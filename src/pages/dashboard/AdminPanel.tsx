@@ -1815,7 +1815,6 @@ export default function AdminPanel() {
                 <h4 className="text-[10px] uppercase font-bold text-gray-400 mt-4 mb-2 pl-2">DIVISÃO: SISTEMA</h4>
                 {[
                   { id: "contatos", label: "Conteúdo Contatos", icon: Mail },
-                  { id: "login", label: "Conteúdo Login", icon: Lock },
                   { id: "footer", label: "Conteúdo Rodapé", icon: Layout },
                 ].map((item) => (
                   <button
@@ -2209,7 +2208,6 @@ export default function AdminPanel() {
               "edificado_matrimonio_cursos_editor",
               "edificado_matrimonio_cta",
               "contatos",
-              "login",
               "footer",
             ].includes(activeTab) ? (
             <GlobalContentPanel 
