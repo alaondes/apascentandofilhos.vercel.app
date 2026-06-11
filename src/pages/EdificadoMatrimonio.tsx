@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Heart, GraduationCap, Users, Star, ArrowRight, Settings } from "lucide-react";
+import { Heart, GraduationCap, Users, Star, ArrowRight, Settings, AlertTriangle, Database, UserPlus } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Link } from "react-router-dom";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
@@ -14,6 +14,16 @@ export default function EdificadoMatrimonio() {
   const [coursesData, setCoursesData] = useState<any>(null);
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
 
+  const [loginData, setLoginData] = useState({
+    title: "Você já é líder?",
+    subtitle: "E ainda não tem acesso, cadastre-se!",
+    boxText:
+      "Nesta área você poderá enviar os relatórios de cadastros e semanais de forma fácil e prática.",
+    warningText:
+      "Atenção: antes de se cadastrar, realize o treinamento de líder para ministrar.",
+    infoText: "Seus relatórios ficarão armazenados na sua área pessoal.",
+  });
+
   const isGlobalAdmin = profile?.role === "admin" || user?.email === "alaondez@gmail.com";
   const isEditor = profile?.role === "editor";
   const hasGlobalAccess = isGlobalAdmin || isEditor;
@@ -27,9 +37,14 @@ export default function EdificadoMatrimonio() {
       if (snap.exists()) setCoursesData(snap.data());
     }, (err) => console.error("Error loading cursos data:", err));
 
+    const unsubLogin = onSnapshot(doc(db, "content", "login"), (snap) => {
+      if (snap.exists()) setLoginData((prev) => ({ ...prev, ...snap.data() }));
+    }, (err) => console.error("Error loading login data:", err));
+
     return () => {
       unsubEd();
       unsubCursos();
+      unsubLogin();
     }
   }, []);
 
@@ -180,6 +195,73 @@ export default function EdificadoMatrimonio() {
         </AnimatePresence>
       </section>
 
+      {/* Leader Registration / Info Card Section */}
+      <section className="py-16 md:py-20 bg-gradient-to-br from-primary-base to-primary-light text-white overflow-hidden">
+        <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="flex flex-col justify-center"
+          >
+            <h2 className="font-serif text-[1.8rem] md:text-[2.2rem] font-bold mb-3 md:mb-4 drop-shadow-md">
+              {loginData.title}
+            </h2>
+            <p className="text-[1.1rem] md:text-[1.2rem] opacity-90 font-medium mb-6 md:mb-8 text-blue-50">
+              {loginData.subtitle}
+            </p>
+
+            {loginData.boxText && (
+              <p className="text-sm md:text-base opacity-95 mb-6 bg-black/20 p-5 rounded-xl border-l-4 border-white leading-relaxed whitespace-pre-line shadow-inner">
+                {loginData.boxText}
+              </p>
+            )}
+
+            {loginData.warningText && (
+              <p className="text-sm opacity-90 mb-4 flex gap-3 items-start">
+                <AlertTriangle
+                  size={20}
+                  className="shrink-0 text-warning mt-0.5 drop-shadow-sm"
+                />
+                <span className="leading-relaxed whitespace-pre-line">
+                  {loginData.warningText}
+                </span>
+              </p>
+            )}
+
+            {loginData.infoText && (
+              <p className="text-sm opacity-90 flex gap-3 items-start">
+                <Database size={20} className="shrink-0 text-white mt-0.5 drop-shadow-sm" />
+                <span className="leading-relaxed whitespace-pre-line">
+                  {loginData.infoText}
+                </span>
+              </p>
+            )}
+          </motion.div>
+
+          {/* Buttons Area */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="flex flex-col gap-4 mt-2 lg:mt-0"
+          >
+            <Link
+              to="/cadastro"
+              className="w-full inline-flex items-center justify-center gap-3 bg-white text-primary-base px-8 py-4 sm:py-5 rounded-xl font-bold md:text-lg hover:shadow-xl hover:-translate-y-1 transition-all"
+            >
+              <UserPlus size={22} /> Sou um Líder
+            </Link>
+            <Link
+              to="/cadastro-membro"
+              className="w-full inline-flex items-center justify-center gap-3 bg-white/10 text-white border-2 border-white/30 px-8 py-4 sm:py-5 rounded-xl font-bold md:text-lg hover:bg-white/20 transition-all"
+            >
+              <Users size={22} /> Sou um Membro
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Intro Section */}
       <section className="py-20 bg-white">
         <div className="max-w-4xl mx-auto px-6 text-center">
@@ -311,7 +393,7 @@ export default function EdificadoMatrimonio() {
         </div>
       </section>
 
-      {/* CTA Section */}
+
       <section className="py-20 bg-primary-base text-white text-center">
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-3xl md:text-4xl font-bold font-serif mb-8 leading-tight">

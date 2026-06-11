@@ -78,8 +78,7 @@ const MONTHS_LIST = [
   { short: "DEZ", name: "Dezembro", num: 12 },
 ];
 
-export default function AgendaPanel() {
-  const [activeMainTab, setActiveMainTab] = useState<"events" | "design">("events");
+export default function AgendaPanel({ view = "events" }: { view?: "events" | "design" }) {
   const [events, setEvents] = useState<AgendaEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -328,16 +327,25 @@ export default function AgendaPanel() {
   };
 
   // Filter list
-  const filteredList = events.filter((ev) => {
-    const matchesSearch =
-      ev.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ev.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ev.location.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesMonth = selectedFilterMonth === "TODOS" || ev.month === selectedFilterMonth;
-    
-    return matchesSearch && matchesMonth;
-  });
+  const filteredList = events
+    .filter((ev) => {
+      const matchesSearch =
+        ev.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ev.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ev.location.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesMonth = selectedFilterMonth === "TODOS" || ev.month === selectedFilterMonth;
+      
+      return matchesSearch && matchesMonth;
+    })
+    .sort((a, b) => {
+      if (a.monthNum !== b.monthNum) {
+        return a.monthNum - b.monthNum;
+      }
+      const dayA = parseInt(a.day.match(/\d+/)?.[0] || "0", 10);
+      const dayB = parseInt(b.day.match(/\d+/)?.[0] || "0", 10);
+      return dayA - dayB;
+    });
 
   return (
     <div className="bg-white rounded-[14px] border border-[#c8d8e8] shadow-sm overflow-hidden p-6 w-full max-w-full">
@@ -353,31 +361,6 @@ export default function AgendaPanel() {
       </div>
 
       {/* Main Tab Switcher */}
-      <div className="flex border-b border-gray-200 mb-6 gap-2">
-        <button
-          onClick={() => setActiveMainTab("events")}
-          className={`px-4 py-2 text-sm font-bold border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
-            activeMainTab === "events"
-              ? "border-primary-base text-primary-base"
-              : "border-transparent text-gray-500 hover:text-primary-base"
-          }`}
-        >
-          <Calendar size={16} />
-          Eventos e Datas
-        </button>
-        <button
-          onClick={() => setActiveMainTab("design")}
-          className={`px-4 py-2 text-sm font-bold border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
-            activeMainTab === "design"
-              ? "border-primary-base text-primary-base"
-              : "border-transparent text-gray-500 hover:text-primary-base"
-          }`}
-        >
-          <Palette size={16} />
-          Divisão: Design e Aparência
-        </button>
-      </div>
-
       {/* Notifications */}
       {notification && (
         <div
@@ -393,7 +376,7 @@ export default function AgendaPanel() {
       )}
 
       {/* Tab 1: Events manager */}
-      {activeMainTab === "events" && (
+      {view === "events" && (
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -531,7 +514,7 @@ export default function AgendaPanel() {
       )}
 
       {/* Tab 2: Design Editor */}
-      {activeMainTab === "design" && (
+      {view === "design" && (
         <div className="space-y-6">
           <div>
             <h3 className="text-base font-bold text-gray-800 flex items-center gap-2 mb-1">

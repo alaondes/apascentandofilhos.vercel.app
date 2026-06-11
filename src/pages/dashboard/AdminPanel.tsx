@@ -1638,22 +1638,30 @@ export default function AdminPanel() {
                   Divisão: Agenda
                 </h4>
                 <nav className="space-y-1">
-                  <button
-                    onClick={() => setActiveTab("agenda_eventos")}
-                    className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
-                      activeTab === "agenda_eventos"
-                        ? "bg-primary-base text-white shadow-md border-transparent"
-                        : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
-                    }`}
-                  >
-                    <Calendar
-                      size={18}
-                      className={
-                        activeTab === "agenda_eventos" ? "text-white" : "text-primary-base"
-                      }
-                    />
-                    <span>Configurar Agenda</span>
-                  </button>
+                  {[
+                    { id: "agenda_eventos", label: "Eventos e Datas", icon: Calendar },
+                    { id: "agenda_design", label: "Design e Aparência", icon: Palette },
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveTab(item.id)}
+                      className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
+                        activeTab === item.id
+                          ? "bg-primary-base text-white shadow-md border-transparent"
+                          : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
+                      }`}
+                    >
+                      <item.icon
+                        size={18}
+                        className={
+                          activeTab === item.id
+                            ? "text-white"
+                            : "text-primary-base"
+                        }
+                      />
+                      <span>{item.label}</span>
+                    </button>
+                  ))}
                 </nav>
               </div>
             </div>
@@ -2269,7 +2277,11 @@ export default function AdminPanel() {
             </div>
           ) : activeTab === "agenda_eventos" ? (
             <div className="w-full bg-[#f4f7f9] min-h-screen p-4 xl:p-8">
-              <AgendaPanel />
+              <AgendaPanel view="events" />
+            </div>
+          ) : activeTab === "agenda_design" ? (
+            <div className="w-full bg-[#f4f7f9] min-h-screen p-4 xl:p-8">
+              <AgendaPanel view="design" />
             </div>
           ) : [
               "colunista_meus_artigos",

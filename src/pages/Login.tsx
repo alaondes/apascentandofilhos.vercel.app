@@ -222,13 +222,13 @@ export default function Login() {
         <p>Faça login para acessar o seu painel de controle</p>
       </section>
 
-      <section className="max-w-[960px] mx-auto px-5 py-10 md:py-16 grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+      <section className="max-w-[500px] mx-auto px-5 py-10 md:py-16 flex flex-col gap-8 items-stretch">
         {/* Login Card */}
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          whileInView={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          className="bg-white rounded-2xl shadow-[0_4px_28px_rgba(0,0,0,0.1)] p-8 md:p-10 flex flex-col"
+          className="bg-white rounded-2xl shadow-[0_4px_28px_rgba(0,0,0,0.1)] p-8 md:p-10 flex flex-col w-full"
         >
           <h2 className="font-serif text-[1.4rem] font-bold text-primary-dark mb-6 flex items-center gap-2 border-b-2 border-border-color pb-2.5">
             <Lock size={20} className="text-primary-base" /> Entrar no Sistema
@@ -331,63 +331,6 @@ export default function Login() {
               </button>
             </div>
           </form>
-        </motion.div>
-
-        {/* Info Card */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          className="bg-gradient-to-br from-primary-base to-primary-light rounded-2xl shadow-[0_4px_28px_rgba(0,0,0,0.1)] p-8 md:p-10 text-white flex flex-col justify-center"
-        >
-          <h2 className="font-serif text-[1.6rem] font-bold mb-2">
-            {loginData.title}
-          </h2>
-          <p className="text-[1.1rem] opacity-90 font-medium mb-6">
-            {loginData.subtitle}
-          </p>
-
-          {loginData.boxText && (
-            <p className="text-sm opacity-90 mb-4 bg-black/10 p-3.5 rounded-lg border-l-4 border-white leading-relaxed whitespace-pre-line">
-              {loginData.boxText}
-            </p>
-          )}
-
-          {loginData.warningText && (
-            <p className="text-sm opacity-90 mb-4 flex gap-2.5 items-start">
-              <AlertTriangle
-                size={18}
-                className="shrink-0 text-warning mt-0.5"
-              />
-              <span className="leading-relaxed whitespace-pre-line">
-                {loginData.warningText}
-              </span>
-            </p>
-          )}
-
-          {loginData.infoText && (
-            <p className="text-sm opacity-90 mb-8 flex gap-2.5 items-start">
-              <Database size={18} className="shrink-0 text-white mt-0.5" />
-              <span className="leading-relaxed whitespace-pre-line">
-                {loginData.infoText}
-              </span>
-            </p>
-          )}
-
-          <div className="flex flex-col gap-3 mt-auto">
-            <Link
-              to="/cadastro"
-              className="inline-flex items-center justify-center gap-2 bg-white text-primary-base px-6 py-3 rounded-xl font-bold hover:bg-bg-main transition-colors hover:shadow-md"
-            >
-              <UserPlus size={18} /> Sou um Líder
-            </Link>
-            <Link
-              to="/cadastro-membro"
-              className="inline-flex items-center justify-center gap-2 bg-primary-dark/20 text-white border border-white/50 px-6 py-3 rounded-xl font-bold hover:bg-white/10 transition-colors"
-            >
-              <Users size={18} /> Sou um Membro
-            </Link>
-          </div>
         </motion.div>
       </section>
 

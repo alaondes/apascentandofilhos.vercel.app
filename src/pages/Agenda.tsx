@@ -228,10 +228,14 @@ export default function Agenda() {
   const activeMonthData = MONTHS.find((m) => m.short === selectedMonth);
   const activeMonthName = activeMonthData ? activeMonthData.name : "JUNHO";
 
-  // Filter events of selected month
-  const filteredEvents = events.filter(
-    (ev) => ev.month.toUpperCase() === selectedMonth.toUpperCase()
-  );
+  // Filter events of selected month and sort by day
+  const filteredEvents = events
+    .filter((ev) => ev.month.toUpperCase() === selectedMonth.toUpperCase())
+    .sort((a, b) => {
+      const dayA = parseInt(a.day.match(/\d+/)?.[0] || "0", 10);
+      const dayB = parseInt(b.day.match(/\d+/)?.[0] || "0", 10);
+      return dayA - dayB;
+    });
 
   return (
     <div className="bg-slate-50 min-h-screen pt-[74px] md:pt-[84px] text-[#222222]">
