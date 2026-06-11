@@ -195,69 +195,101 @@ export default function EdificadoMatrimonio() {
         </AnimatePresence>
       </section>
 
-      {/* Leader Registration / Info Card Section */}
-      <section className="py-16 md:py-20 bg-gradient-to-br from-primary-base to-primary-light text-white overflow-hidden">
-        <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+      {/* Leader Registration / Info Section */}
+      <section className="py-20 md:py-32 relative overflow-hidden bg-gradient-to-br from-[#0b2158] via-primary-dark to-primary-base text-white">
+        {/* Decorative Grid Pattern for Full Banner */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:32px_32px]"></div>
+        
+        {/* Ambient Lights */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-white/5 blur-[100px]"></div>
+          <div className="absolute bottom-[10%] -right-[10%] w-[40%] h-[60%] rounded-full bg-white/5 blur-[100px]"></div>
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+          
+          {/* Text Content Area */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="flex flex-col justify-center"
+            className="lg:col-span-7 flex flex-col justify-center"
           >
-            <h2 className="font-serif text-[1.8rem] md:text-[2.2rem] font-bold mb-3 md:mb-4 drop-shadow-md">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 Backdrop-blur-md w-fit mb-6 shadow-inner">
+               <Star size={14} className="text-amber-300" />
+               <span className="text-xs font-bold uppercase tracking-widest text-blue-100">Área Exclusiva</span>
+            </div>
+
+            <h2 className="font-serif text-[2.4rem] md:text-[3.5rem] font-bold mb-4 drop-shadow-sm leading-tight text-white">
               {loginData.title}
             </h2>
-            <p className="text-[1.1rem] md:text-[1.2rem] opacity-90 font-medium mb-6 md:mb-8 text-blue-50">
+            <p className="text-[1.2rem] md:text-[1.4rem] opacity-90 font-medium mb-10 text-blue-100/90 leading-relaxed max-w-2xl">
               {loginData.subtitle}
             </p>
 
             {loginData.boxText && (
-              <p className="text-sm md:text-base opacity-95 mb-6 bg-black/20 p-5 rounded-xl border-l-4 border-white leading-relaxed whitespace-pre-line shadow-inner">
-                {loginData.boxText}
-              </p>
+              <div className="relative mb-8 max-w-2xl">
+                <div className="absolute inset-0 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 transform -skew-x-2"></div>
+                <p className="relative z-10 text-base md:text-lg opacity-100 p-6 md:p-8 leading-relaxed whitespace-pre-line text-blue-50/90 font-medium">
+                  {loginData.boxText}
+                </p>
+              </div>
             )}
 
-            {loginData.warningText && (
-              <p className="text-sm opacity-90 mb-4 flex gap-3 items-start">
-                <AlertTriangle
-                  size={20}
-                  className="shrink-0 text-warning mt-0.5 drop-shadow-sm"
-                />
-                <span className="leading-relaxed whitespace-pre-line">
-                  {loginData.warningText}
-                </span>
-              </p>
-            )}
+            <div className="flex flex-col sm:flex-row gap-5 mt-2 max-w-2xl">
+              {loginData.warningText && (
+                <div className="flex-1 flex gap-4 items-start bg-black/20 p-5 rounded-2xl border border-white/5 Backdrop-blur-sm">
+                  <AlertTriangle size={24} className="shrink-0 text-amber-400 mt-1" />
+                  <span className="text-sm leading-relaxed text-blue-50/80">
+                    {loginData.warningText}
+                  </span>
+                </div>
+              )}
 
-            {loginData.infoText && (
-              <p className="text-sm opacity-90 flex gap-3 items-start">
-                <Database size={20} className="shrink-0 text-white mt-0.5 drop-shadow-sm" />
-                <span className="leading-relaxed whitespace-pre-line">
-                  {loginData.infoText}
-                </span>
-              </p>
-            )}
+              {loginData.infoText && (
+                <div className="flex-1 flex gap-4 items-start bg-black/20 p-5 rounded-2xl border border-white/5 Backdrop-blur-sm">
+                  <Database size={24} className="shrink-0 text-blue-300 mt-1" />
+                  <span className="text-sm leading-relaxed text-blue-50/80">
+                    {loginData.infoText}
+                  </span>
+                </div>
+              )}
+            </div>
           </motion.div>
 
-          {/* Buttons Area */}
+          {/* Action Area / Buttons */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="flex flex-col gap-4 mt-2 lg:mt-0"
+            className="lg:col-span-5 flex flex-col items-center justify-center lg:items-end w-full"
           >
-            <Link
-              to="/cadastro"
-              className="w-full inline-flex items-center justify-center gap-3 bg-white text-primary-base px-8 py-4 sm:py-5 rounded-xl font-bold md:text-lg hover:shadow-xl hover:-translate-y-1 transition-all"
-            >
-              <UserPlus size={22} /> Sou um Líder
-            </Link>
-            <Link
-              to="/cadastro-membro"
-              className="w-full inline-flex items-center justify-center gap-3 bg-white/10 text-white border-2 border-white/30 px-8 py-4 sm:py-5 rounded-xl font-bold md:text-lg hover:bg-white/20 transition-all"
-            >
-              <Users size={22} /> Sou um Membro
-            </Link>
+            <div className="w-full max-w-md bg-white/5 p-8 md:p-10 rounded-[2rem] border border-white/10 backdrop-blur-xl shadow-2xl flex flex-col gap-5">
+              <h3 className="text-xl font-bold mb-2 text-center text-white">Acesse o seu portal</h3>
+              
+              <Link
+                to="/cadastro"
+                className="w-full group relative inline-flex items-center justify-center gap-3 bg-white text-primary-dark px-8 py-5 rounded-2xl font-bold md:text-lg hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+              >
+                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/50 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
+                <UserPlus size={24} className="text-primary-base group-hover:scale-110 transition-transform duration-300 relative z-10" />
+                <span className="relative z-10">Sou um Líder</span>
+              </Link>
+              
+              <div className="flex items-center gap-4 my-2 opacity-50">
+                <div className="h-px bg-white/30 flex-1"></div>
+                <span className="text-xs font-bold uppercase tracking-wider text-white">OU</span>
+                <div className="h-px bg-white/30 flex-1"></div>
+              </div>
+
+              <Link
+                to="/cadastro-membro"
+                className="w-full inline-flex items-center justify-center gap-3 bg-transparent text-white border-2 border-white/20 px-8 py-5 rounded-2xl font-bold md:text-lg hover:bg-white/10 hover:border-white/40 transition-all duration-300"
+              >
+                <Users size={24} className="text-blue-200" />
+                <span>Sou um Membro</span>
+              </Link>
+            </div>
           </motion.div>
         </div>
       </section>
