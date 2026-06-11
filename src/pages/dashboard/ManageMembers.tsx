@@ -1026,7 +1026,7 @@ export default function ManageMembers() {
                       <div className="flex items-center gap-4 mb-4">
                         <div className="w-16 h-16 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
                           {formData.foto ? (
-                            <img src={formData.foto} alt="Foto" className="w-full h-full object-cover" />
+                            <img src={formData.foto || undefined} alt="Foto" className="w-full h-full object-cover" />
                           ) : (
                             <User size={24} className="text-gray-300" />
                           )}
@@ -2192,7 +2192,7 @@ export default function ManageMembers() {
                       <div className="w-32 h-32 rounded-2xl bg-gray-50 border-2 border-gray-150 overflow-hidden shadow-inner flex items-center justify-center relative" style={{ backgroundColor: "#f8fafc", borderColor: "#cbd5e1" }}>
                         {viewingMember.foto ? (
                           <img
-                            src={viewingMember.foto}
+                            src={viewingMember.foto || undefined}
                             alt={viewingMember.nome}
                             className="w-full h-full object-cover"
                             referrerPolicy="no-referrer"

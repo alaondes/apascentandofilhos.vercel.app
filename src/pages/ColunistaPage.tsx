@@ -206,7 +206,7 @@ export default function ColunistaPage() {
                   {/* Left: Image */}
                   <div className="w-full md:w-[280px] shrink-0 h-[180px] md:h-[220px] rounded-2xl overflow-hidden relative bg-gray-100 flex items-center justify-center">
                     {artigo.imagemUrl ? (
-                      <img src={artigo.imagemUrl} alt={artigo.titulo} className="w-full h-full object-cover" />
+                      <img src={artigo.imagemUrl || undefined} alt={artigo.titulo} className="w-full h-full object-cover" />
                     ) : nomeFormatado.toLowerCase().includes("macedo") ? (
                       <div className="absolute inset-0 flex bg-[#1c1815]">
                         {/* Custom Thumbnail for Macedo */}

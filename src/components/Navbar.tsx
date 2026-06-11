@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Menu, X, LayoutDashboard, ShieldCheck, ChevronDown, LogIn } from "lucide-react";
+import { Menu, X, LayoutDashboard, ShieldCheck, ChevronDown, LogIn, UserPlus } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useFirebase } from "../context/FirebaseContext";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
@@ -154,7 +154,7 @@ export default function Navbar() {
           <div className="w-10 h-10 flex items-center justify-center transition-transform group-hover:scale-110">
             {headerLogo.logoUrl ? (
               <img
-                src={headerLogo.logoUrl}
+                src={headerLogo.logoUrl || undefined}
                 alt={headerLogo.title}
                 className="w-full h-full object-contain"
                 onError={(e) => {

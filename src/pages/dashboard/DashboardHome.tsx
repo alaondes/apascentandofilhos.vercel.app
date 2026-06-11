@@ -549,7 +549,7 @@ export default function DashboardHome({ isEmbedded = false }: DashboardHomeProps
           >
             <div className="absolute inset-0 bg-gradient-to-t from-primary-dark/90 via-primary-dark/60 to-primary-dark/30 z-10" />
             <img
-              src={bannerImages[currentSlide].url}
+              src={bannerImages[currentSlide].url || undefined}
               alt="Banner"
               className="w-full h-full object-cover mix-blend-overlay"
             />

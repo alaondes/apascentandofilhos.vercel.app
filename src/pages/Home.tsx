@@ -745,7 +745,7 @@ export default function Home({
                 >
                   <div className="absolute inset-0 z-0">
                     {homeData.newsItems[0].imageUrl ? (
-                      <img src={homeData.newsItems[0].imageUrl} alt={homeData.newsItems[0].title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                      <img src={homeData.newsItems[0].imageUrl || undefined} alt={homeData.newsItems[0].title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                     ) : (
                       <div className="w-full h-full bg-[#1c1815]"></div>
                     )}
@@ -806,7 +806,7 @@ export default function Home({
                     >
                       <div className="absolute inset-0 z-0">
                         {news.imageUrl ? (
-                          <img src={news.imageUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={news.title || ""} />
+                          <img src={news.imageUrl || undefined} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={news.title || ""} />
                         ) : (
                           <div className="w-full h-full bg-[#1c1815]"></div>
                         )}
@@ -1308,7 +1308,7 @@ export default function Home({
                 const content = (
                   <>
                     <img
-                      src={src}
+                      src={src || undefined}
                       alt={title || `Missão ${idx + 1}`}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
@@ -1665,7 +1665,7 @@ export default function Home({
 
                 <div className="w-full h-[180px] rounded-xl overflow-hidden mb-3 relative">
                   <img
-                    src={appDownloadImage}
+                    src={appDownloadImage || undefined}
                     alt="Mountain"
                     className="w-full h-full object-cover"
                   />

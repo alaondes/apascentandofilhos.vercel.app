@@ -80,7 +80,7 @@ export default function Cursos() {
         {data?.heroImage ? (
           <div className="absolute inset-0 z-0">
             <img 
-              src={data.heroImage} 
+              src={data.heroImage || undefined} 
               alt="Hero Background" 
               className="w-full h-full object-cover opacity-100"
             />
@@ -228,7 +228,7 @@ export default function Cursos() {
               <Link to={`/cursos/detalhes/${encodeURIComponent(course.title)}`} className="absolute inset-0 z-20" />
               {course.image && (
                 <img 
-                  src={course.image} 
+                  src={course.image || undefined} 
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                   alt={course.title}
                 />

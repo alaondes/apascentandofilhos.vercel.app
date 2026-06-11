@@ -105,7 +105,7 @@ export default function FilhosDePaz() {
       <section className="relative h-[400px] w-full bg-black">
         <div className="absolute inset-0 z-10 bg-black/40" />
         <img
-          src={data.heroImage}
+          src={data.heroImage || undefined}
           alt="Banner background"
           className="absolute inset-0 w-full h-full object-cover opacity-80"
         />
@@ -148,7 +148,7 @@ export default function FilhosDePaz() {
           {/* Image Overlapping */}
           <div className="w-full md:w-1/2 shadow-sm bg-white rounded-[2px] overflow-hidden flex min-h-[350px] md:min-h-full">
             <img 
-              src={data.mainImage} 
+              src={data.mainImage || undefined} 
               alt="Main Content" 
               className="w-full h-full object-cover"
             />

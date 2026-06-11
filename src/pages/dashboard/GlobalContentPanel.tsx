@@ -1452,7 +1452,7 @@ const innerContent = (
                             {slide.url ? (
                               <>
                                 <img
-                                  src={slide.url}
+                                  src={slide.url || undefined}
                                   alt="Preview"
                                   className="absolute inset-0 w-full h-full object-cover"
                                 />
@@ -1822,7 +1822,7 @@ const innerContent = (
                       <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Imagem / Capa</label>
                       {newsItem.imageUrl ? (
                         <div className="relative aspect-video rounded-xl overflow-hidden border border-[#c8d8e8] shadow-sm w-full">
-                          <img src={newsItem.imageUrl} className="w-full h-full object-cover" alt="" />
+                          <img src={newsItem.imageUrl || undefined} className="w-full h-full object-cover" alt="" />
                           <button 
                             onClick={() => {
                               const newItems = [...(homeData.newsItems || [])];
@@ -2276,7 +2276,7 @@ const innerContent = (
                               }
                               return displayThumbnail ? (
                                 <div className="pt-2 border-t border-[#e2eaf3] mt-4 relative">
-                                  <img src={displayThumbnail} referrerPolicy="no-referrer" alt="Thumbnail preview" className="h-24 w-full object-cover rounded-lg border border-[#e2eaf3] shadow-sm" />
+                                  <img src={displayThumbnail || undefined} referrerPolicy="no-referrer" alt="Thumbnail preview" className="h-24 w-full object-cover rounded-lg border border-[#e2eaf3] shadow-sm" />
                                   <div className="absolute top-4 right-2 bg-black/60 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold tracking-wider pointer-events-none">Capa</div>
                                 </div>
                               ) : null;
@@ -2515,7 +2515,7 @@ const innerContent = (
                             </label>
                             {evt.imageUrl && (
                                <div className="flex items-center gap-4 bg-gray-50 p-2 pr-4 rounded-xl border border-[#c8d8e8]">
-                                 <img src={evt.imageUrl} alt="preview" className="h-12 w-20 object-cover rounded-lg shadow-sm border border-[#e2eaf3]" />
+                                 <img src={evt.imageUrl || undefined} alt="preview" className="h-12 w-20 object-cover rounded-lg shadow-sm border border-[#e2eaf3]" />
                                  <button className="text-red-500 text-xs font-bold hover:text-red-700 bg-red-100/50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1" onClick={() => {
                                    const newEventos = [...(homeData.eventos || [])];
                                    newEventos[idx].imageUrl = "";
@@ -2633,7 +2633,7 @@ const innerContent = (
                       <div className="aspect-square border-2 border-dashed border-[#c8d8e8] rounded-xl overflow-hidden group relative bg-gray-50">
                       {imgUrl ? (
                         <>
-                          <img src={imgUrl} alt={`Missão ${idx + 1}`} className="w-full h-full object-cover" />
+                          <img src={imgUrl || undefined} alt={`Missão ${idx + 1}`} className="w-full h-full object-cover" />
                           <label className="absolute inset-0 bg-[#2D6A9F]/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-center items-center cursor-pointer text-white text-xs font-bold gap-2">
                             <Upload size={20} />
                             Trocar Imagem
@@ -3194,7 +3194,7 @@ const innerContent = (
                 <div className="flex gap-4 items-center">
                   {aboutData.historyImage && (
                     <img
-                      src={aboutData.historyImage}
+                      src={aboutData.historyImage || undefined}
                       alt="Preview"
                       className="h-40 w-60 object-cover rounded-md border shadow-sm p-1 bg-white shrink-0"
                     />
@@ -3338,7 +3338,7 @@ const innerContent = (
                     </label>
                     {principle.image && (
                       <img
-                        src={principle.image}
+                        src={principle.image || undefined}
                         alt="Preview"
                         className="h-40 w-full object-cover rounded-lg mt-2 border shadow-sm mx-auto"
                       />
@@ -3493,7 +3493,7 @@ const innerContent = (
                 <div className="flex gap-3 items-center">
                   {aboutData.teamLogo && (
                     <img
-                      src={aboutData.teamLogo}
+                      src={aboutData.teamLogo || undefined}
                       alt="Preview Logo"
                       className="h-16 w-16 object-contain rounded-md border shadow-sm p-1 bg-white shrink-0"
                     />
@@ -3568,7 +3568,7 @@ const innerContent = (
               <div className="flex gap-4 items-center">
                 {aboutData.teamBoxImage && (
                   <img
-                    src={aboutData.teamBoxImage}
+                    src={aboutData.teamBoxImage || undefined}
                     alt="Preview"
                     className="h-40 w-40 object-cover rounded-md border shadow-sm p-1 bg-white shrink-0"
                   />
@@ -3745,7 +3745,7 @@ const innerContent = (
                               {slide.url && (
                                 <div className="pt-2 border-t border-[#e2eaf3] mt-4">
                                   <img
-                                    src={slide.url}
+                                    src={slide.url || undefined}
                                     alt="Preview"
                                     className="h-24 w-full object-cover rounded-lg border border-[#e2eaf3] shadow-sm"
                                   />
@@ -4052,7 +4052,7 @@ const innerContent = (
                       </p>
                       {belief.image && (
                         <img
-                          src={belief.image}
+                          src={belief.image || undefined}
                           alt="Preview"
                           className="h-24 w-full object-cover rounded-lg mt-2 border shadow-sm mx-auto"
                         />
@@ -4231,7 +4231,7 @@ const innerContent = (
                   >
                     <div className="aspect-[4/5] relative">
                       {curso.image ? (
-                        <img src={curso.image} alt={curso.title} className="w-full h-full object-cover" />
+                        <img src={curso.image || undefined} alt={curso.title} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full bg-primary-dark/80 flex items-center justify-center">
                           <ImageIcon size={40} className="text-white/20" />
@@ -4500,7 +4500,7 @@ const innerContent = (
                     {coursesData.heroImage && (
                       <div className="mt-2 relative group">
                         <img
-                          src={coursesData.heroImage}
+                          src={coursesData.heroImage || undefined}
                           alt="Banner Preview"
                           className="w-full h-32 object-cover rounded-lg border shadow-sm"
                         />
@@ -4625,7 +4625,7 @@ const innerContent = (
                     {coursesData.methodologyImage && (
                       <div className="mt-2 relative group">
                         <img
-                          src={coursesData.methodologyImage}
+                          src={coursesData.methodologyImage || undefined}
                           alt="Methodology Preview"
                           className="w-full h-32 object-cover rounded-lg border shadow-sm"
                         />
@@ -4841,7 +4841,7 @@ const innerContent = (
                     {/* Simulator of the site card */}
                     <div className="aspect-[4/5] relative">
                       {curso.image ? (
-                        <img src={curso.image} alt={curso.title} className="w-full h-full object-cover" />
+                        <img src={curso.image || undefined} alt={curso.title} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full bg-primary-dark/80 flex items-center justify-center">
                           <ImageIcon size={40} className="text-white/20" />
@@ -5611,7 +5611,7 @@ const innerContent = (
                 <div className="mt-4 p-4 bg-gray-50 border rounded-lg flex items-center justify-center">
                   <div className="flex items-center gap-2 bg-white/95 p-3 rounded-xl shadow-sm border">
                     <img
-                      src={headerLogoData.logoUrl}
+                      src={headerLogoData.logoUrl || undefined}
                       alt="Logo Topo Preview"
                       className="h-10 w-auto object-contain"
                     />
@@ -6372,7 +6372,7 @@ const innerContent = (
                       </div>
                       {edificadoMatrimonioData.cursos?.[editingEdificadoCourseIndex]?.image && (
                         <div className="relative rounded-2xl overflow-hidden border shadow-inner mt-4">
-                          <img src={edificadoMatrimonioData.cursos[editingEdificadoCourseIndex].image} className="w-full h-64 object-cover" />
+                          <img src={edificadoMatrimonioData.cursos[editingEdificadoCourseIndex].image || undefined} className="w-full h-64 object-cover" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                         </div>
                       )}
@@ -6606,7 +6606,7 @@ const innerContent = (
                         </div>
                         {coursesData.cursos[editingCourseIndex].image && (
                           <div className="relative rounded-2xl overflow-hidden border shadow-inner">
-                            <img src={coursesData.cursos[editingCourseIndex].image} className="w-full h-64 object-cover" />
+                            <img src={coursesData.cursos[editingCourseIndex].image || undefined} className="w-full h-64 object-cover" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                           </div>
                         )}

@@ -637,7 +637,7 @@ export default function FilhosDePazPanel({ activeSection = "filhos_de_paz_hero" 
                     </div>
                     {rede.image && (
                       <div className="mt-2 text-center">
-                        <img src={rede.image} alt={rede.title} className="h-20 max-w-full mx-auto object-cover rounded border border-gray-200 shadow-xs" referrerPolicy="no-referrer" />
+                        <img src={rede.image || undefined} alt={rede.title} className="h-20 max-w-full mx-auto object-cover rounded border border-gray-200 shadow-xs" referrerPolicy="no-referrer" />
                       </div>
                     )}
                   </div>

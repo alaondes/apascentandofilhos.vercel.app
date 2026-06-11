@@ -153,7 +153,7 @@ export default function ArtigoPage() {
 
           {artigo.imagemUrl ? (
             <div className="w-full rounded-[14px] overflow-hidden mb-6 shadow-sm">
-              <img src={artigo.imagemUrl} alt={artigo.titulo} className="w-full h-auto object-cover max-h-[450px]" />
+              <img src={artigo.imagemUrl || undefined} alt={artigo.titulo} className="w-full h-auto object-cover max-h-[450px]" />
             </div>
           ) : (
             <div className="w-full rounded-[14px] overflow-hidden mb-6 bg-gray-200 h-[300px] md:h-[400px] flex items-center justify-center shadow-sm">

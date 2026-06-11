@@ -139,7 +139,7 @@ export default function QuemSomos() {
               />
             ) : (
               <img
-                src={content.historyImage}
+                src={content.historyImage || undefined}
                 alt="Story Image"
                 className="rounded-3xl shadow-xl w-full object-cover aspect-[4/3]"
               />
@@ -167,7 +167,7 @@ export default function QuemSomos() {
                   {principle.image ? (
                     <div className="w-full h-48 mb-6 overflow-hidden rounded-xl bg-gray-50 flex items-center justify-center">
                       <img
-                        src={principle.image}
+                        src={principle.image || undefined}
                         alt={principle.title}
                         className="w-full h-full object-cover"
                       />
@@ -194,7 +194,7 @@ export default function QuemSomos() {
           <div className="flex flex-col items-center mb-12">
             {content.teamLogo && (
               <img
-                src={content.teamLogo}
+                src={content.teamLogo || undefined}
                 alt={content.teamTitle}
                 className="h-24 w-auto mb-6 object-contain"
               />
@@ -209,7 +209,7 @@ export default function QuemSomos() {
             <div className="w-48 h-48 rounded-full overflow-hidden shrink-0 border-4 border-primary-base/20 bg-[#f7fafd] flex items-center justify-center mx-auto md:mx-0">
               {content.teamBoxImage ? (
                 <img
-                  src={content.teamBoxImage}
+                  src={content.teamBoxImage || undefined}
                   alt="Feature Box"
                   className="w-full h-full object-cover"
                 />

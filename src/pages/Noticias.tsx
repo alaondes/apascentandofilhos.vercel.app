@@ -53,7 +53,7 @@ export default function Noticias() {
                 <div key={idx} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-md transition-shadow group h-full">
                   <div className="w-full aspect-[16/10] relative overflow-hidden shrink-0 bg-gray-100">
                     {news.imageUrl && (
-                      <img src={news.imageUrl} alt={news.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <img src={news.imageUrl || undefined} alt={news.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     )}
                   </div>
                   

@@ -422,7 +422,7 @@ export default function CadastroMembro() {
                       <div className="flex items-center gap-6">
                         <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
                           {formData.foto ? (
-                            <img src={formData.foto} alt="Sua foto" className="w-full h-full object-cover" />
+                            <img src={formData.foto || undefined} alt="Sua foto" className="w-full h-full object-cover" />
                           ) : (
                             <User size={32} className="text-gray-300" />
                           )}

@@ -465,7 +465,7 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                 <div className="w-24 h-24 bg-[#c8e1f5] rounded-full flex items-center justify-center text-[#3b7197] text-3xl font-medium mb-4 shadow-sm">
                   {profile?.avatar ? (
                     <img
-                      src={profile.avatar}
+                      src={profile.avatar || undefined}
                       alt="Avatar"
                       className="w-full h-full object-cover rounded-full"
                     />
@@ -541,7 +541,7 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                     <div className="w-20 h-20 shrink-0 bg-[#c8e1f5] rounded-full flex items-center justify-center text-[#3b7197] text-2xl font-medium overflow-hidden">
                       {profile?.avatar ? (
                         <img
-                          src={profile.avatar}
+                          src={profile.avatar || undefined}
                           alt="Avatar"
                           className="w-full h-full object-cover"
                         />

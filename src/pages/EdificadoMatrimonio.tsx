@@ -133,7 +133,7 @@ export default function EdificadoMatrimonio() {
             <div className="absolute inset-0 bg-[#0a1e2e]/50 z-10" />
             {displaySlides[currentSlide]?.url && (
               <img
-                src={displaySlides[currentSlide]?.url}
+                src={displaySlides[currentSlide]?.url || undefined}
                 alt="Hero"
                 className="w-full h-full object-cover"
               />
@@ -265,7 +265,7 @@ export default function EdificadoMatrimonio() {
             className="lg:col-span-5 flex flex-col items-center justify-center lg:items-end w-full"
           >
             <div className="w-full max-w-md bg-white/5 p-8 md:p-10 rounded-[2rem] border border-white/10 backdrop-blur-xl shadow-2xl flex flex-col gap-5">
-              <h3 className="text-xl font-bold mb-2 text-center text-white">Acesse o seu portal</h3>
+              <h3 className="text-xl font-bold mb-4 text-center text-white">Acesse o seu portal</h3>
               
               <Link
                 to="/cadastro"
@@ -274,20 +274,6 @@ export default function EdificadoMatrimonio() {
                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/50 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
                 <UserPlus size={24} className="text-primary-base group-hover:scale-110 transition-transform duration-300 relative z-10" />
                 <span className="relative z-10">Sou um Líder</span>
-              </Link>
-              
-              <div className="flex items-center gap-4 my-2 opacity-50">
-                <div className="h-px bg-white/30 flex-1"></div>
-                <span className="text-xs font-bold uppercase tracking-wider text-white">OU</span>
-                <div className="h-px bg-white/30 flex-1"></div>
-              </div>
-
-              <Link
-                to="/cadastro-membro"
-                className="w-full inline-flex items-center justify-center gap-3 bg-transparent text-white border-2 border-white/20 px-8 py-5 rounded-2xl font-bold md:text-lg hover:bg-white/10 hover:border-white/40 transition-all duration-300"
-              >
-                <Users size={24} className="text-blue-200" />
-                <span>Sou um Membro</span>
               </Link>
             </div>
           </motion.div>
@@ -327,7 +313,7 @@ export default function EdificadoMatrimonio() {
                   {belief.image ? (
                     <div className="w-full h-40 mb-6 overflow-hidden rounded-xl bg-gray-50 flex items-center justify-center">
                       <img
-                        src={belief.image}
+                        src={belief.image || undefined}
                         alt={belief.title}
                         className="w-full h-full object-cover"
                       />
@@ -381,7 +367,7 @@ export default function EdificadoMatrimonio() {
                 {curso.image ? (
                   <div className="mb-6 w-full aspect-[2/3] overflow-hidden rounded-[14px] bg-gray-50 flex items-center justify-center shadow-inner">
                     <img
-                      src={curso.image}
+                      src={curso.image || undefined}
                       alt={curso.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />

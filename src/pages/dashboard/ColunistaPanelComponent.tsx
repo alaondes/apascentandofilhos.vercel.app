@@ -328,7 +328,7 @@ export default function ColunistaPanelComponent({
                 </div>
                 {imagemUrl && (
                   <div className="mt-3 w-32 h-20 rounded-lg overflow-hidden border border-gray-200 shadow-sm relative group">
-                    <img src={imagemUrl} alt="Preview" className="w-full h-full object-cover" />
+                    <img src={imagemUrl || undefined} alt="Preview" className="w-full h-full object-cover" />
                     <button type="button" onClick={() => setImagemUrl("")} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
                       <Trash2 size={16} />
                     </button>
@@ -522,7 +522,7 @@ export default function ColunistaPanelComponent({
             </div>
             {imagemUrl && (
               <div className="mt-3 w-32 h-20 rounded-lg overflow-hidden border border-gray-200 shadow-sm relative group">
-                <img src={imagemUrl} alt="Preview" className="w-full h-full object-cover" />
+                <img src={imagemUrl || undefined} alt="Preview" className="w-full h-full object-cover" />
                 <button type="button" onClick={() => setImagemUrl("")} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
                   <Trash2 size={16} />
                 </button>
@@ -841,7 +841,7 @@ export function GerenciarColunistasHome() {
                   <div className="flex flex-col items-center gap-4 p-4 bg-white rounded-xl border border-dashed border-gray-300">
                     <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-primary-base/20 bg-gray-50 flex items-center justify-center">
                       {blogger.img ? (
-                        <img src={blogger.img} alt="Avatar" className="w-full h-full object-cover" />
+                        <img src={blogger.img || undefined} alt="Avatar" className="w-full h-full object-cover" />
                       ) : (
                         <User size={32} className="text-gray-300" />
                       )}
@@ -1014,7 +1014,7 @@ export function GerenciarColunistasHome() {
                     </label>
                     <div className="relative h-32 w-full rounded-xl overflow-hidden bg-gray-100 border border-gray-200 group/banner">
                       {blogger.bannerImg ? (
-                        <img src={blogger.bannerImg} alt="Banner Preview" className="w-full h-full object-cover" />
+                        <img src={blogger.bannerImg || undefined} alt="Banner Preview" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 gap-1 bg-gradient-to-br from-gray-50 to-gray-100">
                           <ImageIcon size={24} />

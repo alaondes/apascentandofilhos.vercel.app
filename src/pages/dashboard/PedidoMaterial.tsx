@@ -692,7 +692,7 @@ export default function PedidoMaterial({ isEmbedded = false }: PedidoMaterialPro
                               <div className="w-12 h-12 bg-[#f7fafd] flex items-center justify-center rounded-lg text-xl border border-[#c8d8e8] shrink-0 overflow-hidden">
                                 {item.fotoUrl ? (
                                   <img
-                                    src={item.fotoUrl}
+                                    src={item.fotoUrl || undefined}
                                     alt={item.nome}
                                     className="w-full h-full object-cover"
                                   />
@@ -887,7 +887,7 @@ const MaterialCard: React.FC<MaterialCardProps> = ({ material, onAdd }) => {
       <div className="bg-[#f7fafd] h-48 flex items-center justify-center border-b-[1.5px] border-[#c8d8e8] relative overflow-hidden">
         {material.fotoUrl ? (
           <img
-            src={material.fotoUrl}
+            src={material.fotoUrl || undefined}
             alt={material.nome}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
