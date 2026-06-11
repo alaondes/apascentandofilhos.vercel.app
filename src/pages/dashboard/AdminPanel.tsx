@@ -1869,9 +1869,27 @@ export default function AdminPanel() {
               <h4 className="text-[10px] uppercase font-bold text-gray-400 mt-4 mb-2 pl-2">DIVISÃO: MINISTÉRIOS</h4>
               <nav className="space-y-1">
                 <button
+                  onClick={() => setActiveTab("edificado_matrimonio_leader")}
+                  className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
+                    activeTab === "edificado_matrimonio_leader" || activeTab === "edificado_matrimonio"
+                      ? "bg-primary-base text-white shadow-md border-transparent"
+                      : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
+                  }`}
+                >
+                  <Lock
+                    size={18}
+                    className={
+                      activeTab === "edificado_matrimonio_leader" || activeTab === "edificado_matrimonio"
+                        ? "text-white"
+                        : "text-primary-base"
+                    }
+                  />
+                  Cadastro de Líder
+                </button>
+                <button
                   onClick={() => setActiveTab("edificado_matrimonio_hero")}
                   className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
-                    activeTab === "edificado_matrimonio_hero" || activeTab === "edificado_matrimonio"
+                    activeTab === "edificado_matrimonio_hero"
                       ? "bg-primary-base text-white shadow-md border-transparent"
                       : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
                   }`}
@@ -1879,7 +1897,7 @@ export default function AdminPanel() {
                   <ImageIcon
                     size={18}
                     className={
-                      activeTab === "edificado_matrimonio_hero" || activeTab === "edificado_matrimonio"
+                      activeTab === "edificado_matrimonio_hero"
                         ? "text-white"
                         : "text-primary-base"
                     }
@@ -2203,6 +2221,7 @@ export default function AdminPanel() {
               "cursos_geral",
               "cursos_editor",
               "edificado_matrimonio",
+              "edificado_matrimonio_leader",
               "edificado_matrimonio_hero",
               "edificado_matrimonio_crencas",
               "edificado_matrimonio_cursos_editor",

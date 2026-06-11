@@ -22,6 +22,8 @@ export default function EdificadoMatrimonio() {
     warningText:
       "Atenção: antes de se cadastrar, realize o treinamento de líder para ministrar.",
     infoText: "Seus relatórios ficarão armazenados na sua área pessoal.",
+    portalTitle: "Acesse o seu portal",
+    portalBtnText: "Sou um Líder",
   });
 
   const isGlobalAdmin = profile?.role === "admin" || user?.email === "alaondez@gmail.com";
@@ -265,7 +267,9 @@ export default function EdificadoMatrimonio() {
             className="lg:col-span-5 flex flex-col items-center justify-center lg:items-end w-full"
           >
             <div className="w-full max-w-md bg-white/5 p-8 md:p-10 rounded-[2rem] border border-white/10 backdrop-blur-xl shadow-2xl flex flex-col gap-5">
-              <h3 className="text-xl font-bold mb-4 text-center text-white">Acesse o seu portal</h3>
+              <h3 className="text-xl font-bold mb-4 text-center text-white">
+                {loginData.portalTitle || "Acesse o seu portal"}
+              </h3>
               
               <Link
                 to="/cadastro"
@@ -273,7 +277,9 @@ export default function EdificadoMatrimonio() {
               >
                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/50 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
                 <UserPlus size={24} className="text-primary-base group-hover:scale-110 transition-transform duration-300 relative z-10" />
-                <span className="relative z-10">Sou um Líder</span>
+                <span className="relative z-10">
+                  {loginData.portalBtnText || "Sou um Líder"}
+                </span>
               </Link>
             </div>
           </motion.div>

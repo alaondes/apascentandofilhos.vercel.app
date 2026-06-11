@@ -144,8 +144,8 @@ export default function GlobalContentPanel({
   const [coursesSubTab, setCoursesSubTab] = useState<"geral" | "editor" | "leader">(
     (embedSubTab as any) || "geral"
   );
-  const [edificadoSubTab, setEdificadoSubTab] = useState<"hero" | "crencas" | "cursos_editor" | "cta">(
-    (embedSubTab as any) || "hero"
+  const [edificadoSubTab, setEdificadoSubTab] = useState<"leader" | "hero" | "crencas" | "cursos_editor" | "cta">(
+    (embedSubTab as any) || "leader"
   );
 
   useEffect(() => {
@@ -423,18 +423,20 @@ export default function GlobalContentPanel({
     warningText:
       "Atenção: antes de se cadastrar, realize o treinamento de líder para ministrar.",
     infoText: "Seus relatórios ficarão armazenados na sua área pessoal.",
+    portalTitle: "Acesse o seu portal",
+    portalBtnText: "Sou um Líder",
   });
 
   const [footerData, setFooterData] = useState({
     description:
-      "Um ministério dedicado a fortalecer casamentos e famílias ao redor do mundo através de ensinamentos bíblicos práticos e vivência em comunidade.",
+      "Um ministério dedicado a glorificar a Deus através de lares edificados e filhos guiados pela Palavra.",
     instagram: "https://instagram.com/",
     youtube: "https://youtube.com/",
     facebook: "https://facebook.com/",
     copyrightText:
       "Ministério Apascentando Filhos Brasil. Todos os direitos reservados.",
-    logoTitle: "EDIFICADO",
-    logoSubtitle: "MATRIMÔNIO",
+    logoTitle: "MINISTÉRIO",
+    logoSubtitle: "APASCENTANDO FILHOS",
     logoUrl: "/logo.png",
     ministryLogoUrl: "/logomaf.png",
     ministrySubtitle: "Ministério",
@@ -478,7 +480,7 @@ export default function GlobalContentPanel({
       "Tire suas dúvidas ou encontre um grupo de mentoria perto de você.",
     formTitle: "Envie sua Mensagem",
     channelsTitle: "Canais de Atendimento",
-    emailText: "contato@edificadomatrimonio.com.br",
+    emailText: "contato@apascentandofilhos.com.br",
     phoneText: "+55 (00) 00000-0000",
     addressText:
       "Atendimento nacional e internacional através de núcleos locais.",
@@ -3646,6 +3648,7 @@ const innerContent = (
         {!embedSubTab && (
           <div className="flex flex-wrap gap-2 p-2 bg-white border border-[#e2eaf3] shadow-sm rounded-2xl w-full">
             {[
+              { id: "leader", label: "Cadastro de Líder" },
               { id: "hero", label: "Banners" },
               { id: "crencas", label: "No que Acreditamos" },
               { id: "cursos_editor", label: "Treinamentos" },
@@ -3666,9 +3669,8 @@ const innerContent = (
           </div>
         )}
 
-        {edificadoSubTab === "hero" && (
+        {edificadoSubTab === "leader" && (
           <div className="animate-fade-in space-y-6">
-
             {/* Configurações: Cadastro de Líder */}
             <div id="section-leader-dedicated" className="bg-white border border-[#e2eaf3] p-8 rounded-2xl space-y-6 scroll-mt-6 shadow-sm">
               <h4 className="font-bold text-primary-dark mb-2 flex items-center gap-2">
@@ -3746,6 +3748,34 @@ const innerContent = (
                     }
                   />
                 </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase pl-1">Título do Portal (Ex: Acesse o seu portal)</label>
+                  <input
+                    type="text"
+                    className="w-full p-2.5 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all font-bold"
+                    value={loginData.portalTitle || ""}
+                    onChange={(e) =>
+                      setLoginData({
+                        ...loginData,
+                        portalTitle: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase pl-1">Texto do Botão do Portal (Ex: Sou um Líder)</label>
+                  <input
+                    type="text"
+                    className="w-full p-2.5 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all font-bold"
+                    value={loginData.portalBtnText || ""}
+                    onChange={(e) =>
+                      setLoginData({
+                        ...loginData,
+                        portalBtnText: e.target.value,
+                      })
+                    }
+                  />
+                </div>
               </div>
             
               <div className="pt-6 mt-4 border-t border-[#e2eaf3] flex justify-end">
@@ -3759,6 +3789,11 @@ const innerContent = (
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {edificadoSubTab === "hero" && (
+          <div className="animate-fade-in space-y-6">
 
             {/* Carousel Section */}
           <div className="bg-[#f8fafc] border border-[#e2eaf3] rounded-2xl overflow-hidden shadow-sm">
@@ -5604,10 +5639,10 @@ const innerContent = (
                     />
                     <div className="flex flex-col">
                       <span className="text-sm font-serif font-black tracking-tight text-primary-dark uppercase">
-                        {headerLogoData.title || "EDIFICADO"}
+                        {headerLogoData.title || "MINISTÉRIO"}
                       </span>
                       <span className="text-[8px] uppercase tracking-[0.2em] font-bold text-gray-500 leading-none">
-                        {headerLogoData.subtitle || "MATRIMÔNIO"}
+                        {headerLogoData.subtitle || "APASCENTANDO FILHOS"}
                       </span>
                     </div>
                   </div>

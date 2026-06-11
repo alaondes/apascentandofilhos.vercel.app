@@ -35,7 +35,7 @@ export default function Footer() {
     contactData?.addressText ||
     "Atuação em todo o território nacional e extensões internacionais.";
   const emailText =
-    contactData?.emailText || "contato@edificadomatrimonio.com.br";
+    contactData?.emailText || "contato@apascentandofilhos.com.br";
   const phoneText = contactData?.phoneText || "+55 (00) 00000-0000";
 
   return (
@@ -48,25 +48,25 @@ export default function Footer() {
               <div className="w-12 h-12 flex items-center justify-center">
                 <img
                   src={footerContent?.logoUrl || "/logo.png"}
-                  alt="Edificado Matrimônio Logo"
+                  alt="Apascentando Filhos Logo"
                   className="w-full h-full object-contain"
                   onError={(e) => {
                     e.currentTarget.src =
-                      "https://ui-avatars.com/api/?name=EM&background=ffffff&color=1a6496&rounded=true&bold=true";
+                      "https://ui-avatars.com/api/?name=MAF&background=ffffff&color=1a6496&rounded=true&bold=true";
                   }}
                 />
               </div>
               <div className="shrink-0 flex flex-col mt-1">
                 <span className="text-[18px] font-black tracking-tight drop-shadow-sm whitespace-nowrap leading-tight text-footer-text uppercase">
-                  {footerContent?.logoTitle || "EDIFICADO"}
+                  {footerContent?.logoTitle || "MINISTÉRIO"}
                 </span>
                 <span className="text-[18px] font-black tracking-tight drop-shadow-sm whitespace-nowrap leading-tight text-footer-text uppercase">
-                  {footerContent?.logoSubtitle || "MATRIMÔNIO"}
+                  {footerContent?.logoSubtitle || "APASCENTANDO FILHOS"}
                 </span>
               </div>
             </div>
             <p className="text-footer-text/80 max-w-md leading-relaxed text-lg italic">
-              {footerContent?.description || "Um ministério dedicado a fortalecer casamentos e famílias ao redor do mundo através de ensinamentos bíblicos práticos e vivência em comunidade."}
+              {footerContent?.description || "Um ministério dedicado a glorificar a Deus através de lares edificados e filhos guiados pela Palavra."}
             </p>
             <div className="flex gap-4 mt-8">
               <a

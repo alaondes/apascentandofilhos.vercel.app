@@ -12,6 +12,9 @@ import {
   Navigate,
 } from "react-router-dom";
 import { useEffect, lazy, Suspense } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth, db } from "./lib/firebase";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -66,6 +69,77 @@ export default function App() {
 function AppContent() {
   const location = useLocation();
   const isDashboard = location.pathname.startsWith("/dashboard");
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          // 1. Migrate header_logo
+          const headerRef = doc(db, "content", "header_logo");
+          const headerSnap = await getDoc(headerRef);
+          if (headerSnap.exists()) {
+            const data = headerSnap.data();
+            const updates: any = {};
+            if (data.logoTitle === "EDIFICADO" || data.title === "EDIFICADO" || !data.logoTitle) {
+              updates.logoTitle = "MINISTÉRIO";
+              updates.title = "MINISTÉRIO";
+            }
+            if (data.logoSubtitle === "MATRIMÔNIO" || data.subtitle === "MATRIMÔNIO" || !data.logoSubtitle) {
+              updates.logoSubtitle = "APASCENTANDO FILHOS";
+              updates.subtitle = "APASCENTANDO FILHOS";
+            }
+            if (Object.keys(updates).length > 0) {
+              await setDoc(headerRef, updates, { merge: true });
+              console.log("Database Migration: Header logo updated successfully.");
+            }
+          }
+
+          // 2. Migrate footer
+          const footerRef = doc(db, "content", "footer");
+          const footerSnap = await getDoc(footerRef);
+          if (footerSnap.exists()) {
+            const data = footerSnap.data();
+            const updates: any = {};
+            if (data.logoTitle === "EDIFICADO" || !data.logoTitle) {
+              updates.logoTitle = "MINISTÉRIO";
+            }
+            if (data.logoSubtitle === "MATRIMÔNIO" || !data.logoSubtitle) {
+              updates.logoSubtitle = "APASCENTANDO FILHOS";
+            }
+            if (
+              !data.description ||
+              data.description.includes("casamentos e famílias") ||
+              data.description.includes("fortalecer casamentos")
+            ) {
+              updates.description = "Um ministério dedicado a glorificar a Deus através de lares edificados e filhos guiados pela Palavra.";
+            }
+            if (Object.keys(updates).length > 0) {
+              await setDoc(footerRef, updates, { merge: true });
+              console.log("Database Migration: Footer content updated successfully.");
+            }
+          }
+
+          // 3. Migrate contato
+          const contatoRef = doc(db, "content", "contato");
+          const contatoSnap = await getDoc(contatoRef);
+          if (contatoSnap.exists()) {
+            const data = contatoSnap.data();
+            const updates: any = {};
+            if (data.emailText === "contato@edificadomatrimonio.com.br" || !data.emailText) {
+              updates.emailText = "contato@apascentandofilhos.com.br";
+            }
+            if (Object.keys(updates).length > 0) {
+              await setDoc(contatoRef, updates, { merge: true });
+              console.log("Database Migration: Contato content updated successfully.");
+            }
+          }
+        } catch (err) {
+          console.error("Database Migration error:", err);
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden w-full">

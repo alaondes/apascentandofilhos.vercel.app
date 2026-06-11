@@ -63,7 +63,7 @@ export default function Contato() {
       "Tire suas dúvidas ou encontre um grupo de mentoria perto de você.",
     formTitle: data?.formTitle || "Envie sua Mensagem",
     channelsTitle: data?.channelsTitle || "Canais de Atendimento",
-    emailText: data?.emailText || "contato@edificadomatrimonio.com.br",
+    emailText: data?.emailText || "contato@apascentandofilhos.com.br",
     phoneText: data?.phoneText || "+55 (00) 00000-0000",
     addressText:
       data?.addressText ||

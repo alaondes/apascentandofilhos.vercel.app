@@ -54,8 +54,8 @@ export default function DashboardLayout({
 
   const [headerLogo, setHeaderLogo] = useState({
     logoUrl: "/logo.png",
-    title: "EDIFICADO",
-    subtitle: "MATRIMÔNIO",
+    title: "MINISTÉRIO",
+    subtitle: "APASCENTANDO FILHOS",
   });
 
   useEffect(() => {
