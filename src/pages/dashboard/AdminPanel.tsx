@@ -1434,11 +1434,6 @@ export default function AdminPanel() {
                       icon: Users,
                     },
                     {
-                      id: "link_cadastro",
-                      label: "Link Cadastro de Membros",
-                      icon: PlusCircle,
-                    },
-                    {
                       id: "permissoes",
                       label: "Níveis de Permissão",
                       icon: ShieldCheck,
@@ -2448,29 +2443,6 @@ export default function AdminPanel() {
               ) : activeTab === "membros" ? (
                 <div className="w-full">
                   <ManageMembers />
-                </div>
-              ) : activeTab === "link_cadastro" ? (
-                <div className="w-full bg-white p-6 rounded-2xl shadow-sm border border-border-color">
-                  <h3 className="text-lg font-bold text-primary-dark mb-4 flex items-center gap-2">
-                    <PlusCircle className="text-primary-base" size={24} />
-                    Link para Cadastro de Membros
-                  </h3>
-                  <p className="text-gray-600 mb-6 font-medium">Você pode compartilhar o link abaixo com novas pessoas que desejam se cadastrar como membros. Elas preencherão os dados e cairão automaticamente no sistema de membros do portal.</p>
-                  
-                  <div className="p-4 bg-[#f7fafd] rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-blue-100 shadow-inner">
-                    <a href="/cadastro-membro" target="_blank" rel="noopener noreferrer" className="text-primary-base font-bold underline truncate w-full md:w-auto overflow-hidden">
-                      {window.location.origin}/cadastro-membro
-                    </a>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(`${window.location.origin}/cadastro-membro`);
-                        alert("Link copiado para a área de transferência!");
-                      }}
-                      className="bg-primary-base shrink-0 text-white px-5 py-2.5 rounded-lg font-bold hover:bg-primary-dark transition text-sm shadow-[0_2px_10px_rgba(33,53,85,0.2)]"
-                    >
-                      Copiar Link
-                    </button>
-                  </div>
                 </div>
               ) : activeTab === "permissoes" ? (
                 <div className="w-full">

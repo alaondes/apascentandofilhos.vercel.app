@@ -15,7 +15,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "../../lib/firebase";
-import { Plus, Edit2, Trash2, Search, X, Check, Users, Eye, User, AlertCircle } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, X, Check, Users, Eye, User, AlertCircle, Copy, PlusCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
@@ -200,6 +200,7 @@ export default function ManageMembers() {
   const [editingMember, setEditingMember] = useState<any>(null);
   const [viewingMember, setViewingMember] = useState<any | null>(null);
   const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const handleOpenFicha = (member: any) => {
     setViewingMember(member);
@@ -838,6 +839,52 @@ export default function ManageMembers() {
       </div>
 
       <div className="p-4 sm:p-6 pb-2">
+        {/* Link para auto-cadastro de membros */}
+        <div className="mb-6 p-4 bg-[#f0f6fc] border-[1.5px] border-[#c8e1ff] rounded-2xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 shadow-xs">
+          <div className="flex items-start gap-3">
+            <div className="p-2.5 bg-[#e1f0ff] rounded-xl text-primary-base shrink-0 mt-0.5">
+              <PlusCircle size={22} />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-primary-dark">
+                Link de Auto-Cadastro de Membros
+              </h4>
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed max-w-xl">
+                Envie este link para que novos membros preencham os próprios dados e fotos. 
+                Os cadastros concluídos serão adicionados a esta lista automaticamente.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 w-full lg:w-auto shrink-0 justify-end">
+            <div className="text-xs font-mono font-bold bg-white text-primary-dark py-2 px-3 border border-[#c8d8e8] rounded-lg max-w-[200px] sm:max-w-[300px] truncate select-all shadow-inner">
+              {window.location.origin}/cadastro-membro
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/cadastro-membro`);
+                setCopiedLink(true);
+                setTimeout(() => setCopiedLink(false), 3000);
+              }}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold transition duration-200 text-sm border cursor-pointer border-transparent ${
+                copiedLink
+                  ? "bg-green-600 text-white"
+                  : "bg-primary-base hover:bg-primary-dark text-white shadow-md active:scale-95"
+              }`}
+            >
+              {copiedLink ? (
+                <>
+                  <Check size={16} /> Copiado!
+                </>
+              ) : (
+                <>
+                  <Copy size={16} /> Copiar Link
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
         <div className="relative max-w-md w-full">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
