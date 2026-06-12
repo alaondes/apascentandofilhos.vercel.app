@@ -609,7 +609,18 @@ export default function GlobalContentPanel({
           setFooterData((prev) => ({ ...prev, ...footerSnap.data() }));
         }
         if (headerLogoSnap.exists()) {
-          setHeaderLogoData((prev) => ({ ...prev, ...headerLogoSnap.data() }));
+          const data = headerLogoSnap.data();
+          let fetchedLinks = data.links && data.links.length > 0 ? data.links : [];
+          fetchedLinks = fetchedLinks.map((l: any) => {
+            if (l.path === "/inicio") {
+              return { ...l, path: "/" };
+            }
+            if (l.name === "Quem Somos" && (l.path === "/" || !l.path || l.path === "")) {
+              return { ...l, path: "/quem-somos" };
+            }
+            return l;
+          });
+          setHeaderLogoData((prev) => ({ ...prev, ...data, links: fetchedLinks }));
         }
         if (edificadoSnap.exists()) {
           setEdificadoMatrimonioData((prev: any) => ({

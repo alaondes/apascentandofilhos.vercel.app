@@ -20,10 +20,13 @@ export default function Navbar() {
         const data = snap.data();
         let fetchedLinks = data.links && data.links.length > 0 ? data.links : [];
 
-        // Normalize any path that is exactly "/inicio" to "/"
+        // Normalize any path that is exactly "/inicio" to "/" and restore /quem-somos if broken
         fetchedLinks = fetchedLinks.map((l: any) => {
           if (l.path === "/inicio") {
             return { ...l, path: "/" };
+          }
+          if (l.name === "Quem Somos" && (l.path === "/" || !l.path || l.path === "")) {
+            return { ...l, path: "/quem-somos" };
           }
           return l;
         });
@@ -197,17 +200,18 @@ export default function Navbar() {
             <div key={`${link.path}-${idx}`} className="relative group">
               <NavLink
                 to={link.path}
-                className={({ isActive }) =>
-                  `flex items-center gap-1 text-sm font-bold transition-colors hover:opacity-70 ${
-                    isActive
+                className={({ isActive }) => {
+                  const isLinkActive = isActive && link.path !== "#" && link.path !== "";
+                  return `flex items-center gap-1 text-sm font-bold transition-colors hover:text-primary-base ${
+                    isLinkActive
                       ? !isTransparent
                         ? "text-primary-base"
-                        : "text-white border-b-2 border-white"
-                      : !isTransparent
-                        ? "text-primary-dark"
                         : "text-white"
-                  }`
-                }
+                      : !isTransparent
+                        ? "text-primary-dark hover:text-primary-base"
+                        : "text-white/80 hover:text-white"
+                  }`;
+                }}
               >
                 {link.name}
                 {link.subLinks && link.subLinks.length > 0 && (
