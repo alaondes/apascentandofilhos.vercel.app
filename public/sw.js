@@ -1,9 +1,11 @@
-const CACHE_NAME = "apascentando-filhos-pwa-v3";
+const CACHE_NAME = "apascentando-filhos-pwa-v4";
 const ASSETS_TO_CACHE = [
   "/",
   "/index.html",
   "/logo.png",
   "/logomaf.png",
+  "/logomaf_192.png",
+  "/logomaf_512.png",
   "/manifest.json"
 ];
 

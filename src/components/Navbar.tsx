@@ -20,6 +20,14 @@ export default function Navbar() {
         const data = snap.data();
         let fetchedLinks = data.links && data.links.length > 0 ? data.links : [];
 
+        // Normalize any path that is exactly "/inicio" to "/"
+        fetchedLinks = fetchedLinks.map((l: any) => {
+          if (l.path === "/inicio") {
+            return { ...l, path: "/" };
+          }
+          return l;
+        });
+
         // Ensure "Ministérios" exists and has "Filhos de Paz"
         const ministeriosIdx = fetchedLinks.findIndex((l: any) => l.name === "Ministérios");
         if (ministeriosIdx !== -1) {

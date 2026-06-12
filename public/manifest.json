@@ -9,25 +9,25 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/logomaf.png",
+      "src": "/logomaf_192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/logomaf.png",
+      "src": "/logomaf_192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/logomaf.png",
+      "src": "/logomaf_512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/logomaf.png",
+      "src": "/logomaf_512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
