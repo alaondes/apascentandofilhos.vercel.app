@@ -4,10 +4,31 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ApascentandoFilhos</title>
+
+    <!-- PWA Meta Tags & Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#1a6496" />
+    
+    <!-- iOS / Safari PWA support -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Apascentando Filhos" />
+    <link rel="apple-touch-icon" href="/logo.png" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('[PWA] Service Worker registrado com sucesso:', reg.scope))
+            .catch(err => console.error('[PWA] Erro ao registrar o Service Worker:', err));
+        });
+      }
+    </script>
   </body>
 </html>
 
