@@ -1616,7 +1616,7 @@ export default function Home({
               {/* Header Logo */}
               <div className="flex justify-center items-center py-2 h-12">
                 <img
-                  src="/logo.png"
+                  src="/logomaf.png"
                   alt="Logo"
                   className="h-6 object-contain"
                 />

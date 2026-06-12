@@ -88,6 +88,9 @@ function AppContent() {
               updates.logoSubtitle = "APASCENTANDO FILHOS";
               updates.subtitle = "APASCENTANDO FILHOS";
             }
+            if (!data.logoUrl || data.logoUrl === "/logo.png" || data.logoUrl === "") {
+              updates.logoUrl = "/logomaf.png";
+            }
             if (Object.keys(updates).length > 0) {
               await setDoc(headerRef, updates, { merge: true });
               console.log("Database Migration: Header logo updated successfully.");
@@ -105,6 +108,9 @@ function AppContent() {
             }
             if (data.logoSubtitle === "MATRIMÔNIO" || !data.logoSubtitle) {
               updates.logoSubtitle = "APASCENTANDO FILHOS";
+            }
+            if (!data.logoUrl || data.logoUrl === "/logo.png" || data.logoUrl === "") {
+              updates.logoUrl = "/logomaf.png";
             }
             if (
               !data.description ||

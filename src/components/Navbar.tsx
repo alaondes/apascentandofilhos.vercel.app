@@ -70,7 +70,7 @@ export default function Navbar() {
         }
 
         setHeaderLogo({
-          logoUrl: data.logoUrl || "",
+          logoUrl: (data.logoUrl && data.logoUrl !== "/logo.png") ? data.logoUrl : "/logomaf.png",
           title: data.logoTitle || data.title || "",
           subtitle: data.logoSubtitle || data.subtitle || "",
           links: fetchedLinks.length > 0 ? fetchedLinks : [
@@ -94,7 +94,7 @@ export default function Navbar() {
         });
       } else {
         setHeaderLogo({
-          logoUrl: "",
+          logoUrl: "/logomaf.png",
           title: "MINISTÉRIO",
           subtitle: "APASCENTANDO FILHOS",
           links: [
@@ -152,20 +152,21 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
         <NavLink to="/" className="flex items-center gap-2 group">
           <div className="w-10 h-10 flex items-center justify-center transition-transform group-hover:scale-110">
-            {headerLogo.logoUrl ? (
+            {headerLogo.logoUrl && headerLogo.logoUrl !== "/logo.png" ? (
               <img
-                src={headerLogo.logoUrl || undefined}
+                src={headerLogo.logoUrl}
                 alt={headerLogo.title}
                 className="w-full h-full object-contain"
                 onError={(e) => {
-                  e.currentTarget.src =
-                    "https://ui-avatars.com/api/?name=EM&background=1a6496&color=fff&rounded=true&bold=true";
+                  e.currentTarget.src = "/logomaf.png";
                 }}
               />
             ) : (
-              <div className="w-full h-full bg-primary-base rounded-full flex items-center justify-center text-white font-bold text-xs">
-                EM
-              </div>
+              <img
+                src="/logomaf.png"
+                alt={headerLogo.title}
+                className="w-full h-full object-contain"
+              />
             )}
           </div>
           <div className="flex flex-col shrink-0 justify-center">

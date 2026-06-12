@@ -437,7 +437,7 @@ export default function GlobalContentPanel({
       "Ministério Apascentando Filhos Brasil. Todos os direitos reservados.",
     logoTitle: "MINISTÉRIO",
     logoSubtitle: "APASCENTANDO FILHOS",
-    logoUrl: "/logo.png",
+    logoUrl: "/logomaf.png",
     ministryLogoUrl: "/logomaf.png",
     ministrySubtitle: "Ministério",
     ministryTitle: "Apascentando Filhos",
@@ -449,7 +449,7 @@ export default function GlobalContentPanel({
     subtitle?: string;
     links?: { name: string; path: string; subLinks?: { name: string; path: string }[] }[];
   }>({
-    logoUrl: "/logo.png",
+    logoUrl: "/logomaf.png",
     title: "MINISTÉRIO",
     subtitle: "APASCENTANDO FILHOS",
     links: [

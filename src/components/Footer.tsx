@@ -47,12 +47,11 @@ export default function Footer() {
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 flex items-center justify-center">
                 <img
-                  src={footerContent?.logoUrl || "/logo.png"}
+                  src={footerContent?.logoUrl && footerContent.logoUrl !== "/logo.png" ? footerContent.logoUrl : "/logomaf.png"}
                   alt="Apascentando Filhos Logo"
                   className="w-full h-full object-contain"
                   onError={(e) => {
-                    e.currentTarget.src =
-                      "https://ui-avatars.com/api/?name=MAF&background=ffffff&color=1a6496&rounded=true&bold=true";
+                    e.currentTarget.src = "/logomaf.png";
                   }}
                 />
               </div>

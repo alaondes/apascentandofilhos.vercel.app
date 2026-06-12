@@ -53,7 +53,7 @@ export default function DashboardLayout({
   const [unreadCount, setUnreadCount] = useState(0);
 
   const [headerLogo, setHeaderLogo] = useState({
-    logoUrl: "/logo.png",
+    logoUrl: "/logomaf.png",
     title: "MINISTÉRIO",
     subtitle: "APASCENTANDO FILHOS",
   });
@@ -158,12 +158,11 @@ export default function DashboardLayout({
           className="flex items-center gap-2 outline-none"
         >
           <img
-            src={headerLogo.logoUrl}
+            src={headerLogo.logoUrl && headerLogo.logoUrl !== "/logo.png" ? headerLogo.logoUrl : "/logomaf.png"}
             alt={headerLogo.title}
             className="h-[34px] w-auto object-contain"
             onError={(e) => {
-              e.currentTarget.src =
-                "https://ui-avatars.com/api/?name=EM&background=1a6496&color=fff&rounded=true&bold=true";
+              e.currentTarget.src = "/logomaf.png";
             }}
           />
           <div className="flex flex-col justify-center leading-none mt-1 shrink-0">

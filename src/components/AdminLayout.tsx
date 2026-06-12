@@ -23,7 +23,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate();
 
   const [headerLogo, setHeaderLogo] = useState({
-    logoUrl: "/logo.png",
+    logoUrl: "/logomaf.png",
     title: "MINISTÉRIO",
     subtitle: "APASCENTANDO FILHOS",
   });
@@ -54,20 +54,21 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           to="/dashboard"
           className="flex items-center gap-2 outline-none"
         >
-          {headerLogo.logoUrl ? (
+          {headerLogo.logoUrl && headerLogo.logoUrl !== "/logo.png" ? (
             <img
               src={headerLogo.logoUrl}
               alt={headerLogo.title}
               className="h-[34px] w-auto object-contain"
               onError={(e) => {
-                e.currentTarget.src =
-                  "https://ui-avatars.com/api/?name=EM&background=1a6496&color=fff&rounded=true&bold=true";
+                e.currentTarget.src = "/logomaf.png";
               }}
             />
           ) : (
-            <div className="h-8 w-8 bg-primary-base rounded-lg flex items-center justify-center text-white font-bold text-[10px]">
-              EM
-            </div>
+            <img
+              src="/logomaf.png"
+              alt={headerLogo.title}
+              className="h-[34px] w-auto object-contain"
+            />
           )}
           <div className="flex flex-col justify-center leading-none mt-1 shrink-0">
             <span className="font-black text-[#1e3a5f] text-[18px] tracking-wide whitespace-nowrap uppercase">
