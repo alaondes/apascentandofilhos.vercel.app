@@ -83,6 +83,7 @@ import RestrictedEditionPanel from "./RestrictedEditionPanel";
 import ColunistaPanelComponent from "./ColunistaPanelComponent";
 import FilhosDePazPanel from "./FilhosDePazPanel";
 import AgendaPanel from "./AgendaPanel";
+import MafKidsAdmin from "./MafKidsAdmin";
 
 const COURSES_LIST = [
   "Casados para Sempre",
@@ -290,6 +291,11 @@ export default function AdminPanel() {
       name: "Painel Escola MAF",
       icon: BookOpen,
     });
+    availableDashboards.push({
+      id: "maf_kids_painel",
+      name: "Painel MAF Kids",
+      icon: Baby,
+    });
   }
   if (isAdmin || isEditorFilhosDePaz) {
     availableDashboards.push({
@@ -371,6 +377,8 @@ export default function AdminPanel() {
         setActiveTab("edificado_matrimonio_hero" as any);
       else if (selectedDashboard === "maf_painel")
         setActiveTab("cursos_geral" as any);
+      else if (selectedDashboard === "maf_kids_painel")
+        setActiveTab("maf_kids" as any);
       else if (selectedDashboard === "filhos_de_paz_painel")
         setActiveTab("filhos_de_paz_hero" as any);
       else if (selectedDashboard === "colunista")
@@ -2029,6 +2037,34 @@ export default function AdminPanel() {
             </div>
           )}
 
+          {selectedDashboard === "maf_kids_painel" && (isAdmin || isEditorMaf) && (
+            <div>
+              <h3 className="text-[12px] font-black uppercase tracking-wider text-white bg-primary-base rounded-md mb-4 px-3 py-2 text-center">
+                Painel MAF Kids
+              </h3>
+              <nav className="space-y-1 mb-4">
+                <button
+                  onClick={() => setActiveTab("maf_kids")}
+                  className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
+                    activeTab === "maf_kids"
+                      ? "bg-primary-base text-white shadow-md border-transparent"
+                      : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
+                  }`}
+                >
+                  <Baby
+                    size={18}
+                    className={
+                      activeTab === "maf_kids"
+                        ? "text-white"
+                        : "text-primary-base"
+                    }
+                  />
+                  Conteúdo da Página MAF Kids
+                </button>
+              </nav>
+            </div>
+          )}
+
           {selectedDashboard === "filhos_de_paz_painel" && (isAdmin || isEditorFilhosDePaz) && (
             <div>
               <h3 className="text-[12px] font-black uppercase tracking-wider text-white bg-primary-base rounded-md mb-4 px-3 py-2 text-center">
@@ -2299,6 +2335,10 @@ export default function AdminPanel() {
           ) : activeTab === "agenda_design" ? (
             <div className="w-full bg-[#f4f7f9] min-h-screen p-4 xl:p-8">
               <AgendaPanel view="design" />
+            </div>
+          ) : activeTab === "maf_kids" ? (
+            <div className="w-full bg-[#f4f7f9] min-h-screen p-4 xl:p-8">
+              <MafKidsAdmin />
             </div>
           ) : [
               "colunista_meus_artigos",

@@ -9,7 +9,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 async function main() {
-  const snap = await getDoc(doc(db, "content", "header_logo"));
+  const snap = await getDoc(doc(db, "content", "maf_kids"));
   if (snap.exists()) {
     console.log(JSON.stringify(snap.data(), null, 2));
   } else {

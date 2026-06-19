@@ -22,22 +22,23 @@ import PublicRoute from "./components/PublicRoute";
 import ThemeProvider from "./components/ThemeProvider";
 import Home from "./pages/Home";
 
-// Lazy load pages
+// Static imports for pages to prevent duplicated React chunks and Hook issues
 import AdminPanel from "./pages/dashboard/AdminPanel";
-const QuemSomos = lazy(() => import("./pages/QuemSomos"));
-const Noticias = lazy(() => import("./pages/Noticias"));
-const EdificadoMatrimonio = lazy(() => import("./pages/EdificadoMatrimonio"));
-const Cursos = lazy(() => import("./pages/Cursos"));
-const DetalheCurso = lazy(() => import("./pages/DetalheCurso"));
-const Contato = lazy(() => import("./pages/Contato"));
-const Login = lazy(() => import("./pages/Login"));
-const Cadastro = lazy(() => import("./pages/Cadastro"));
-const CadastroMembro = lazy(() => import("./pages/CadastroMembro"));
-const ColunistaPage = lazy(() => import("./pages/ColunistaPage"));
-const ArtigoPage = lazy(() => import("./pages/ArtigoPage"));
-const FilhosDePaz = lazy(() => import("./pages/FilhosDePaz"));
-const Agenda = lazy(() => import("./pages/Agenda"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+import QuemSomos from "./pages/QuemSomos";
+import Noticias from "./pages/Noticias";
+import EdificadoMatrimonio from "./pages/EdificadoMatrimonio";
+import Cursos from "./pages/Cursos";
+import DetalheCurso from "./pages/DetalheCurso";
+import Contato from "./pages/Contato";
+import Login from "./pages/Login";
+import Cadastro from "./pages/Cadastro";
+import CadastroMembro from "./pages/CadastroMembro";
+import ColunistaPage from "./pages/ColunistaPage";
+import ArtigoPage from "./pages/ArtigoPage";
+import FilhosDePaz from "./pages/FilhosDePaz";
+import MafKids from "./pages/MafKids";
+import Agenda from "./pages/Agenda";
+import NotFound from "./pages/NotFound";
 
 // Loading component
 const PageLoader = () => (
@@ -159,6 +160,7 @@ function AppContent() {
             <Route path="/edificado-matrimonio" element={<EdificadoMatrimonio />} />
             <Route path="/cursos" element={<Cursos />} />
             <Route path="/casas-de-paz" element={<FilhosDePaz />} />
+            <Route path="/maf-kids" element={<MafKids />} />
             <Route path="/filhos-de-paz" element={<FilhosDePaz />} />
             <Route path="/filhos de paz" element={<FilhosDePaz />} />
             <Route path="/Filhos de Paz" element={<FilhosDePaz />} />

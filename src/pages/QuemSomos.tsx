@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Users, Heart, Target, ShieldCheck } from "lucide-react";
 import { motion } from "motion/react";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
