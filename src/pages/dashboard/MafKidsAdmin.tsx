@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
-import { Save, Loader2, Plus, Trash2, Upload, Image as ImageIcon } from "lucide-react";
+import { Save, Loader2, Plus, Trash2, Upload, Image as ImageIcon, Heart, MessageCircle, Book, LayoutPanelLeft } from "lucide-react";
 import { motion } from "motion/react";
 
 const compressImage = (file: File): Promise<string> => {
@@ -147,7 +147,7 @@ export default function MafKidsAdmin() {
       </div>
 
       <div className="p-6 lg:p-8 space-y-6">
-        {/* 2. Menu de Navegacao por Sub-abas (Header, Criação, Conselhos, Livrinhos, Rodapé) */}
+        {/* Menu de Navegacao por Sub-abas */}
         <div className="flex flex-wrap gap-2 p-2 bg-white border border-[#e2eaf3] shadow-sm rounded-2xl w-full">
           {[
             { id: "header", label: "Cabeçalho (Header)" },
@@ -169,8 +169,7 @@ export default function MafKidsAdmin() {
             </button>
           ))}
         </div>
-
-        {/* 3. Seções Ativas baseadas na seleção */}
+        {/* Seções Ativas baseadas na seleção */}
 
         {/* Abas 1: Cabeçalho (Header) */}
         {activeTab === "header" && (

@@ -2044,6 +2044,27 @@ export default function AdminPanel() {
               </h3>
               <nav className="space-y-1 mb-4">
                 <button
+                  onClick={() => setActiveTab("leader_profile")}
+                  className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
+                    activeTab === "leader_profile"
+                      ? "bg-primary-base text-white shadow-md border-transparent"
+                      : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
+                  }`}
+                >
+                  <UserCircle
+                    size={18}
+                    className={
+                      activeTab === "leader_profile"
+                        ? "text-white"
+                        : "text-primary-base"
+                    }
+                  />
+                  Meus Dados
+                </button>
+              </nav>
+
+              <nav className="space-y-1 mb-4">
+                <button
                   onClick={() => setActiveTab("maf_kids")}
                   className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
                     activeTab === "maf_kids"
