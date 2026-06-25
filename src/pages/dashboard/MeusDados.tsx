@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "motion/react";
 import {
   User,
@@ -58,6 +59,8 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [loadingAvatar, setLoadingAvatar] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [errors, setErrors] = useState<any>({});
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("dados_pessoais");
@@ -186,6 +189,17 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
     return () => unsubscribe();
   }, [auth.currentUser]);
 
+  
+  const validateField = (id: string, value: string) => {
+    let err = "";
+    if (id === "email" || id === "emailEsposa") {
+      if (value && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(value)) {
+        err = "E-mail inválido";
+      }
+    }
+    setErrors((prev: any) => ({ ...prev, [id]: err }));
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -204,6 +218,7 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
     }
 
     setFormData((prev) => ({ ...prev, [id]: value }));
+    validateField(id, value);
 
     if (
       id === "cep" &&
@@ -240,7 +255,7 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
     if (!file || !auth.currentUser) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      setError("A imagem deve ter no máximo 2MB.");
+      toast.error("A imagem deve ter no máximo 2MB.");
       return;
     }
 
@@ -283,15 +298,15 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
             avatar: dataUrl,
           });
           await refreshProfile();
-          setSuccess("Foto de perfil atualizada!");
-          setTimeout(() => setSuccess(null), 3000);
+          toast.success("Foto de perfil atualizada!");
+          
         } catch (err: any) {
           handleFirestoreError(
             err,
             OperationType.UPDATE,
             `users/${auth.currentUser?.uid}`,
           );
-          setError("Erro ao atualizar a foto.");
+          toast.error("Erro ao atualizar a foto.");
         } finally {
           setLoadingAvatar(false);
         }
@@ -342,15 +357,15 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
       });
 
       await refreshProfile();
-      setSuccess("Dados salvos com sucesso!");
-      setTimeout(() => setSuccess(null), 3000);
+      toast.success("Dados salvos com sucesso!");
+      
     } catch (err: any) {
       handleFirestoreError(
         err,
         OperationType.UPDATE,
         `users/${auth.currentUser.uid}`,
       );
-      setError("Erro ao atualizar perfil.");
+      toast.error("Erro ao atualizar perfil.");
     } finally {
       setLoading(false);
     }
@@ -362,12 +377,12 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
     if (!auth.currentUser || !auth.currentUser.email) return;
 
     if (newPassword !== confirmPassword) {
-      setError("As senhas não coincidem.");
+      toast.error("As senhas não coincidem.");
       return;
     }
 
     if (newPassword.length < 6) {
-      setError("A nova senha deve ter pelo menos 6 caracteres.");
+      toast.error("A nova senha deve ter pelo menos 6 caracteres.");
       return;
     }
 
@@ -383,17 +398,17 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
       await reauthenticateWithCredential(auth.currentUser, credential);
       await updatePassword(auth.currentUser, newPassword);
 
-      setSuccess("Senha alterada com sucesso!");
+      toast.success("Senha alterada com sucesso!");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      setTimeout(() => setSuccess(null), 3000);
+      
     } catch (err: any) {
       console.error(err);
       if (err.code === "auth/wrong-password") {
-        setError("Senha atual incorreta.");
+        toast.error("Senha atual incorreta.");
       } else {
-        setError("Erro ao alterar senha. Verifique sua senha atual.");
+        toast.error("Erro ao alterar senha. Verifique sua senha atual.");
       }
     } finally {
       setPasswordLoading(false);
@@ -592,21 +607,38 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                     </p>
                   </div>
 
-                  <form onSubmit={handleSaveProfile} className="space-y-6">
+                  
+                  <div className="flex justify-end mb-4">
+                    {!isEditing ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(true)}
+                        className="px-4 py-2 bg-[#3b7197] text-white text-sm font-bold rounded-lg hover:bg-[#2c5877] transition-colors"
+                      >
+                        Editar Perfil
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                        className="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-bold rounded-lg hover:bg-gray-300 transition-colors"
+                      >
+                        Cancelar Edição
+                      </button>
+                    )}
+                  </div>
+
+<form onSubmit={handleSaveProfile} className="space-y-6">
                     <div className="grid md:grid-cols-1 gap-6">
                       <div className="space-y-1.5">
                         <label className="text-sm font-semibold text-gray-700">
                           Nome Completo do Marido{" "}
                           <span className="text-red-500">*</span>
                         </label>
-                        <input
-                          type="text"
-                          id="nome"
-                          value={formData.nome}
-                          onChange={handleInputChange}
-                          className="form-input"
+                        <input id="nome" disabled={!isEditing} className={`form-input ${errors.nome ? "border-red-500 bg-red-50" : ""} ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.nome} onChange={handleInputChange} 
                           required
                         />
+                        {errors.nome && <span className="text-red-500 text-xs mt-1 block">{errors.nome}</span>}
                       </div>
                     </div>
 
@@ -615,30 +647,22 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                         <label className="text-sm font-semibold text-gray-700">
                           CPF do Marido <span className="text-red-500">*</span>
                         </label>
-                        <input
-                          type="text"
-                          id="cpf"
-                          value={formData.cpf}
-                          onChange={handleInputChange}
-                          className="form-input"
+                        <input id="cpf" disabled={!isEditing} className={`form-input ${errors.cpf ? "border-red-500 bg-red-50" : ""} ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.cpf} onChange={handleInputChange} 
                           placeholder="000.000.000-00"
                           required
                           maxLength={14}
                         />
+                        {errors.cpf && <span className="text-red-500 text-xs mt-1 block">{errors.cpf}</span>}
                       </div>
                       <div className="space-y-1.5 relative">
                         <label className="text-sm font-semibold text-gray-700">
                           Data de Nascimento{" "}
                           <span className="text-red-500">*</span>
                         </label>
-                        <input
-                          type="date"
-                          id="dataNascimento"
-                          value={formData.dataNascimento}
-                          onChange={handleInputChange}
-                          className="form-input pr-10"
+                        <input id="dataNascimento" disabled={!isEditing} className={`form-input pr-10 ${errors.dataNascimento ? "border-red-500 bg-red-50" : ""} ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.dataNascimento} onChange={handleInputChange} 
                           required
                         />
+                        {errors.dataNascimento && <span className="text-red-500 text-xs mt-1 block">{errors.dataNascimento}</span>}
                         <Calendar
                           size={18}
                           className="absolute right-3.5 top-9 text-gray-400 pointer-events-none"
@@ -651,30 +675,22 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                         <label className="text-sm font-semibold text-gray-700">
                           Telefone
                         </label>
-                        <input
-                          type="tel"
-                          id="telefone"
-                          value={formData.telefone}
-                          onChange={handleInputChange}
-                          className="form-input"
+                        <input id="telefone" disabled={!isEditing} className={`form-input ${errors.telefone ? "border-red-500 bg-red-50" : ""} ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.telefone} onChange={handleInputChange} 
                           placeholder="(11) 3456-7890"
                           maxLength={15}
                         />
+                        {errors.telefone && <span className="text-red-500 text-xs mt-1 block">{errors.telefone}</span>}
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-sm font-semibold text-gray-700">
                           Celular <span className="text-red-500">*</span>
                         </label>
-                        <input
-                          type="tel"
-                          id="celular"
-                          value={formData.celular}
-                          onChange={handleInputChange}
-                          className="form-input"
+                        <input id="celular" disabled={!isEditing} className={`form-input ${errors.celular ? "border-red-500 bg-red-50" : ""} ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.celular} onChange={handleInputChange} 
                           placeholder="(11) 99876-5432"
                           required
                           maxLength={15}
                         />
+                        {errors.celular && <span className="text-red-500 text-xs mt-1 block">{errors.celular}</span>}
                       </div>
                     </div>
 
@@ -700,25 +716,17 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                         <label className="text-sm font-semibold text-gray-700">
                           Profissão
                         </label>
-                        <input
-                          type="text"
-                          id="profissao"
-                          value={formData.profissao}
-                          onChange={handleInputChange}
-                          className="form-input"
+                        <input id="profissao" disabled={!isEditing} className={`form-input ${errors.profissao ? "border-red-500 bg-red-50" : ""} ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.profissao} onChange={handleInputChange} 
                         />
+                        {errors.profissao && <span className="text-red-500 text-xs mt-1 block">{errors.profissao}</span>}
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-sm font-semibold text-gray-700">
                           Igreja / Congregação
                         </label>
-                        <input
-                          type="text"
-                          id="igreja"
-                          value={formData.igreja}
-                          onChange={handleInputChange}
-                          className="form-input"
+                        <input id="igreja" disabled={!isEditing} className={`form-input ${errors.igreja ? "border-red-500 bg-red-50" : ""} ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.igreja} onChange={handleInputChange} 
                         />
+                        {errors.igreja && <span className="text-red-500 text-xs mt-1 block">{errors.igreja}</span>}
                       </div>
                     </div>
 
@@ -726,16 +734,13 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                       <label className="text-sm font-semibold text-gray-700">
                         Sobre mim / Observações
                       </label>
-                      <textarea
-                        id="observacoes"
-                        value={formData.observacoes}
-                        onChange={handleInputChange}
-                        className="form-input resize-y min-h-[100px]"
+                      <textarea id="observacoes" disabled={!isEditing} className={`form-input resize-y min-h-[100px] ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.observacoes} onChange={handleInputChange} 
                       ></textarea>
                     </div>
 
                     <div className="pt-4 flex items-center gap-3">
-                      <button
+                      {isEditing && (
+<button
                         type="submit"
                         disabled={loading}
                         className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#3b7197] text-white font-medium rounded-lg hover:bg-[#2c5877] transition-colors disabled:opacity-50"
@@ -747,6 +752,7 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                         )}
                         Salvar Dados Pessoais
                       </button>
+)}
                       <button
                         type="button"
                         className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
@@ -769,33 +775,46 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                     Endereço
                   </div>
 
-                  <form onSubmit={handleSaveProfile} className="space-y-6">
+                  
+                  <div className="flex justify-end mb-4">
+                    {!isEditing ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(true)}
+                        className="px-4 py-2 bg-[#3b7197] text-white text-sm font-bold rounded-lg hover:bg-[#2c5877] transition-colors"
+                      >
+                        Editar Perfil
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                        className="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-bold rounded-lg hover:bg-gray-300 transition-colors"
+                      >
+                        Cancelar Edição
+                      </button>
+                    )}
+                  </div>
+
+<form onSubmit={handleSaveProfile} className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-1.5">
                         <label className="text-sm font-semibold text-gray-700">
                           CEP
                         </label>
-                        <input
-                          type="text"
-                          id="cep"
-                          value={formData.cep}
-                          onChange={handleInputChange}
-                          className="form-input"
+                        <input id="cep" disabled={!isEditing} className={`form-input ${errors.cep ? "border-red-500 bg-red-50" : ""} ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.cep} onChange={handleInputChange} 
                           placeholder="00000-000"
                           maxLength={9}
                         />
+                        {errors.cep && <span className="text-red-500 text-xs mt-1 block">{errors.cep}</span>}
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-sm font-semibold text-gray-700">
                           Endereço
                         </label>
-                        <input
-                          type="text"
-                          id="endereco"
-                          value={formData.endereco}
-                          onChange={handleInputChange}
-                          className="form-input"
+                        <input id="endereco" disabled={!isEditing} className={`form-input ${errors.endereco ? "border-red-500 bg-red-50" : ""} ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.endereco} onChange={handleInputChange} 
                         />
+                        {errors.endereco && <span className="text-red-500 text-xs mt-1 block">{errors.endereco}</span>}
                       </div>
                     </div>
 
@@ -804,25 +823,17 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                         <label className="text-sm font-semibold text-gray-700">
                           Número
                         </label>
-                        <input
-                          type="text"
-                          id="numero"
-                          value={formData.numero}
-                          onChange={handleInputChange}
-                          className="form-input"
+                        <input id="numero" disabled={!isEditing} className={`form-input ${errors.numero ? "border-red-500 bg-red-50" : ""} ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.numero} onChange={handleInputChange} 
                         />
+                        {errors.numero && <span className="text-red-500 text-xs mt-1 block">{errors.numero}</span>}
                       </div>
                       <div className="space-y-1.5 md:col-span-2">
                         <label className="text-sm font-semibold text-gray-700">
                           Bairro
                         </label>
-                        <input
-                          type="text"
-                          id="bairro"
-                          value={formData.bairro}
-                          onChange={handleInputChange}
-                          className="form-input"
+                        <input id="bairro" disabled={!isEditing} className={`form-input ${errors.bairro ? "border-red-500 bg-red-50" : ""} ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.bairro} onChange={handleInputChange} 
                         />
+                        {errors.bairro && <span className="text-red-500 text-xs mt-1 block">{errors.bairro}</span>}
                       </div>
                     </div>
 
@@ -831,23 +842,15 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                         <label className="text-sm font-semibold text-gray-700">
                           Cidade
                         </label>
-                        <input
-                          type="text"
-                          id="cidade"
-                          value={formData.cidade}
-                          onChange={handleInputChange}
-                          className="form-input"
+                        <input id="cidade" disabled={!isEditing} className={`form-input ${errors.cidade ? "border-red-500 bg-red-50" : ""} ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.cidade} onChange={handleInputChange} 
                         />
+                        {errors.cidade && <span className="text-red-500 text-xs mt-1 block">{errors.cidade}</span>}
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-sm font-semibold text-gray-700">
                           Estado
                         </label>
-                        <select
-                          id="estado"
-                          value={formData.estado}
-                          onChange={handleInputChange}
-                          className="form-input"
+                        <select id="estado" disabled={!isEditing} className={`form-input ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.estado} onChange={handleInputChange} 
                         >
                           <option value="">Selecione...</option>
                           <option value="AC">Acre</option>
@@ -882,7 +885,8 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                     </div>
 
                     <div className="pt-4 flex items-center gap-3">
-                      <button
+                      {isEditing && (
+<button
                         type="submit"
                         disabled={loading}
                         className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#3b7197] text-white font-medium rounded-lg hover:bg-[#2c5877] transition-colors disabled:opacity-50"
@@ -894,6 +898,7 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                         )}
                         Salvar Endereço
                       </button>
+)}
                     </div>
                   </form>
                 </div>
@@ -910,19 +915,36 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                     Cônjuge
                   </div>
 
-                  <form onSubmit={handleSaveProfile} className="space-y-6">
+                  
+                  <div className="flex justify-end mb-4">
+                    {!isEditing ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(true)}
+                        className="px-4 py-2 bg-[#3b7197] text-white text-sm font-bold rounded-lg hover:bg-[#2c5877] transition-colors"
+                      >
+                        Editar Perfil
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                        className="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-bold rounded-lg hover:bg-gray-300 transition-colors"
+                      >
+                        Cancelar Edição
+                      </button>
+                    )}
+                  </div>
+
+<form onSubmit={handleSaveProfile} className="space-y-6">
                     <div className="grid md:grid-cols-1 gap-6">
                       <div className="space-y-1.5">
                         <label className="text-sm font-semibold text-gray-700">
                           Nome Completo da Esposa
                         </label>
-                        <input
-                          type="text"
-                          id="nomeEsposa"
-                          value={formData.nomeEsposa}
-                          onChange={handleInputChange}
-                          className="form-input"
+                        <input id="nomeEsposa" disabled={!isEditing} className={`form-input ${errors.nomeEsposa ? "border-red-500 bg-red-50" : ""} ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.nomeEsposa} onChange={handleInputChange} 
                         />
+                        {errors.nomeEsposa && <span className="text-red-500 text-xs mt-1 block">{errors.nomeEsposa}</span>}
                       </div>
                     </div>
 
@@ -931,27 +953,19 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                         <label className="text-sm font-semibold text-gray-700">
                           CPF da Esposa
                         </label>
-                        <input
-                          type="text"
-                          id="cpfEsposa"
-                          value={formData.cpfEsposa}
-                          onChange={handleInputChange}
-                          className="form-input"
+                        <input id="cpfEsposa" disabled={!isEditing} className={`form-input ${errors.cpfEsposa ? "border-red-500 bg-red-50" : ""} ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.cpfEsposa} onChange={handleInputChange} 
                           placeholder="000.000.000-00"
                           maxLength={14}
                         />
+                        {errors.cpfEsposa && <span className="text-red-500 text-xs mt-1 block">{errors.cpfEsposa}</span>}
                       </div>
                       <div className="space-y-1.5 relative">
                         <label className="text-sm font-semibold text-gray-700">
                           Data de Nascimento da Esposa
                         </label>
-                        <input
-                          type="date"
-                          id="dataNascimentoEsposa"
-                          value={formData.dataNascimentoEsposa}
-                          onChange={handleInputChange}
-                          className="form-input pr-10"
+                        <input id="dataNascimentoEsposa" disabled={!isEditing} className={`form-input pr-10 ${errors.dataNascimentoEsposa ? "border-red-500 bg-red-50" : ""} ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.dataNascimentoEsposa} onChange={handleInputChange} 
                         />
+                        {errors.dataNascimentoEsposa && <span className="text-red-500 text-xs mt-1 block">{errors.dataNascimentoEsposa}</span>}
                         <Calendar
                           size={18}
                           className="absolute right-3.5 top-9 text-gray-400 pointer-events-none"
@@ -964,27 +978,19 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                         <label className="text-sm font-semibold text-gray-700">
                           Telefone / Celular da Esposa
                         </label>
-                        <input
-                          type="tel"
-                          id="telefoneEsposa"
-                          value={formData.telefoneEsposa}
-                          onChange={handleInputChange}
-                          className="form-input"
+                        <input id="telefoneEsposa" disabled={!isEditing} className={`form-input ${errors.telefoneEsposa ? "border-red-500 bg-red-50" : ""} ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.telefoneEsposa} onChange={handleInputChange} 
                           placeholder="(11) 99876-5432"
                           maxLength={15}
                         />
+                        {errors.telefoneEsposa && <span className="text-red-500 text-xs mt-1 block">{errors.telefoneEsposa}</span>}
                       </div>
                       <div className="space-y-1.5 relative">
                         <label className="text-sm font-semibold text-gray-700">
                           E-mail da Esposa
                         </label>
-                        <input
-                          type="email"
-                          id="emailEsposa"
-                          value={formData.emailEsposa}
-                          onChange={handleInputChange}
-                          className="form-input pr-10"
+                        <input id="emailEsposa" disabled={!isEditing} className={`form-input pr-10 ${errors.emailEsposa ? "border-red-500 bg-red-50" : ""} ${!isEditing ? "opacity-70 bg-gray-50 cursor-not-allowed" : ""}`} value={formData.emailEsposa} onChange={handleInputChange} 
                         />
+                        {errors.emailEsposa && <span className="text-red-500 text-xs mt-1 block">{errors.emailEsposa}</span>}
                         <Mail
                           size={18}
                           className="absolute right-3.5 top-9 text-gray-400 pointer-events-none"
@@ -993,7 +999,8 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                     </div>
 
                     <div className="pt-4 flex items-center gap-3">
-                      <button
+                      {isEditing && (
+<button
                         type="submit"
                         disabled={loading}
                         className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#3b7197] text-white font-medium rounded-lg hover:bg-[#2c5877] transition-colors disabled:opacity-50"
@@ -1005,6 +1012,7 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
                         )}
                         Salvar Dados do Cônjuge
                       </button>
+)}
                     </div>
                   </form>
                 </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { 
-  Heart, Star, ShieldCheck, Check, Search, Brush, ChevronLeft, ChevronRight
+  Image, Heart, Star, ShieldCheck, Check, Search, Brush, ChevronLeft, ChevronRight, Shield, Users, Lock, Plus
 } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
@@ -386,10 +386,10 @@ export default function MafKids() {
 
           <div className="w-full flex flex-col md:flex-row justify-center items-center mt-6 lg:mt-4 relative gap-0">
             <div className="bg-[#1e88e5] text-white px-6 md:px-8 py-2 md:py-2.5 rounded-full md:rounded-r-none font-black uppercase text-[11px] md:text-[13px] flex items-center justify-center gap-2 shadow-[0_4px_0_#1565c0] border-2 border-[#1976d2] md:border-r-0 z-10 w-full md:w-auto relative mb-2 md:mb-0">
-              TODO DIA TEM ALGO NOVO AQUI! <Heart className="text-[#f44336] fill-current" size={16} />
+              {data.header?.bannerBlue || "TODO DIA TEM ALGO NOVO AQUI!"} <Heart className="text-[#f44336] fill-current" size={16} />
             </div>
             <div className="bg-[#ffca28] text-[#e65100] px-6 md:px-8 py-2 md:py-2.5 rounded-full md:rounded-l-none md:rounded-r-full font-black uppercase text-[11px] md:text-[13px] flex items-center justify-center gap-2 shadow-[0_4px_0_#ffb300] border-2 border-[#ffb300] z-0 w-full md:w-auto md:-ml-2">
-              VENHA FAZER PARTE DESSA FAMÍLIA! <Star className="text-[#e65100] fill-current" size={16} />
+              {data.header?.bannerYellow || "VENHA FAZER PARTE DESSA FAMÍLIA!"} <Star className="text-[#e65100] fill-current" size={16} />
             </div>
           </div>
         </div>
@@ -578,14 +578,14 @@ export default function MafKids() {
                 </svg>
               </div>
               <div className="bg-[#ab47bc] text-white pl-9 pr-6 py-2 md:py-2.5 rounded-full font-black uppercase text-[11px] md:text-[13px] flex items-center justify-center gap-2 border-2 border-[#ce93d8] shadow-[0_4px_0_#8e24aa]">
-                 NOVOS LIVRINHOS TODA SEMANA!
+                {data.header?.bannerPurple || data.books?.bannerLeft || "NOVOS LIVRINHOS TODA SEMANA!"}
               </div>
             </div>
 
             {/* Right Yellow Badge with Overlapping Blue/Red Pencil Crayon */}
             <div className="relative w-full md:w-auto">
               <div className="bg-[#ffca28] text-[#c62828] pl-6 pr-10 py-2 md:py-2.5 rounded-full font-black uppercase text-[11px] md:text-[13px] flex items-center justify-center gap-2 border-2 border-[#ffe082] shadow-[0_4px_0_#ffb300]">
-                 LEIA, APRENDA, COLORA E COMPARTILHE O AMOR DE JESUS!
+                {data.header?.bannerPencil || data.books?.bannerRight || "LEIA, APRENDA, COLORA E COMPARTILHE O AMOR DE JESUS!"}
               </div>
               {/* Blue and Red Crayon/Pencil */}
               <div className="absolute -right-5 -bottom-5 w-12 h-12 rotate-[42deg] select-none hover:scale-110 active:scale-95 transition-transform z-20">
@@ -605,135 +605,199 @@ export default function MafKids() {
           </div>
         </div>
 
-        {/* --- 4. BOTTOM (PROJETO JESUS) --- */}
-        <div className="bg-[#f1f8e9] w-full rounded-[32px] mb-6 pt-10 pb-6 px-4 flex flex-col lg:flex-row items-stretch justify-center relative overflow-hidden shadow-md">
-          
-          <div className="absolute top-10 right-10 text-4xl opacity-50">☁️</div>
-          <div className="absolute bottom-20 left-10 text-5xl opacity-50">🌻</div>
-
-          <div className="w-full max-w-[1150px] flex flex-col lg:flex-row gap-6 lg:gap-8 z-10">
-            
-            {/* Left side */}
-            <div className="lg:w-[32%] flex flex-col items-center lg:items-start relative w-full text-center lg:text-left">
-              <div className="bg-white px-5 py-1 rounded-full text-[#42a5f5] font-black text-[12px] uppercase border-[3px] border-[#bbdefb] mb-1 flex items-center gap-1.5 self-center lg:self-start shadow-sm">
-                PROJETO <span className="text-[12px] bg-[#ffeb3b] text-white rounded-full p-0.5 shadow-sm">⭐</span>
-              </div>
+        {/* --- 4. BOTTOM (PROJETO JESUS BANNER COMPLETO) --- */}
+        <div className="w-[100%] max-w-[1200px] mx-auto mb-10 relative">
+          {data.footer?.imageUrl ? (
+            <img 
+              src={data.footer.imageUrl} 
+              alt="Banner" 
+              className="w-full h-auto rounded-[32px] shadow-sm border-[4px] border-[#fff9c4] block object-cover border-solid" 
+              referrerPolicy="no-referrer" 
+            />
+          ) : (
+            <div className="bg-[#fffdf0] rounded-[32px] overflow-hidden shadow-sm border-[4px] border-[#fff9c4] relative w-full">
               
-              <div className="flex justify-center lg:justify-start items-center -ml-1 mb-2">
-                {("JESUS").split('').map((letter, i) => {
-                  const colors = ['text-[#2196f3]', 'text-[#f44336]', 'text-[#ff9800]', 'text-[#4caf50]', 'text-[#f44336]'];
-                  return (
-                    <span key={i} className={`text-7xl md:text-[6.5rem] lg:text-[6rem] xl:text-[6.5rem] font-black uppercase ${colors[i % colors.length]} drop-shadow-md tracking-tighter`} style={{ WebkitTextStroke: "2.5px white" }}>
-                      {letter}
-                    </span>
-                  );
-                })}
-              </div>
+              <div className="absolute top-10 right-20 text-5xl opacity-40 z-0">☁️</div>
+              <div className="absolute top-24 left-[35%] text-4xl opacity-40 z-0">☁️</div>
+              <div className="absolute bottom-[100px] left-10 text-3xl opacity-40 z-0">🌟</div>
 
-              <div className="bg-[#1a237e] text-white px-5 py-2.5 rounded-full font-black text-[16px] md:text-[18px] uppercase border-[3px] border-[#3949ab] mb-2 relative flex justify-center items-center gap-3 w-full max-w-[320px] shadow-[0_4px_0_#0d47a1] z-10">
-                <Star size={16} fill="white" />
-                NA MINHA CASA
-                <Star size={16} fill="white" />
-              </div>
-
-              <div className="bg-[#e53935] text-white px-4 py-2 font-black text-[12px] uppercase transform -skew-x-12 border-b-4 border-r-4 border-[#b71c1c] mb-6 self-center lg:self-start z-20 shadow-md">
-                TUDO VOLTADO PARA CRIANÇAS!
-              </div>
-
-              <div className="w-full max-w-[320px] h-40 bg-white/40 border-4 border-white rounded-[24px] flex items-end justify-center relative shadow-inner overflow-hidden">
-                 <div className="text-[7rem] absolute -bottom-6">👨‍👩‍👧‍👦</div>
-              </div>
-            </div>
-
-            {/* Right side */}
-            <div className="lg:w-[68%] w-full bg-white rounded-[32px] border-[6px] border-[#c8e6c9] p-5 lg:p-6 flex flex-col shadow-xl relative">
-               
-               <div className="bg-[#512da8] text-white px-6 py-2 rounded-full font-black text-[12px] md:text-[13px] uppercase self-center mb-6 border-[3px] border-[#7e57c2] shadow-[0_4px_0_#311b92]">
-                 O QUE VOCÊ ENCONTRA AQUI:
-               </div>
-
-               <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 border-b-4 border-dashed border-[#c8e6c9] pb-6 mb-6">
-                 {(data.footer?.findHereItems || defaultData.footer.findHereItems).map((item: any, idx: number) => {
-                   const c = [
-                     { bg: "bg-[#1e88e5]", em: "📖", border: "border-[#0d47a1]" },
-                     { bg: "bg-[#7cb342]", em: "🎵", border: "border-[#33691e]" },
-                     { bg: "bg-[#ffb300]", em: "🎨", border: "border-[#e65100]" },
-                     { bg: "bg-[#7e57c2]", em: "🙏", border: "border-[#4527a0]" },
-                     { bg: "bg-[#ef5350]", em: "🎁", border: "border-[#c62828]" }
-                   ][idx % 5];
-                   return (
-                     <div key={idx} className="flex flex-col items-center text-center">
-                       <div className={`w-12 h-12 rounded-full ${c.bg} flex items-center justify-center border-b-[4px] ${c.border} mb-1.5 shadow-sm transform hover:-translate-y-1 transition-transform`}>
-                         <span className="text-2xl text-white">{c.em}</span>
-                       </div>
-                       <h4 className="text-[9px] font-black text-[#1b5e20] uppercase leading-tight mb-0.5">{item.title}</h4>
-                       <p className="text-[8px] font-bold text-[#388e3c] leading-tight px-1">{item.desc}</p>
-                     </div>
-                   );
-                 })}
-               </div>
-
-               <div className="flex flex-col lg:flex-row gap-5 flex-grow items-center lg:items-stretch mb-4">
-                 
-                 <div className="bg-[#fff8e1] rounded-[24px] border-[4px] border-[#ffecb3] p-4 pt-6 relative flex-1 w-full lg:w-auto shadow-sm">
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#ffc107] text-[#e65100] px-4 py-1 rounded-full font-black text-[10px] uppercase flex items-center gap-1 border-b-[3px] border-[#ffa000] whitespace-nowrap shadow-sm">
-                      <Star size={12} fill="#e65100" /> NOSSO PROPÓSITO <Star size={12} fill="#e65100" />
-                    </div>
-                    <p className="text-[12px] font-bold text-[#455a64] mt-1 mb-3 leading-snug">
-                      {data.footer?.purposeText}
-                    </p>
-                    <p className="text-[#d84315] font-black text-[11px] uppercase flex items-center gap-1.5">
-                      <Heart size={14} fill="#f44336" className="text-[#f44336] flex-shrink-0" />
-                      {data.footer?.purposeValues}
-                    </p>
-                 </div>
-                 
-                 <div className="w-full lg:w-36 bg-[#e3f2fd] rounded-[24px] border-4 border-[#bbdefb] h-32 lg:h-auto flex items-center justify-center flex-shrink-0 relative overflow-hidden">
-                    <div className="text-[5rem] absolute -bottom-4">👦🏻📖</div>
-                 </div>
-               </div>
-
-               <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 bg-[#512da8] text-white px-8 py-2.5 rounded-full font-black text-[13px] md:text-[14px] uppercase flex items-center justify-center gap-2 border-[3px] border-[#7e57c2] whitespace-nowrap z-20 shadow-[0_4px_0_#311b92]">
-                 AQUI, A FÉ GANHA VIDA! <span className="text-[#ce93d8]">💜</span>
-               </div>
-            </div>
-
-          </div>
-
-          <p className="text-center text-[#2e7d32] font-black text-[12px] md:text-[13px] uppercase mt-12 mb-4 w-full">
-            Crianças aprendendo sobre Jesus, construindo um futuro de amor e esperança!
-          </p>
-
-          <div className="flex flex-wrap justify-center gap-2 md:gap-3 max-w-[1000px] w-full px-2">
-            {(data.footer?.badges || defaultData.footer.badges).map((b: string, idx: number) => {
-               let icn = null;
-               switch (idx % 4) {
-                 case 0: icn = <span className="text-[#00bcd4] font-black text-[12px] leading-none text-center block w-full">★</span>; break;
-                 case 1: icn = <span className="text-[#00bcd4] font-black text-[12px] leading-none text-center block w-full">+</span>; break;
-                 case 2: icn = <span className="text-[#00bcd4] font-black text-[10px] leading-none text-center block w-full tracking-tighter">👨‍👩‍👧‍👦</span>; break;
-                 case 3: icn = <span className="text-[#00bcd4] font-black text-[10px] leading-none text-center block w-full">🔒</span>; break;
-               }
-
-               return (
-                <div key={idx} className="bg-[#00bcd4] text-white px-2 py-2 sm:px-4 sm:py-2.5 rounded-[12px] font-black text-[9px] sm:text-[11px] uppercase border-[3px] border-[#0097a7] border-t-[#4dd0e1] flex items-center justify-center gap-1.5 shadow-sm flex-1 md:flex-none text-center">
-                  <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden shadow-inner border border-gray-100">
-                    {icn}
+              <div className="w-full flex flex-col lg:flex-row gap-4 z-10 px-6 pt-6 pb-2">
+                
+                {/* Left Column (Logo & Image) Ocupa menos de 30% */}
+                <div className="lg:w-[32%] flex flex-col items-center lg:items-start text-center lg:text-left relative pb-4">
+                  <div className="text-[#2196f3] font-black uppercase text-xl leading-none ml-6 mb-[-12px] z-10 font-[Comfortaa] drop-shadow-sm tracking-widest">
+                    {(data.footer?.title || defaultData.footer.title).split(' ')[0]}
                   </div>
-                  <span className="leading-tight">{b}</span>
+                  <div className="flex leading-none tracking-tighter drop-shadow-lg -ml-1 text-center lg:text-left" style={{ WebkitTextStroke: "2.5px white" }}>
+                    {((data.footer?.title || defaultData.footer.title).split(' ').slice(1).join(' ') || "JESUS").split('').map((letter: string, i: number) => {
+                      const colors = ['text-[#2196f3]', 'text-[#e91e63]', 'text-[#4caf50]', 'text-[#ff9800]', 'text-[#3f51b5]'];
+                      return (
+                        <span key={i} className={`text-[6.5rem] lg:text-[6.5rem] font-black uppercase ${colors[i % colors.length]} tracking-tighter leading-[0.8]`}>
+                          {letter}
+                        </span>
+                      );
+                    })}
+                  </div>
+
+                  <div className="bg-[#1a237e] text-white px-5 py-1.5 rounded-full font-black text-[15px] uppercase border-[3px] border-[#3949ab] mt-1 mb-2 ml-4 flex justify-center items-center gap-2 shadow-[0_4px_0_#0d47a1] z-20 w-fit">
+                      <Star size={14} fill="white" />
+                      NA MINHA CASA
+                      <Star size={14} fill="white" />
+                  </div>
+
+                  <div className="bg-[#e53935] text-white px-4 py-1.5 font-black text-[13px] uppercase transform skew-x-[-12deg] border-b-4 border-[#b71c1c] shadow-md z-20 w-fit ml-6 mb-8">
+                      {data.footer?.subtitle || defaultData.footer.subtitle}
+                  </div>
                 </div>
-               );
-            })}
-          </div>
+
+                {/* Center Column (What you find here) */}
+                <div className="lg:w-[48%] flex flex-col items-center relative pt-2 z-20">
+                    <div className="bg-[#4527a0] text-white px-8 py-1.5 font-black text-[13px] md:text-[14px] uppercase flex items-center justify-center -mt-2 shadow-sm relative z-30" style={{ clipPath: "polygon(10px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0 50%)" }}>
+                      <span className="text-[#ff5252] text-[8px] mr-2">●</span>
+                      {data.footer?.findHereTitle || defaultData.footer.findHereTitle}
+                      <span className="text-[#ff5252] text-[8px] ml-2">●</span>
+                    </div>
+
+                    {/* Grid */}
+                    <div className="flex w-full justify-between items-stretch mt-6 mb-2 px-1 gap-1">
+                      {(data.footer?.findHereItems || defaultData.footer.findHereItems).map((item: any, idx: number) => {
+                        const c = [
+                          { bg: "bg-[#64b5f6]", em: "📖", border: "border-[#1976d2]", color: "text-[#1565c0]" },
+                          { bg: "bg-[#8bc34a]", em: "🎵", border: "border-[#33691e]", color: "text-[#1565c0]" },
+                          { bg: "bg-[#ffca28]", em: "🎨", border: "border-[#f57f17]", color: "text-[#e65100]" },
+                          { bg: "bg-[#b39ddb]", em: "🙏", border: "border-[#512da8]", color: "text-[#311b92]" },
+                          { bg: "bg-[#ef5350]", em: "🎁", border: "border-[#b71c1c]", color: "text-[#c62828]" }
+                        ][idx % 5];
+                        return (
+                          <div key={idx} className="flex flex-col items-center flex-1 relative px-1 group">
+                            <div className={`w-[48px] h-[48px] md:w-[56px] md:h-[56px] lg:w-[64px] lg:h-[64px] rounded-full ${c.bg} flex items-center justify-center border-[2px] border-b-[4px] ${c.border} shadow-md mb-2 group-hover:scale-110 transition-transform relative overflow-hidden`}>
+                               <div className="absolute top-0.5 left-1/2 -translate-x-1/2 w-[70%] h-[30%] bg-white/40 rounded-full"></div>
+                               <span className="text-[24px] md:text-[28px] lg:text-[32px] drop-shadow-md z-10">{c.em}</span>
+                            </div>
+                            <h4 className={`text-[8.5px] md:text-[10px] xl:text-[11px] font-black ${c.color} uppercase text-center leading-[1.15] mb-1.5 min-h-[26px] flex items-center justify-center`}>{item.title}</h4>
+                            <p className="text-[7.5px] md:text-[9px] xl:text-[10px] font-bold text-[#424242] text-center leading-[1.25] px-0.5">{item.desc}</p>
+                            
+                            {idx < 4 && (
+                              <div className="absolute right-[-2%] top-[5%] h-[85%] border-r-[2px] border-dotted border-[#ffb300] opacity-40"></div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="bg-[#512da8] text-white px-6 py-1.5 rounded-full font-black text-[12px] md:text-[13px] uppercase flex items-center justify-center shadow-md mt-4 w-fit tracking-wide border-2 border-[#7e57c2]">
+                      <span className="text-[#ff5252] text-[8px] mr-2">●</span> 
+                      AQUI, A FÉ GANHA VIDA! <span className="text-[#ce93d8] text-[14px] ml-1.5 -mt-0.5">💜</span> 
+                      <span className="text-[#ff5252] text-[8px] ml-2">●</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-3 w-full justify-center relative">
+                       <p className="text-center text-[#212121] font-black text-[11px] md:text-[12px] z-10 block pr-12 lg:pr-20">
+                         Crianças aprendendo sobre Jesus, construindo um futuro de amor e esperança!
+                       </p>
+                       <span className="text-[3.5rem] drop-shadow-sm absolute right-[-20px] bottom-[-20px] z-0 opacity-90">🌈</span>
+                    </div>
+                </div>
+
+                {/* Right Column (Purpose) */}
+                <div className="lg:w-[23%] flex flex-col items-center relative z-20 pt-4">
+                    <div className="flex items-center gap-2 text-[#ff9800] font-black text-[18px] uppercase tracking-wide mb-2 text-center leading-[1.1] min-h-[40px]">
+                       <Star size={16} fill="#ffc107" strokeWidth={0} className="flex-shrink-0" /> 
+                       <span>{data.footer?.purposeTitle || defaultData.footer.purposeTitle}</span> 
+                       <Star size={16} fill="#ffc107" strokeWidth={0} className="flex-shrink-0" />
+                    </div>
+                    
+                    <p className="text-[12px] md:text-[13px] font-bold text-[#37474f] text-center leading-snug px-3">
+                       {data.footer?.purposeText || defaultData.footer.purposeText}
+                    </p>
+                </div>
+                
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* --- 5. DARK BLUE FOOTER BAR --- */}
-        <div className="bg-[#1565c0] w-full pt-6 pb-6 lg:pb-8 px-4 flex flex-col items-center justify-center text-center">
-          <h2 className="text-[#ffeb3b] font-black text-[24px] md:text-[32px] lg:text-[40px] uppercase tracking-tighter mb-1 leading-none shadow-sm drop-shadow-md">
-            JESUS NA MINHA CASA
-          </h2>
-          <p className="text-white font-black text-[11px] md:text-[14px] uppercase tracking-wider drop-shadow-sm">
-            UM LUGAR DE AMOR, APRENDIZADO E MUITA ALEGRIA!
-          </p>
+        {/* --- 5. BOTTOM BADGES ROW --- */}
+        <div className="w-[100%] max-w-[1200px] mx-auto mb-10 flex flex-col lg:flex-row gap-1.5 px-4 h-auto lg:h-[72px] z-30 relative">
+             
+             {/* 4 small pills */}
+             <div className="flex flex-col sm:flex-row flex-[1.5] gap-1.5 h-full">
+                {(data.footer?.badges || defaultData.footer.badges).filter((_:any, i:number) => i < 4).map((b: string, idx: number) => {
+                   const styles = [
+                     { bg: "bg-[#e24a73]", border: "border-[#d81b60]", shadowColor: "rgba(233,30,99,0.8)" },
+                     { bg: "bg-[#29b6f6]", border: "border-[#0288d1]", shadowColor: "rgba(3,169,244,0.8)" },
+                     { bg: "bg-[#7cb342]", border: "border-[#558b2f]", shadowColor: "rgba(104,159,56,0.8)" },
+                     { bg: "bg-[#ab47bc]", border: "border-[#7b1fa2]", shadowColor: "rgba(156,39,176,0.8)" },
+                   ][idx];
+
+                   let icn = null;
+                   
+                   switch (idx) {
+                     case 0: 
+                       icn = (
+                         <div className="relative flex items-center justify-center">
+                           <Shield size={32} color="white" strokeWidth={2} className="opacity-90 drop-shadow-sm" />
+                           <Star size={12} color="white" fill="white" className="absolute top-[48%] left-[50%] transform -translate-x-1/2 -translate-y-1/2 drop-shadow-sm" />
+                         </div>
+                       ); 
+                       break; 
+                     case 1: 
+                       icn = (
+                         <div className="relative flex items-center justify-center">
+                           <Shield size={32} color="white" strokeWidth={2} className="opacity-90 drop-shadow-sm" />
+                           <Plus size={16} color="white" strokeWidth={3} className="absolute top-[48%] left-[50%] transform -translate-x-1/2 -translate-y-1/2 drop-shadow-sm" />
+                         </div>
+                       );
+                       break;
+                     case 2: 
+                       icn = <Users size={32} color="white" strokeWidth={2} className="opacity-90 drop-shadow-sm" />; 
+                       break;
+                     case 3: 
+                       icn = <Lock size={30} color="white" strokeWidth={2} className="opacity-90 drop-shadow-sm" />; 
+                       break;
+                   }
+
+                   // Format lines based on the badges config
+                   const badgeText = b || "";
+                   const textLines = badgeText.split("\n");
+
+                   return (
+                    <div key={idx} className={`${styles.bg} border-[1px] border-white/40 flex-1 px-2 py-2 flex items-center justify-center lg:justify-start gap-2 min-h-[64px] rounded-[16px] lg:rounded-[20px] relative overflow-hidden`} style={{ boxShadow: `0 4px 0 ${styles.shadowColor}, inset 0 6px 10px rgba(255,255,255,0.3)` }}>
+                      {/* Highlight reflection */}
+                      <div className="absolute top-0 left-2 right-2 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-full opacity-60"></div>
+                      
+                      <div className="flex-shrink-0 ml-1 lg:ml-2 relative z-10">{icn}</div>
+                      
+                      <div className="flex flex-col text-white font-black text-[10px] xl:text-[11px] leading-[1.05] drop-shadow-sm text-left relative z-10 mr-1 lg:mr-2">
+                        <span>{textLines[0]}</span>
+                        {textLines[1] && <span>{textLines[1]}</span>}
+                        {textLines[2] && <span>{textLines[2]}</span>}
+                      </div>
+                    </div>
+                   );
+                })}
+             </div>
+
+             {/* Large final pill */}
+             <div className="bg-[#1976d2] border-[1px] border-white/40 flex-[1.2] flex items-center justify-between py-2 px-3 lg:px-4 shadow-[0_4px_0_rgba(21,101,192,0.8),inset_0_6px_10px_rgba(255,255,255,0.3)] rounded-[16px] lg:rounded-[20px] relative overflow-hidden h-[64px] lg:h-full mt-1.5 lg:mt-0">
+                  <div className="absolute top-0 left-4 right-4 h-1/3 bg-gradient-to-b from-white/50 to-transparent rounded-full opacity-60 pointer-events-none"></div>
+                  
+                  <div className="flex flex-col items-center justify-center flex-1 relative z-10 mt-1">
+                      <div className="flex items-start">
+                        <span className="font-black text-[17px] sm:text-[19px] lg:text-[22px] uppercase tracking-tighter text-white drop-shadow-md leading-none mb-0.5 text-center px-1">
+                          {data.footer?.finalText || defaultData.footer.finalText}
+                        </span>
+                        <Heart size={14} className="fill-[#d32f2f] text-[#d32f2f] drop-shadow-sm ml-1 rotate-12 flex-shrink-0" />
+                      </div>
+                      <span className="font-black text-[9px] sm:text-[11px] lg:text-[12px] xl:text-[13px] uppercase tracking-tight text-[#ffeb3b] drop-shadow-md leading-none mt-1 text-center px-1">
+                        {data.footer?.finalSubtext || defaultData.footer.finalSubtext}
+                      </span>
+                  </div>
+                  
+                  <div className="flex-shrink-0 relative z-10 ml-2">
+                     <span className="text-[40px] lg:text-[46px] inline-block filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transform rotate-6 mb-1">🌟</span>
+                  </div>
+             </div>
         </div>
 
       </div>
@@ -822,15 +886,16 @@ const defaultData = {
     bannerRight: "LEIA, APRENDA, COLORA E COMPARTILHE O AMOR DE JESUS!"
   },
   footer: {
+    imageUrl: "",
     title: "PROJETO JESUS",
     subtitle: "TUDO VOLTADO PARA CRIANÇAS!",
     findHereTitle: "O QUE VOCÊ ENCONTRA AQUI:",
     findHereItems: [
-      { title: "HISTÓRIAS BÍBLICAS", desc: "Aprenda sobre Deus de forma lúdica", icon: "BookOpen" },
-      { title: "MÚSICAS CRISTÃS", desc: "Cante e louve com músicas", icon: "Music" },
-      { title: "ATIVIDADES DIVERTIDAS", desc: "Desenhos e brincadeiras", icon: "Smile" },
-      { title: "ORAÇÃO E DEVOCIONAIS", desc: "Momentos especiais para orar", icon: "Heart" },
-      { title: "VALORES QUE TRANSFORMAM", desc: "Amor, respeito, solidariedade e fé!", icon: "Gift" },
+      { title: "HISTÓRIAS BÍBLICAS", desc: "Aprenda sobre Deus de forma lúdica e criativa.", icon: "BookOpen" },
+      { title: "MÚSICAS CRISTÃS", desc: "Cante e louve com músicas para crianças.", icon: "Music" },
+      { title: "ATIVIDADES DIVERTIDAS", desc: "Desenhos, jogos e brincadeiras que ensinam valores.", icon: "Smile" },
+      { title: "ORAÇÃO E DEVOCIONAIS", desc: "Momentos especiais para falar com Deus todos os dias.", icon: "Heart" },
+      { title: "VALORES QUE TRANSFORMAM", desc: "Amor, respeito, solidariedade, obediência e fé!", icon: "Gift" },
     ],
     purposeTitle: "NOSSO PROPÓSITO",
     purposeText: "Levar o amor de Jesus até as crianças e suas famílias, fortalecendo a fé e ensinando que com Jesus em casa, tudo pode ser mais feliz!",

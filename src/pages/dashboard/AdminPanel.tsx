@@ -48,6 +48,8 @@ import {
   Building,
   Baby,
   Video,
+  Book,
+  LayoutPanelLeft,
 } from "lucide-react";
 import {
   collection,
@@ -378,7 +380,7 @@ export default function AdminPanel() {
       else if (selectedDashboard === "maf_painel")
         setActiveTab("cursos_geral" as any);
       else if (selectedDashboard === "maf_kids_painel")
-        setActiveTab("maf_kids" as any);
+        setActiveTab("maf_kids_header" as any);
       else if (selectedDashboard === "filhos_de_paz_painel")
         setActiveTab("filhos_de_paz_hero" as any);
       else if (selectedDashboard === "colunista")
@@ -2042,46 +2044,59 @@ export default function AdminPanel() {
               <h3 className="text-[12px] font-black uppercase tracking-wider text-white bg-primary-base rounded-md mb-4 px-3 py-2 text-center">
                 Painel MAF Kids
               </h3>
-              <nav className="space-y-1 mb-4">
-                <button
-                  onClick={() => setActiveTab("leader_profile")}
-                  className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
-                    activeTab === "leader_profile"
-                      ? "bg-primary-base text-white shadow-md border-transparent"
-                      : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
-                  }`}
-                >
-                  <UserCircle
-                    size={18}
-                    className={
-                      activeTab === "leader_profile"
-                        ? "text-white"
-                        : "text-primary-base"
-                    }
-                  />
-                  Meus Dados
-                </button>
-              </nav>
-
-              <nav className="space-y-1 mb-4">
-                <button
-                  onClick={() => setActiveTab("maf_kids")}
-                  className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
-                    activeTab === "maf_kids"
-                      ? "bg-primary-base text-white shadow-md border-transparent"
-                      : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
-                  }`}
-                >
-                  <Baby
-                    size={18}
-                    className={
-                      activeTab === "maf_kids"
-                        ? "text-white"
-                        : "text-primary-base"
-                    }
-                  />
-                  Conteúdo da Página MAF Kids
-                </button>
+              <nav className="space-y-1">
+                {[
+                  {
+                    id: "leader_profile",
+                    label: "Meus Dados",
+                    icon: UserCircle,
+                  },
+                  {
+                    id: "maf_kids_header",
+                    label: "Cabeçalho (Header)",
+                    icon: ImageIcon,
+                  },
+                  {
+                    id: "maf_kids_criacao",
+                    label: "A Cor da Criação",
+                    icon: Heart,
+                  },
+                  {
+                    id: "maf_kids_conselhos",
+                    label: "Conselhos aos Pais",
+                    icon: MessageCircle,
+                  },
+                  {
+                    id: "maf_kids_livrinhos",
+                    label: "Livrinhos",
+                    icon: Book,
+                  },
+                  {
+                    id: "maf_kids_jesus_casa",
+                    label: "Jesus na Minha Casa",
+                    icon: LayoutPanelLeft,
+                  },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id as any)}
+                    className={`flex items-center w-full gap-3 p-2.5 rounded-lg font-bold text-sm transition text-left cursor-pointer ${
+                      activeTab === item.id
+                        ? "bg-primary-base text-white shadow-md border-transparent"
+                        : "text-primary-dark hover:bg-[#f7fafd] border-transparent"
+                    }`}
+                  >
+                    <item.icon
+                      size={18}
+                      className={
+                        activeTab === item.id
+                          ? "text-white"
+                          : "text-primary-base"
+                      }
+                    />
+                    {item.label}
+                  </button>
+                ))}
               </nav>
             </div>
           )}
@@ -2357,9 +2372,15 @@ export default function AdminPanel() {
             <div className="w-full bg-[#f4f7f9] min-h-screen p-4 xl:p-8">
               <AgendaPanel view="design" />
             </div>
-          ) : activeTab === "maf_kids" ? (
+          ) : [
+              "maf_kids_header",
+              "maf_kids_criacao",
+              "maf_kids_conselhos",
+              "maf_kids_livrinhos",
+              "maf_kids_jesus_casa"
+            ].includes(activeTab) ? (
             <div className="w-full bg-[#f4f7f9] min-h-screen p-4 xl:p-8">
-              <MafKidsAdmin />
+              <MafKidsAdmin activeSection={activeTab} />
             </div>
           ) : [
               "colunista_meus_artigos",

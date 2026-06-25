@@ -19,6 +19,7 @@ import {
   Edit2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import DashboardLayout from "../../components/DashboardLayout";
 import {
   collection,
@@ -113,7 +114,7 @@ export default function MeusRegistros({ isEmbedded = false }: MeusRegistrosProps
     try {
       await deleteDoc(doc(db, path, id));
       setReports(reports.filter((r) => r.id !== id));
-      alert("Relatório excluído com sucesso!");
+      toast.success("Relatório excluído com sucesso!");
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, `${path}/${id}`);
     }
@@ -196,9 +197,15 @@ export default function MeusRegistros({ isEmbedded = false }: MeusRegistrosProps
             </p>
           </div>
         ) : filteredReports.length === 0 ? (
-          <div className="bg-white border-x border-b border-[#eee8df] p-20 text-center rounded-b-[14px]">
-            <p className="text-gray-400 italic font-medium">
-              Nenhum relatório encontrado.
+          <div className="bg-white border-x border-b border-[#eee8df] p-20 text-center rounded-b-[14px] flex flex-col items-center justify-center">
+            {/* Empty box placeholder */}
+            <div className="w-24 h-24 mb-4 text-gray-300">
+               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+               </svg>
+            </div>
+            <p className="text-gray-500 font-medium mb-3">
+              Você ainda não enviou nenhum relatório ou se inscreveu em nenhum curso. Que tal começar agora?
             </p>
           </div>
         ) : (

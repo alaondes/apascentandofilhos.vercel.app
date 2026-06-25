@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import React, { Component, ErrorInfo, ReactNode } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -14,7 +15,33 @@ import {
 import { useEffect, lazy, Suspense } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { Toaster } from "react-hot-toast";
 import { auth, db } from "./lib/firebase";
+
+export class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean, error: Error | null}> {
+  constructor(props: {children: ReactNode}) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Uncaught error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: "20px", background: "white", color: "red", zIndex: 9999, position: "absolute", inset: 0 }}>
+          <h1>Something went wrong in React.</h1>
+          <pre>{this.state.error?.toString()}</pre>
+          <pre>{this.state.error?.stack}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -59,10 +86,13 @@ function ScrollToTop() {
 export default function App() {
   return (
     <ThemeProvider>
-      <Router>
-        <ScrollToTop />
-        <AppContent />
-      </Router>
+      <Toaster position="top-right" />
+      <ErrorBoundary>
+        <Router>
+          <ScrollToTop />
+          <AppContent />
+        </Router>
+      </ErrorBoundary>
     </ThemeProvider>
   );
 }

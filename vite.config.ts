@@ -4,29 +4,14 @@ import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/',
-  server: {
-    port: 3000,
-    host: "0.0.0.0",
-    allowedHosts: true,
-    hmr: false,
-  },
   plugins: [react(), tailwindcss()],
+  server: {
+    host: '0.0.0.0',
+    port: 3000,
+  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    chunkSizeWarningLimit: 2000,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-router': ['react-router-dom'],
-          'vendor-firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
-          'vendor-icons': ['lucide-react'],
-          'vendor-pdf-canvas': ['jspdf', 'html2canvas'],
-        }
-      }
-    }
   },
   resolve: {
     alias: {

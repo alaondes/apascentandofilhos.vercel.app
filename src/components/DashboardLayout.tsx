@@ -189,7 +189,11 @@ export default function DashboardLayout({
           </button>
 
           <div className="flex items-center gap-2 text-gray-600 font-medium text-[0.85rem]">
-            <UserCircle size={18} />
+            {profile?.avatar ? (
+              <img src={profile.avatar} alt="Avatar" className="w-6 h-6 rounded-full object-cover" />
+            ) : (
+              <UserCircle size={18} />
+            )}
             <span className="hidden sm:block">{profile?.nome || "Líder"}</span>
           </div>
 

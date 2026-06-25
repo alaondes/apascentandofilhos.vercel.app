@@ -43,11 +43,15 @@ const compressImage = (file: File): Promise<string> => {
   });
 };
 
-export default function MafKidsAdmin() {
+interface MafKidsAdminProps {
+  activeSection?: string;
+}
+
+export default function MafKidsAdmin({ activeSection = "maf_kids_header" }: MafKidsAdminProps) {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<"header" | "criacao" | "conselhos" | "livrinhos" | "rodape">("header");
+  const activeTab = activeSection === "maf_kids" ? "header" : activeSection.replace("maf_kids_", "");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -147,28 +151,6 @@ export default function MafKidsAdmin() {
       </div>
 
       <div className="p-6 lg:p-8 space-y-6">
-        {/* Menu de Navegacao por Sub-abas */}
-        <div className="flex flex-wrap gap-2 p-2 bg-white border border-[#e2eaf3] shadow-sm rounded-2xl w-full">
-          {[
-            { id: "header", label: "Cabeçalho (Header)" },
-            { id: "criacao", label: "A Cor da Criação" },
-            { id: "conselhos", label: "Conselhos aos Pais" },
-            { id: "livrinhos", label: "Livrinhos" },
-            { id: "rodape", label: "Rodapé (Projeto e Propósito)" }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-                activeTab === tab.id
-                  ? "bg-[#2D6A9F] text-white shadow-md drop-shadow-sm"
-                  : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-[#2D6A9F] border border-transparent hover:border-[#c8d8e8]"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
         {/* Seções Ativas baseadas na seleção */}
 
         {/* Abas 1: Cabeçalho (Header) */}
@@ -316,6 +298,33 @@ export default function MafKidsAdmin() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                </div>
+
+                {/* Banners Adicionados aqui no editor de cabeçalho no final de selos */}
+                <div className="space-y-4 pt-6 border-t border-gray-100">
+                  <h5 className="font-bold text-primary-dark text-sm uppercase pl-1 tracking-wide">Banners de Destaque (Botões Inferiores)</h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-1.5 p-4 bg-[#f0f7fc] border border-[#d6e5f3] rounded-xl relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-[#1e88e5]"></div>
+                      <label className="text-[10px] text-[#1e88e5] font-black uppercase pl-1">Banner Azul (Topo)</label>
+                      <input 
+                        type="text" 
+                        className="w-full p-2.5 border border-[#c8d8e8] rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#1e88e5]/20 outline-none transition-all font-bold" 
+                        value={data.header?.bannerBlue || "TODO DIA TEM ALGO NOVO AQUI!"} 
+                        onChange={e => handleNestedChange(["header", "bannerBlue"], e.target.value)} 
+                      />
+                    </div>
+                    <div className="space-y-1.5 p-4 bg-[#fffcf0] border border-[#fbe7a4] rounded-xl relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-[#ffca28]"></div>
+                      <label className="text-[10px] text-[#e65100] font-black uppercase pl-1">Banner Amarelo (Topo)</label>
+                      <input 
+                        type="text" 
+                        className="w-full p-2.5 border border-[#fbe7a4] rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#ffca28]/20 outline-none transition-all font-bold" 
+                        value={data.header?.bannerYellow || "VENHA FAZER PARTE DESSA FAMÍLIA!"} 
+                        onChange={e => handleNestedChange(["header", "bannerYellow"], e.target.value)} 
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -835,6 +844,33 @@ export default function MafKidsAdmin() {
                     ))}
                   </div>
                 </div>
+
+                {/* Banners Adicionados aqui no editor de livrinhos no finao */}
+                <div className="mt-8 space-y-4 pt-6 border-t border-[#e2eaf3]">
+                  <h5 className="font-bold text-primary-dark text-sm uppercase pl-1 tracking-wide">Banners de Destaque (Livrinhos)</h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-1.5 p-4 bg-[#fdf5ff] border border-[#f3e5f5] rounded-xl relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-[#ab47bc]"></div>
+                      <label className="text-[10px] text-[#8e24aa] font-black uppercase pl-1">Banner Roxo (Livros/Colorir)</label>
+                      <input 
+                        type="text" 
+                        className="w-full p-2.5 border border-[#e1bee7] rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#ab47bc]/20 outline-none transition-all font-bold" 
+                        value={data.header?.bannerPurple || data.books?.bannerLeft || "NOVOS LIVRINHOS TODA SEMANA!"} 
+                        onChange={e => handleNestedChange(["header", "bannerPurple"], e.target.value)} 
+                      />
+                    </div>
+                    <div className="space-y-1.5 p-4 bg-[#fffcf0] border border-[#fbe7a4] rounded-xl relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-[#ffca28]"></div>
+                      <label className="text-[10px] text-[#e65100] font-black uppercase pl-1">Banner Amarelo Lápis (Livros/Colorir)</label>
+                      <input 
+                        type="text" 
+                        className="w-full p-2.5 border border-[#fbe7a4] rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#ffca28]/20 outline-none transition-all font-bold" 
+                        value={data.header?.bannerPencil || data.books?.bannerRight || "LEIA, APRENDA, COLORA E COMPARTILHE O AMOR DE JESUS!"} 
+                        onChange={e => handleNestedChange(["header", "bannerPencil"], e.target.value)} 
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-end pt-6 border-t border-gray-150">
@@ -851,8 +887,8 @@ export default function MafKidsAdmin() {
           </motion.div>
         )}
 
-        {/* Aba 5: Rodapé */}
-        {activeTab === "rodape" && (
+        {/* Aba 5: Jesus na Minha Casa */}
+        {activeTab === "jesus_casa" && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -860,32 +896,54 @@ export default function MafKidsAdmin() {
           >
             <div className="bg-white border border-[#e2eaf3] p-6 lg:p-8 rounded-2xl space-y-6 shadow-sm">
               <h4 className="font-bold text-primary-dark mb-1 flex items-center gap-2 text-lg">
-                <span className="text-xl">📋</span>
-                Configurações: Rodapé (Projeto e Propósito)
+                <span className="text-xl">🏠</span>
+                Configurações: Jesus na Minha Casa
               </h4>
               <p className="text-xs text-gray-500 leading-relaxed italic border-b border-gray-100 pb-4">
                 Edite os títulos, valores institucionais e missão exibidos no rodapé especial da página MAF Kids.
               </p>
 
               <div className="grid grid-cols-1 gap-6">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] text-gray-400 font-bold uppercase pl-1">Projeto Título Principal</label>
-                  <input 
-                    type="text" 
-                    className="w-full p-2.5 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all font-bold text-gray-700" 
-                    value={data.footer?.title || ""} 
-                    onChange={e => handleNestedChange(["footer", "title"], e.target.value)} 
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] text-gray-400 font-bold uppercase pl-1">Texto Propósito</label>
-                  <textarea 
-                    rows={4}
-                    className="w-full p-2.5 border border-[#c8d8e8] rounded-xl text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all resize-none text-gray-700 leading-relaxed" 
-                    value={data.footer?.purposeText || ""} 
-                    onChange={e => handleNestedChange(["footer", "purposeText"], e.target.value)} 
-                  />
+                <div className="space-y-1.5 mt-2 bg-[#f4f7fa] p-4 rounded-xl border border-[#e2eaf3]">
+                  <label className="text-xs font-bold text-[#1f2937] uppercase flex items-center gap-2 mb-2">
+                    <span className="text-[#3b82f6]">🖼️</span> Imagem do Banner Inferior
+                  </label>
+                  <p className="text-[11px] text-gray-500 mb-3">Links do Firebase Storage. Dê preferência à proporção 1200x300. Se este campo estiver preenchido, o bloco institucional inferior será substituído completamente por este banner.</p>
+                  
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative flex-1">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><line x1="16" y1="5" x2="22" y2="5"/><line x1="19" y1="2" x2="19" y2="8"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                      </div>
+                      <input 
+                        type="text" 
+                        value={data.footer?.imageUrl || ""}
+                        onChange={e => handleNestedChange(["footer", "imageUrl"], e.target.value)} 
+                        className="pl-9 w-full p-2.5 border border-[#c8d8e8] rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all placeholder-gray-300 bg-white" 
+                        placeholder="https://..."
+                      />
+                    </div>
+                    <label className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 rounded-xl cursor-pointer font-bold text-sm transition-colors border border-[#c8d8e8] whitespace-nowrap">
+                      <Upload size={18} />
+                      <span>Galeria / Upload</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            try {
+                              const base64 = await compressImage(file);
+                              handleNestedChange(["footer", "imageUrl"], base64);
+                            } catch (err) {
+                              alert("Erro ao processar imagem.");
+                            }
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
                 </div>
               </div>
 
