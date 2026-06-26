@@ -293,19 +293,25 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
         const dataUrl = canvas.toDataURL("image/webp", 0.85);
 
         try {
-          const userRef = doc(db, "users", auth.currentUser!.uid);
-          await updateDoc(userRef, {
-            avatar: dataUrl,
-          });
-          await refreshProfile();
-          toast.success("Foto de perfil atualizada!");
+          const userId = auth.currentUser!.uid;
+          const userRef = doc(db, "users", userId);
+          const membroRef = doc(db, "membros", userId);
           
+          import("firebase/firestore").then(async ({ getDoc }) => {
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+              await updateDoc(userRef, { avatar: dataUrl });
+            } else {
+              const membroSnap = await getDoc(membroRef);
+              if (membroSnap.exists()) {
+                await updateDoc(membroRef, { avatar: dataUrl });
+              }
+            }
+            await refreshProfile();
+            toast.success("Foto de perfil atualizada!");
+          });
         } catch (err: any) {
-          handleFirestoreError(
-            err,
-            OperationType.UPDATE,
-            `users/${auth.currentUser?.uid}`,
-          );
+          console.error(err);
           toast.error("Erro ao atualizar a foto.");
         } finally {
           setLoadingAvatar(false);
@@ -332,8 +338,10 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
       }
 
       // 2. Update Firestore Profile
-      const userRef = doc(db, "users", auth.currentUser.uid);
-      await updateDoc(userRef, {
+      const userId = auth.currentUser.uid;
+      const userRef = doc(db, "users", userId);
+      
+      const updateData = {
         nome: formData.nome,
         cpf: formData.cpf,
         dataNascimento: formData.dataNascimento,
@@ -354,17 +362,25 @@ export default function MeusDados({ isEmbedded = false }: MeusDadosProps) {
         cidade: formData.cidade,
         estado: formData.estado,
         updatedAt: new Date().toISOString(),
-      });
+      };
+
+      const { getDoc } = await import("firebase/firestore");
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        await updateDoc(userRef, updateData);
+      } else {
+        const membroRef = doc(db, "membros", userId);
+        const membroSnap = await getDoc(membroRef);
+        if (membroSnap.exists()) {
+          await updateDoc(membroRef, updateData);
+        }
+      }
 
       await refreshProfile();
       toast.success("Dados salvos com sucesso!");
       
     } catch (err: any) {
-      handleFirestoreError(
-        err,
-        OperationType.UPDATE,
-        `users/${auth.currentUser.uid}`,
-      );
+      console.error(err);
       toast.error("Erro ao atualizar perfil.");
     } finally {
       setLoading(false);

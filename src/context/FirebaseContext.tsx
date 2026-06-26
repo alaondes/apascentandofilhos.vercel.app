@@ -33,6 +33,12 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setProfile(docSnap.data());
+        } else {
+          const membroRef = doc(db, "membros", user.uid);
+          const membroSnap = await getDoc(membroRef);
+          if (membroSnap.exists()) {
+            setProfile(membroSnap.data());
+          }
         }
       } catch (error) {
         console.error("Error fetching user profile:", error);
@@ -50,7 +56,13 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({
           if (docSnap.exists()) {
             setProfile(docSnap.data());
           } else {
-            setProfile(null);
+            const membroRef = doc(db, "membros", firebaseUser.uid);
+            const membroSnap = await getDoc(membroRef);
+            if (membroSnap.exists()) {
+              setProfile(membroSnap.data());
+            } else {
+              setProfile(null);
+            }
           }
         } catch (error) {
           console.error("Error fetching user profile:", error);

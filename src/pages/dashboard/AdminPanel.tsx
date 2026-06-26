@@ -240,13 +240,14 @@ export default function AdminPanel() {
       !isMembro);
 
   const availableDashboards = [];
-  if (isAdmin || isMembro) {
-    availableDashboards.push({
-      id: "membro",
-      name: "Painel do Membro",
-      icon: Users,
-    });
-  }
+  
+  // Painel do Membro is available to ALL registered users by default
+  availableDashboards.push({
+    id: "membro",
+    name: "Painel do Membro",
+    icon: Users,
+  });
+
   if (isAdmin || isLeader) {
     availableDashboards.push({
       id: "lider",
@@ -1226,7 +1227,7 @@ export default function AdminPanel() {
         </section>
         <div className="w-full flex-1 flex flex-col pt-6 pb-12 px-4 sm:px-6 bg-[#f4f7f9]">
           <div className="w-full max-w-[1300px] mx-auto h-full min-h-[80vh] flex flex-col">
-            <MemberDashboardComponent />
+            <MemberDashboardComponent activeTab={activeTab} />
           </div>
         </div>
       </AdminLayout>
@@ -1284,7 +1285,7 @@ export default function AdminPanel() {
           )}
 
           {/* Section: Painel do Membro */}
-          {selectedDashboard === "membro" && (isAdmin || isMembro) && (
+          {selectedDashboard === "membro" && (
             <div>
               <h3 className="text-[12px] font-black uppercase tracking-wider text-white bg-primary-base rounded-md mb-4 px-3 py-2 text-center">
                 Painel do Membro
@@ -2399,7 +2400,7 @@ export default function AdminPanel() {
               "member_ajuda"
             ].includes(activeTab) ? (
             <div className="w-full bg-[#f4f7f9] min-h-screen p-4 lg:p-6">
-              <MemberDashboardComponent />
+              <MemberDashboardComponent activeTab={activeTab} />
             </div>
           ) : (
             <>

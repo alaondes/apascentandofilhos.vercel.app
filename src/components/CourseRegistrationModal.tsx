@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { X, Check, User, Heart, MapPin, CheckSquare } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { doc, getDoc, addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 import { db, handleFirestoreError, OperationType } from "../lib/firebase";
 
 interface CourseRegistrationModalProps {
@@ -332,10 +333,14 @@ export default function CourseRegistrationModal({
     const path = "course_registrations";
 
     try {
-      // Build dynamic payload mapping
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
       const payload: Record<string, any> = {
         courseTitle,
         formData: formValues,
+        userId: currentUser ? currentUser.uid : null,
+        userEmail: currentUser ? currentUser.email : formValues.email || null,
         createdAt: serverTimestamp(),
       };
 

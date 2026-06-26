@@ -208,8 +208,8 @@ function AppContent() {
             <Route element={<PublicRoute />}>
               <Route path="/login" element={<Login />} />
               <Route path="/cadastro" element={<Cadastro />} />
-              <Route path="/cadastro-membro" element={<CadastroMembro />} />
             </Route>
+            <Route path="/cadastro-membro" element={<CadastroMembro />} />
   
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard/admin" element={<AdminPanel />} />

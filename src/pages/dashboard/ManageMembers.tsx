@@ -803,9 +803,11 @@ export default function ManageMembers() {
 
   return (
     <div className="bg-white rounded-[14px] border-[1.5px] border-[#c8d8e8] shadow-sm flex flex-col w-full h-full min-h-[500px]">
-      <div className="p-4 sm:p-6 border-b border-[#c8d8e8] flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center">
-        <div>
-          <h2 className="text-xl font-bold font-serif text-primary-dark">
+      {!isModalOpen && !viewingMember && (
+        <>
+          <div className="p-4 sm:p-6 border-b border-[#c8d8e8] flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center">
+            <div>
+              <h2 className="text-xl font-bold font-serif text-primary-dark">
             Membros da Igreja
           </h2>
           <p className="text-sm text-gray-500 mt-1">
@@ -855,18 +857,52 @@ export default function ManageMembers() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 w-full lg:w-auto shrink-0 justify-end">
-            <div className="text-xs font-mono font-bold bg-white text-primary-dark py-2 px-3 border border-[#c8d8e8] rounded-lg max-w-[200px] sm:max-w-[300px] truncate select-all shadow-inner">
-              {window.location.origin}/cadastro-membro
-            </div>
+          <div className="flex flex-col sm:flex-row items-center gap-2 w-full lg:w-auto shrink-0 justify-end">
+            <input
+              type="text"
+              readOnly
+              value={`${window.location.origin}/cadastro-membro`}
+              className="text-xs font-mono font-bold bg-white text-primary-dark py-2 px-3 border border-[#c8d8e8] rounded-lg w-full sm:w-[250px] truncate shadow-inner focus:outline-none focus:border-primary-base focus:ring-1 focus:ring-primary-base"
+              onClick={(e) => (e.target as HTMLInputElement).select()}
+            />
             <button
               type="button"
               onClick={() => {
-                navigator.clipboard.writeText(`${window.location.origin}/cadastro-membro`);
-                setCopiedLink(true);
-                setTimeout(() => setCopiedLink(false), 3000);
+                const url = `${window.location.origin}/cadastro-membro`;
+                if (navigator.clipboard && window.isSecureContext) {
+                  navigator.clipboard.writeText(url)
+                    .then(() => {
+                      setCopiedLink(true);
+                      setTimeout(() => setCopiedLink(false), 3000);
+                    })
+                    .catch(() => {
+                      // fallback
+                      const textArea = document.createElement("textarea");
+                      textArea.value = url;
+                      document.body.appendChild(textArea);
+                      textArea.select();
+                      try {
+                        document.execCommand('copy');
+                        setCopiedLink(true);
+                        setTimeout(() => setCopiedLink(false), 3000);
+                      } catch (err) {}
+                      document.body.removeChild(textArea);
+                    });
+                } else {
+                  // fallback
+                  const textArea = document.createElement("textarea");
+                  textArea.value = url;
+                  document.body.appendChild(textArea);
+                  textArea.select();
+                  try {
+                    document.execCommand('copy');
+                    setCopiedLink(true);
+                    setTimeout(() => setCopiedLink(false), 3000);
+                  } catch (err) {}
+                  document.body.removeChild(textArea);
+                }
               }}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold transition duration-200 text-sm border cursor-pointer border-transparent ${
+              className={`flex items-center justify-center w-full sm:w-auto gap-1.5 px-4 py-2 rounded-lg font-bold transition duration-200 text-sm border cursor-pointer border-transparent ${
                 copiedLink
                   ? "bg-green-600 text-white"
                   : "bg-primary-base hover:bg-primary-dark text-white shadow-md active:scale-95"
@@ -1011,30 +1047,25 @@ export default function ManageMembers() {
           </table>
         )}
       </div>
+      </>
+      )}
 
-      <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-primary-dark/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden"
-            >
-              <div className="bg-[#f7fafd] border-b border-[#c8d8e8]">
-                <div className="px-6 py-4 flex justify-between items-center">
-                  <h3 className="font-bold font-serif text-lg text-primary-dark">
-                    {editingMember ? "Ficha do Membro" : "Novo Membro"}
-                  </h3>
-                  <button
-                    onClick={handleCloseModal}
-                    className="text-gray-500 hover:text-gray-800 transition p-1"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-                
-                <div className="px-6 flex gap-4 overflow-x-auto custom-scrollbar no-scrollbar-buttons pb-1">
+      {isModalOpen && (
+        <div className="flex-1 flex flex-col w-full h-full">
+          <div className="bg-[#f7fafd] border-b border-[#c8d8e8] rounded-t-[14px]">
+            <div className="px-6 py-4 flex justify-between items-center">
+              <h3 className="font-bold font-serif text-lg text-primary-dark">
+                {editingMember ? "Ficha do Membro" : "Novo Membro"}
+              </h3>
+              <button
+                onClick={handleCloseModal}
+                className="text-gray-500 hover:text-gray-800 transition p-1 bg-white border border-gray-200 rounded-lg shadow-sm"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="px-6 flex gap-4 overflow-x-auto custom-scrollbar no-scrollbar-buttons pb-1">
                   {[
                     { id: "pessoal", label: "Pessoal" },
                     { id: "contato", label: "Contato / Endereço" },
@@ -1600,11 +1631,8 @@ export default function ManageMembers() {
                   </div>
                 </div>
               </form>
-
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
       <AnimatePresence>
         {deleteConfirmId && (
@@ -1645,15 +1673,8 @@ export default function ManageMembers() {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {viewingMember && (
-          <div className="fixed inset-0 bg-primary-dark/55 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col h-[90vh]"
-            >
+      {viewingMember && (
+        <div className="flex-1 flex flex-col w-full h-full">
               <div className="bg-[#f7fafd] border-b border-[#c8d8e8] px-6 py-4 flex flex-col md:flex-row justify-between md:items-center gap-4 no-print flex-shrink-0">
                 <div className="flex items-center gap-2">
                   <User size={22} className="text-[#1a6496]" />
@@ -2571,10 +2592,8 @@ export default function ManageMembers() {
                   </div>
                 </div>
               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
       <AnimatePresence>
         {deleteConfirmId && (
