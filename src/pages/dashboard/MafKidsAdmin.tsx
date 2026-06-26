@@ -4,6 +4,61 @@ import { db } from "../../lib/firebase";
 import { Save, Loader2, Plus, Trash2, Upload, Image as ImageIcon, Heart, MessageCircle, Book, LayoutPanelLeft } from "lucide-react";
 import { motion } from "motion/react";
 
+function darkenColor(hex: string, percent: number): string {
+  let num = parseInt(hex.replace("#", ""), 16);
+  let r = (num >> 16) - Math.round(2.55 * percent);
+  let g = ((num >> 8) & 0x00FF) - Math.round(2.55 * percent);
+  let b = (num & 0x0000FF) - Math.round(2.55 * percent);
+  r = Math.max(0, r);
+  g = Math.max(0, g);
+  b = Math.max(0, b);
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
+
+function mixWithWhite(hex: string, ratio: number): string {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  
+  const rMix = Math.round(r * (1 - ratio) + 255 * ratio);
+  const gMix = Math.round(g * (1 - ratio) + 255 * ratio);
+  const bMix = Math.round(b * (1 - ratio) + 255 * ratio);
+  
+  return `#${((1 << 24) + (rMix << 16) + (gMix << 8) + bMix).toString(16).slice(1)}`;
+}
+
+function generateThemeFromBase(name: string, baseColor: string) {
+  const cleanHex = baseColor.startsWith("#") ? baseColor : `#${baseColor}`;
+  return {
+    id: `custom_${Date.now()}`,
+    name: name,
+    baseColor: cleanHex,
+    bg: mixWithWhite(cleanHex, 0.96),
+    border: mixWithWhite(cleanHex, 0.65),
+    tBg: cleanHex,
+    btn: cleanHex,
+    btnDark: darkenColor(cleanHex, 15),
+    text: darkenColor(cleanHex, 30),
+    iconBg: mixWithWhite(cleanHex, 0.90)
+  };
+}
+
+const SYSTEM_COLORS = [
+  { id: "pink", name: "Rosa", emoji: "💖", baseColor: "#e91e63" },
+  { id: "orange", name: "Laranja", emoji: "🧡", baseColor: "#ff9800" },
+  { id: "green", name: "Verde", emoji: "💚", baseColor: "#4caf50" },
+  { id: "blue", name: "Azul", emoji: "💙", baseColor: "#2196f3" },
+  { id: "purple", name: "Roxo", emoji: "💜", baseColor: "#9c27b0" },
+  { id: "yellow", name: "Amarelo", emoji: "💛", baseColor: "#fbc02d" },
+  { id: "red", name: "Vermelho", emoji: "❤️", baseColor: "#f44336" },
+  { id: "cyan", name: "Ciano", emoji: "🩵", baseColor: "#00bcd4" },
+  { id: "teal", name: "Verde-Água", emoji: "💚", baseColor: "#009688" },
+  { id: "brown", name: "Marrom", emoji: "🤎", baseColor: "#795548" },
+  { id: "lime", name: "Verde Limão", emoji: "💛", baseColor: "#afb42b" },
+  { id: "grape", name: "Uva", emoji: "💜", baseColor: "#8e24aa" }
+];
+
 const compressImage = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -54,11 +109,30 @@ export default function MafKidsAdmin({ activeSection = "maf_kids_header" }: MafK
   const activeTab = activeSection === "maf_kids" ? "header" : activeSection.replace("maf_kids_", "");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // States for the custom color manager modal
+  const [isColorModalOpen, setIsColorModalOpen] = useState(false);
+  const [editingColorId, setEditingColorId] = useState<string | null>(null);
+  const [colorFormName, setColorFormName] = useState("");
+  const [colorFormHex, setColorFormHex] = useState("#e91e63");
+  const [bottomColorName, setBottomColorName] = useState("");
+  const [bottomColorHex, setBottomColorHex] = useState("#e91e63");
+  const [newRuleInput, setNewRuleInput] = useState("");
+  const [newProgramInput, setNewProgramInput] = useState("");
+
   useEffect(() => {
     async function fetch() {
       const snap = await getDoc(doc(db, "content", "maf_kids"));
       if (snap.exists()) {
-        setData(snap.data());
+        const fetched = snap.data();
+        setData({
+          ...defaultMafKidsData,
+          ...fetched,
+          header: { ...defaultMafKidsData.header, ...fetched.header },
+          middle1: { ...defaultMafKidsData.middle1, ...fetched.middle1 },
+          books: { ...defaultMafKidsData.books, ...fetched.books },
+          footer: { ...defaultMafKidsData.footer, ...fetched.footer },
+          projectInfo: { ...defaultMafKidsData.projectInfo, ...(fetched.projectInfo || {}) }
+        });
       } else {
         setData(defaultMafKidsData);
       }
@@ -781,18 +855,35 @@ export default function MafKidsAdmin({ activeSection = "maf_kids_header" }: MafK
                           </div>
 
                           <div className="space-y-1.5">
-                            <label className="text-[9px] text-gray-400 font-bold uppercase">Cor do Tema</label>
+                            <div className="flex items-center justify-between">
+                              <label className="text-[9px] text-gray-400 font-bold uppercase">Cor do Tema</label>
+                              <button
+                                type="button"
+                                onClick={() => setIsColorModalOpen(true)}
+                                className="text-[9px] text-[#2D6A9F] hover:text-[#245785] font-extrabold flex items-center gap-1 cursor-pointer transition-colors"
+                              >
+                                🎨 CRIAR/EDITAR CORES
+                              </button>
+                            </div>
                             <select
                               className="w-full px-2.5 py-1.5 border border-[#c8d8e8] rounded-xl text-xs font-semibold bg-white outline-none"
                               value={b.theme || "pink"}
                               onChange={e => handleArrayChange(["books", "items"], i, "theme", e.target.value)}
                             >
-                              <option value="pink">💖 Rosa</option>
-                              <option value="orange">🧡 Laranja</option>
-                              <option value="green">💚 Verde</option>
-                              <option value="blue">💙 Azul</option>
-                              <option value="purple">💜 Roxo</option>
-                              <option value="yellow">💛 Amarelo</option>
+                              {SYSTEM_COLORS.filter(sc => !data.deletedSystemColors?.includes(sc.id)).map(sc => {
+                                const customOverride = data.customColors?.find((c: any) => c.id === sc.id);
+                                const name = customOverride ? `${customOverride.name} (Modificado)` : sc.name;
+                                return (
+                                  <option key={sc.id} value={sc.id}>
+                                    {sc.emoji} {name}
+                                  </option>
+                                );
+                              })}
+                              {data.customColors?.filter((c: any) => !SYSTEM_COLORS.some(sc => sc.id === c.id)).map((c: any) => (
+                                <option key={c.id} value={c.id}>
+                                  🎨 {c.name}
+                                </option>
+                              ))}
                             </select>
                           </div>
 
@@ -842,6 +933,152 @@ export default function MafKidsAdmin({ activeSection = "maf_kids_header" }: MafK
                         </div>
                       </div>
                     ))}
+                  </div>
+                </div>
+
+                {/* Gerenciamento de Cores Personalizadas */}
+                <div className="mt-8 pt-6 border-t border-[#e2eaf3] space-y-4">
+                  <div className="p-5 rounded-2xl border border-dashed border-[#c8d8e8] bg-[#fcfdfe] space-y-4 shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                      <h6 className="font-bold text-gray-700 text-sm flex items-center gap-2">
+                        <span>🎨</span> Cores de Tema Personalizadas
+                      </h6>
+                      <span className="text-[10px] text-gray-400 font-bold uppercase">Crie suas próprias cores para os livrinhos</span>
+                    </div>
+                    
+                    {data.customColors && data.customColors.length > 0 ? (
+                      <div className="flex flex-wrap gap-2.5">
+                        {data.customColors.map((c: any, cIdx: number) => (
+                          <div key={c.id} className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[#c8d8e8] bg-white text-xs font-semibold shadow-sm">
+                            <span 
+                              className="w-4 h-4 rounded-full border border-gray-300" 
+                              style={{ backgroundColor: c.baseColor }}
+                            />
+                            <span className="text-gray-700">{c.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsColorModalOpen(true);
+                                setEditingColorId(c.id);
+                                setColorFormName(c.name);
+                                setColorFormHex(c.baseColor);
+                              }}
+                              className="text-blue-500 hover:text-blue-700 ml-1.5 cursor-pointer transition-colors"
+                              title="Editar Cor"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm(`Deseja mesmo excluir a cor "${c.name}"?`)) {
+                                  setData((prev: any) => {
+                                    const updatedColors = (prev.customColors || []).filter((_: any, idx: number) => idx !== cIdx);
+                                    // Also reset books that were using this color to "pink"
+                                    const books = prev.books || {};
+                                    const updatedItems = (books.items || []).map((b: any) => {
+                                      if (b.theme === c.id) {
+                                        return { ...b, theme: "pink" };
+                                      }
+                                      return b;
+                                    });
+                                    return {
+                                      ...prev,
+                                      customColors: updatedColors,
+                                      books: {
+                                        ...books,
+                                        items: updatedItems
+                                      }
+                                    };
+                                  });
+                                }
+                              }}
+                              className="text-red-500 hover:text-red-700 ml-1 cursor-pointer transition-colors"
+                              title="Excluir Cor"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400 italic">Nenhuma cor personalizada criada ainda. Adicione uma no formulário abaixo!</p>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-gray-100 items-end">
+                      <div className="space-y-1">
+                        <label className="text-[9px] text-gray-400 font-bold uppercase pl-1">Nome da Cor</label>
+                        <input 
+                          type="text"
+                          value={bottomColorName}
+                          onChange={(e) => setBottomColorName(e.target.value)}
+                          placeholder="Ex: Vermelho Rubi"
+                          className="w-full px-2.5 py-1.5 border border-[#c8d8e8] rounded-xl text-xs bg-white outline-none font-semibold"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] text-gray-400 font-bold uppercase pl-1">Escolha a Cor Base / Código HEX</label>
+                        <div className="flex gap-2 items-center">
+                          <input 
+                            type="color"
+                            value={bottomColorHex.startsWith("#") && bottomColorHex.length === 7 ? bottomColorHex : "#e91e63"}
+                            onChange={(e) => setBottomColorHex(e.target.value)}
+                            className="w-10 h-8 border border-[#c8d8e8] rounded-xl cursor-pointer bg-transparent"
+                          />
+                          <input 
+                            type="text"
+                            value={bottomColorHex}
+                            onChange={(e) => {
+                              let val = e.target.value;
+                              if (!val.startsWith("#") && val.trim().length > 0) {
+                                val = "#" + val;
+                              }
+                              setBottomColorHex(val);
+                            }}
+                            placeholder="#HEXCODE"
+                            className="w-24 px-2 py-1 border border-[#c8d8e8] rounded-xl text-xs font-mono font-bold bg-white text-gray-700 uppercase outline-none"
+                            maxLength={7}
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const name = bottomColorName.trim();
+                          const baseColor = bottomColorHex.trim();
+                          
+                          if (!name) {
+                            alert("Por favor, digite um nome para a cor!");
+                            return;
+                          }
+
+                          // Validar formato hexadecimal
+                          const hexRegex = /^#[0-9A-Fa-f]{6}$/;
+                          if (!hexRegex.test(baseColor)) {
+                            alert("Por favor, insira um código HEX válido (ex: #FF00FF) de 7 caracteres!");
+                            return;
+                          }
+                          
+                          // Generate the theme
+                          const newTheme = generateThemeFromBase(name, baseColor);
+                          
+                          setData((prev: any) => {
+                            const currentColors = prev.customColors || [];
+                            return {
+                              ...prev,
+                              customColors: [...currentColors, newTheme]
+                            };
+                          });
+                          
+                          // Limpar campos
+                          setBottomColorName("");
+                          setBottomColorHex("#e91e63");
+                        }}
+                        className="px-4 py-2 bg-[#2D6A9F] hover:bg-[#245785] text-white rounded-xl font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 h-[34px] cursor-pointer"
+                      >
+                        <Plus size={14} /> Adicionar Cor
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -897,13 +1134,334 @@ export default function MafKidsAdmin({ activeSection = "maf_kids_header" }: MafK
             <div className="bg-white border border-[#e2eaf3] p-6 lg:p-8 rounded-2xl space-y-6 shadow-sm">
               <h4 className="font-bold text-primary-dark mb-1 flex items-center gap-2 text-lg">
                 <span className="text-xl">🏠</span>
-                Configurações: Jesus na Minha Casa
+                Configurações: Jesus na Minha Casa (Culto no Lar)
               </h4>
               <p className="text-xs text-gray-500 leading-relaxed italic border-b border-gray-100 pb-4">
-                Edite os títulos, valores institucionais e missão exibidos no rodapé especial da página MAF Kids.
+                Edite os textos explicativos, regras de conduta e programa estruturado para o Culto no Lar, bem como o banner especial.
               </p>
 
               <div className="grid grid-cols-1 gap-6">
+                
+                {/* TÍTULO E SUBTÍTULO DO RODAPÉ */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-700 uppercase">Título da Faixa Final</label>
+                    <input
+                      type="text"
+                      value={data.footer?.finalText || ""}
+                      onChange={e => handleNestedChange(["footer", "finalText"], e.target.value)}
+                      className="w-full p-2.5 border border-[#c8d8e8] rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all bg-white"
+                      placeholder="JESUS NA MINHA CASA"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-700 uppercase">Subtítulo da Faixa Final</label>
+                    <input
+                      type="text"
+                      value={data.footer?.finalSubtext || ""}
+                      onChange={e => handleNestedChange(["footer", "finalSubtext"], e.target.value)}
+                      className="w-full p-2.5 border border-[#c8d8e8] rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all bg-white"
+                      placeholder="UM LUGAR DE AMOR, APRENDIZADO E MUITA ALEGRIA!"
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-100 pt-4 space-y-4">
+                  <h5 className="text-xs font-bold text-[#2D6A9F] uppercase tracking-wide">📖 Conteúdo do Culto no Lar</h5>
+                  
+                  {/* IMPORTÂNCIA */}
+                  <div className="space-y-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-gray-700 uppercase flex items-center gap-1">
+                        <span>❓</span> Título - Importância do Culto
+                      </label>
+                      <input
+                        type="text"
+                        value={data.projectInfo?.importanceTitle || ""}
+                        onChange={e => handleNestedChange(["projectInfo", "importanceTitle"], e.target.value)}
+                        className="w-full p-2.5 border border-[#c8d8e8] rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all bg-white"
+                        placeholder="Qual a importância do Culto no Lar?"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-gray-700 uppercase flex items-center gap-1">
+                        Texto da Importância (Pressione Enter duas vezes para criar parágrafos)
+                      </label>
+                      <textarea
+                        rows={6}
+                        value={data.projectInfo?.importanceText || ""}
+                        onChange={e => handleNestedChange(["projectInfo", "importanceText"], e.target.value)}
+                        className="w-full p-2.5 border border-[#c8d8e8] rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all bg-white font-sans text-xs sm:text-sm"
+                        placeholder="Digite o texto de importância do Culto no Lar..."
+                      />
+                    </div>
+                  </div>
+
+                  {/* REGRAS */}
+                  <div className="space-y-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-gray-700 uppercase flex items-center gap-1">
+                        <span>📝</span> Título - Regras do Projeto
+                      </label>
+                      <input
+                        type="text"
+                        value={data.projectInfo?.rulesTitle || ""}
+                        onChange={e => handleNestedChange(["projectInfo", "rulesTitle"], e.target.value)}
+                        className="w-full p-2.5 border border-[#c8d8e8] rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all bg-white"
+                        placeholder="Regras do Projeto"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-gray-700 uppercase flex items-center gap-1">
+                        Gerenciar Regras do Projeto
+                      </label>
+                      
+                      <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                        {((data.projectInfo?.rules) || []).length === 0 ? (
+                          <p className="text-xs text-gray-400 italic py-2 text-center">Nenhuma regra cadastrada. Adicione uma abaixo!</p>
+                        ) : (
+                          (data.projectInfo?.rules || []).map((rule: string, idx: number) => (
+                            <div key={idx} className="flex items-center gap-2 bg-white p-2 rounded-xl border border-[#e2eaf3] shadow-sm hover:border-[#2D6A9F]/30 transition-all">
+                              <span className="text-xs font-black text-gray-400 w-6 text-center">{idx + 1}</span>
+                              <input
+                                type="text"
+                                value={rule}
+                                onChange={(e) => {
+                                  const newRules = [...(data.projectInfo?.rules || [])];
+                                  newRules[idx] = e.target.value;
+                                  handleNestedChange(["projectInfo", "rules"], newRules);
+                                }}
+                                className="flex-1 bg-transparent text-xs sm:text-sm font-semibold outline-none border-b border-transparent focus:border-blue-300 pb-0.5 text-gray-700 px-1"
+                              />
+                              
+                              <div className="flex items-center gap-1">
+                                {/* Up button */}
+                                <button
+                                  type="button"
+                                  disabled={idx === 0}
+                                  onClick={() => {
+                                    if (idx === 0) return;
+                                    const newRules = [...(data.projectInfo?.rules || [])];
+                                    const temp = newRules[idx];
+                                    newRules[idx] = newRules[idx - 1];
+                                    newRules[idx - 1] = temp;
+                                    handleNestedChange(["projectInfo", "rules"], newRules);
+                                  }}
+                                  className="p-1 text-gray-400 hover:text-[#2D6A9F] hover:bg-[#2D6A9F]/5 rounded-lg disabled:opacity-30 cursor-pointer transition-all"
+                                  title="Subir regra"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                                </button>
+                                
+                                {/* Down button */}
+                                <button
+                                  type="button"
+                                  disabled={idx === (data.projectInfo?.rules || []).length - 1}
+                                  onClick={() => {
+                                    if (idx === (data.projectInfo?.rules || []).length - 1) return;
+                                    const newRules = [...(data.projectInfo?.rules || [])];
+                                    const temp = newRules[idx];
+                                    newRules[idx] = newRules[idx + 1];
+                                    newRules[idx + 1] = temp;
+                                    handleNestedChange(["projectInfo", "rules"], newRules);
+                                  }}
+                                  className="p-1 text-gray-400 hover:text-[#2D6A9F] hover:bg-[#2D6A9F]/5 rounded-lg disabled:opacity-30 cursor-pointer transition-all"
+                                  title="Descer regra"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                                </button>
+
+                                {/* Delete button */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newRules = (data.projectInfo?.rules || []).filter((_: any, i: number) => i !== idx);
+                                    handleNestedChange(["projectInfo", "rules"], newRules);
+                                  }}
+                                  className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer transition-all"
+                                  title="Remover regra"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      {/* Add new rule */}
+                      <div className="flex gap-2 pt-2 border-t border-dashed border-gray-200">
+                        <input
+                          type="text"
+                          value={newRuleInput}
+                          onChange={(e) => setNewRuleInput(e.target.value)}
+                          placeholder="Adicionar nova regra do projeto..."
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              const val = newRuleInput.trim();
+                              if (val) {
+                                const newRules = [...(data.projectInfo?.rules || []), val];
+                                handleNestedChange(["projectInfo", "rules"], newRules);
+                                setNewRuleInput("");
+                              }
+                            }
+                          }}
+                          className="flex-1 px-3 py-2 border border-[#c8d8e8] rounded-xl text-xs sm:text-sm font-semibold bg-white outline-none focus:ring-2 focus:ring-[#2D6A9F]/20 focus:border-[#2D6A9F]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const val = newRuleInput.trim();
+                            if (val) {
+                              const newRules = [...(data.projectInfo?.rules || []), val];
+                              handleNestedChange(["projectInfo", "rules"], newRules);
+                              setNewRuleInput("");
+                            }
+                          }}
+                          className="px-4 py-2 bg-[#4caf50] hover:bg-[#43a047] text-white rounded-xl font-bold text-xs shadow-sm cursor-pointer transition-all flex items-center gap-1"
+                        >
+                          <Plus size={14} /> Adicionar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* PROGRAMA */}
+                  <div className="space-y-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-gray-700 uppercase flex items-center gap-1">
+                        <span>🌟</span> Título - Programa do Culto
+                      </label>
+                      <input
+                        type="text"
+                        value={data.projectInfo?.programTitle || ""}
+                        onChange={e => handleNestedChange(["projectInfo", "programTitle"], e.target.value)}
+                        className="w-full p-2.5 border border-[#c8d8e8] rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all bg-white"
+                        placeholder="Programa do Culto"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-gray-700 uppercase flex items-center gap-1">
+                        Gerenciar Etapas do Culto
+                      </label>
+                      
+                      <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                        {((data.projectInfo?.program) || []).length === 0 ? (
+                          <p className="text-xs text-gray-400 italic py-2 text-center">Nenhuma etapa cadastrada. Adicione uma abaixo!</p>
+                        ) : (
+                          (data.projectInfo?.program || []).map((step: string, idx: number) => (
+                            <div key={idx} className="flex items-center gap-2 bg-white p-2 rounded-xl border border-[#e2eaf3] shadow-sm hover:border-[#2D6A9F]/30 transition-all">
+                              <span className="text-xs font-black text-gray-400 w-6 text-center">{idx + 1}</span>
+                              <input
+                                type="text"
+                                value={step}
+                                onChange={(e) => {
+                                  const newProgram = [...(data.projectInfo?.program || [])];
+                                  newProgram[idx] = e.target.value;
+                                  handleNestedChange(["projectInfo", "program"], newProgram);
+                                }}
+                                className="flex-1 bg-transparent text-xs sm:text-sm font-semibold outline-none border-b border-transparent focus:border-blue-300 pb-0.5 text-gray-700 px-1"
+                              />
+                              
+                              <div className="flex items-center gap-1">
+                                {/* Up button */}
+                                <button
+                                  type="button"
+                                  disabled={idx === 0}
+                                  onClick={() => {
+                                    if (idx === 0) return;
+                                    const newProgram = [...(data.projectInfo?.program || [])];
+                                    const temp = newProgram[idx];
+                                    newProgram[idx] = newProgram[idx - 1];
+                                    newProgram[idx - 1] = temp;
+                                    handleNestedChange(["projectInfo", "program"], newProgram);
+                                  }}
+                                  className="p-1 text-gray-400 hover:text-[#2D6A9F] hover:bg-[#2D6A9F]/5 rounded-lg disabled:opacity-30 cursor-pointer transition-all"
+                                  title="Subir etapa"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                                </button>
+                                
+                                {/* Down button */}
+                                <button
+                                  type="button"
+                                  disabled={idx === (data.projectInfo?.program || []).length - 1}
+                                  onClick={() => {
+                                    if (idx === (data.projectInfo?.program || []).length - 1) return;
+                                    const newProgram = [...(data.projectInfo?.program || [])];
+                                    const temp = newProgram[idx];
+                                    newProgram[idx] = newProgram[idx + 1];
+                                    newProgram[idx + 1] = temp;
+                                    handleNestedChange(["projectInfo", "program"], newProgram);
+                                  }}
+                                  className="p-1 text-gray-400 hover:text-[#2D6A9F] hover:bg-[#2D6A9F]/5 rounded-lg disabled:opacity-30 cursor-pointer transition-all"
+                                  title="Descer etapa"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                                </button>
+
+                                {/* Delete button */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newProgram = (data.projectInfo?.program || []).filter((_: any, i: number) => i !== idx);
+                                    handleNestedChange(["projectInfo", "program"], newProgram);
+                                  }}
+                                  className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer transition-all"
+                                  title="Remover etapa"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      {/* Add new step */}
+                      <div className="flex gap-2 pt-2 border-t border-dashed border-gray-200">
+                        <input
+                          type="text"
+                          value={newProgramInput}
+                          onChange={(e) => setNewProgramInput(e.target.value)}
+                          placeholder="Adicionar nova etapa do programa..."
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              const val = newProgramInput.trim();
+                              if (val) {
+                                const newProgram = [...(data.projectInfo?.program || []), val];
+                                handleNestedChange(["projectInfo", "program"], newProgram);
+                                setNewProgramInput("");
+                              }
+                            }
+                          }}
+                          className="flex-1 px-3 py-2 border border-[#c8d8e8] rounded-xl text-xs sm:text-sm font-semibold bg-white outline-none focus:ring-2 focus:ring-[#2D6A9F]/20 focus:border-[#2D6A9F]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const val = newProgramInput.trim();
+                            if (val) {
+                              const newProgram = [...(data.projectInfo?.program || []), val];
+                              handleNestedChange(["projectInfo", "program"], newProgram);
+                              setNewProgramInput("");
+                            }
+                          }}
+                          className="px-4 py-2 bg-[#ff9800] hover:bg-[#f57c00] text-white rounded-xl font-bold text-xs shadow-sm cursor-pointer transition-all flex items-center gap-1"
+                        >
+                          <Plus size={14} /> Adicionar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* BANNER INFERIOR */}
                 <div className="space-y-1.5 mt-2 bg-[#f4f7fa] p-4 rounded-xl border border-[#e2eaf3]">
                   <label className="text-xs font-bold text-[#1f2937] uppercase flex items-center gap-2 mb-2">
                     <span className="text-[#3b82f6]">🖼️</span> Imagem do Banner Inferior
@@ -912,14 +1470,14 @@ export default function MafKidsAdmin({ activeSection = "maf_kids_header" }: MafK
                   
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex-row items-center pointer-events-none hidden sm:flex">
                         <svg className="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><line x1="16" y1="5" x2="22" y2="5"/><line x1="19" y1="2" x2="19" y2="8"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
                       </div>
                       <input 
                         type="text" 
                         value={data.footer?.imageUrl || ""}
                         onChange={e => handleNestedChange(["footer", "imageUrl"], e.target.value)} 
-                        className="pl-9 w-full p-2.5 border border-[#c8d8e8] rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all placeholder-gray-300 bg-white" 
+                        className="sm:pl-9 w-full p-2.5 border border-[#c8d8e8] rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#2D6A9F]/20 outline-none transition-all placeholder-gray-300 bg-white" 
                         placeholder="https://..."
                       />
                     </div>
@@ -951,16 +1509,431 @@ export default function MafKidsAdmin({ activeSection = "maf_kids_header" }: MafK
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-[#2D6A9F] text-white font-bold rounded-xl hover:bg-[#245785] transition shadow-md disabled:bg-gray-400 text-sm"
+                  className="flex items-center gap-2 px-6 py-2.5 bg-[#2D6A9F] text-white font-bold rounded-xl hover:bg-[#245785] transition shadow-md disabled:bg-gray-400 text-sm cursor-pointer"
                 >
                   {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                  Salvar Rodapé
+                  Salvar Configurações
                 </button>
               </div>
             </div>
           </motion.div>
         )}
       </div>
+
+      {/* MODAL DE GERENCIAMENTO DE CORES DE TEMA */}
+      {isColorModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-3xl border border-[#c8d8e8] shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[85vh]"
+          >
+            {/* Header do Modal */}
+            <div className="bg-gradient-to-r from-[#f0f6fb] to-white px-6 py-4 border-b border-[#e2eaf3] flex justify-between items-center">
+              <h3 className="font-serif font-black text-lg text-[#2D6A9F] flex items-center gap-2">
+                <span>🎨</span> Gerenciar Cores do Tema
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsColorModalOpen(false);
+                  setEditingColorId(null);
+                  setColorFormName("");
+                }}
+                className="text-gray-400 hover:text-gray-600 font-extrabold text-sm p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Conteúdo do Modal */}
+            <div className="p-6 space-y-6 overflow-y-auto flex-grow">
+              
+              {/* Formulário de Adicionar / Editar */}
+              <div className="p-4 rounded-2xl bg-[#f7fafc] border border-[#e2eaf3] space-y-3.5">
+                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  {editingColorId ? "✏️ Editar Cor Selecionada" : "✨ Criar Nova Cor de Tema"}
+                </h4>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-gray-500 font-bold uppercase pl-1">Nome da Cor</label>
+                    <input
+                      type="text"
+                      value={colorFormName}
+                      onChange={(e) => setColorFormName(e.target.value)}
+                      placeholder="Ex: Verde Limão, Rosa Chiclete"
+                      className="w-full px-3 py-2 border border-[#c8d8e8] rounded-xl text-xs font-semibold bg-white outline-none"
+                    />
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-gray-500 font-bold uppercase pl-1">Escolha o Tom Base / Código HEX</label>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="color"
+                        value={colorFormHex.startsWith("#") && colorFormHex.length === 7 ? colorFormHex : "#e91e63"}
+                        onChange={(e) => setColorFormHex(e.target.value)}
+                        className="w-12 h-9 border border-[#c8d8e8] rounded-xl cursor-pointer bg-transparent"
+                      />
+                      <input
+                        type="text"
+                        value={colorFormHex}
+                        onChange={(e) => {
+                          let val = e.target.value;
+                          if (!val.startsWith("#") && val.trim().length > 0) {
+                            val = "#" + val;
+                          }
+                          setColorFormHex(val);
+                        }}
+                        placeholder="#HEXCODE"
+                        className="w-28 px-2 py-1.5 border border-[#c8d8e8] rounded-xl text-xs font-mono font-bold bg-white text-gray-700 uppercase outline-none"
+                        maxLength={7}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 justify-end pt-2">
+                  {editingColorId && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingColorId(null);
+                        setColorFormName("");
+                        setColorFormHex("#e91e63");
+                      }}
+                      className="px-3.5 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs transition-all cursor-pointer"
+                    >
+                      Cancelar Edição
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const name = colorFormName.trim();
+                      if (!name) {
+                        alert("Por favor, digite um nome para a cor!");
+                        return;
+                      }
+
+                      // Validar formato hexadecimal
+                      const hexRegex = /^#[0-9A-Fa-f]{6}$/;
+                      if (!hexRegex.test(colorFormHex)) {
+                        alert("Por favor, insira um código HEX válido (ex: #FF00FF) de 7 caracteres!");
+                        return;
+                      }
+
+                      setData((prev: any) => {
+                        const currentColors = prev.customColors || [];
+                        if (editingColorId) {
+                          // Edit existing
+                          const updated = currentColors.map((c: any) => {
+                            if (c.id === editingColorId) {
+                              const updatedTheme = generateThemeFromBase(name, colorFormHex);
+                              return { ...updatedTheme, id: editingColorId }; // Preserve same ID
+                            }
+                            return c;
+                          });
+                          return { ...prev, customColors: updated };
+                        } else {
+                          // Create new
+                          const newTheme = generateThemeFromBase(name, colorFormHex);
+                          return { ...prev, customColors: [...currentColors, newTheme] };
+                        }
+                      });
+
+                      // Reset form
+                      setEditingColorId(null);
+                      setColorFormName("");
+                      setColorFormHex("#e91e63");
+                    }}
+                    className="px-4 py-2 bg-[#2D6A9F] hover:bg-[#245785] text-white rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center gap-1"
+                  >
+                    {editingColorId ? "Salvar Cor" : "Adicionar Cor"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Lista de Cores Existentes */}
+              <div className="space-y-5">
+                
+                {/* Seção 1: Cores Padrão do Sistema */}
+                <div className="space-y-2.5">
+                  <h4 className="text-[10px] font-bold text-[#2D6A9F] uppercase tracking-wider pl-1 flex items-center gap-1.5">
+                    <span>⚙️</span> Cores Padrão do Sistema (Editáveis)
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {SYSTEM_COLORS.filter(sc => !data.deletedSystemColors?.includes(sc.id)).map((sc) => {
+                      const customOverride = data.customColors?.find((c: any) => c.id === sc.id);
+                      const isModified = !!customOverride;
+                      const currentColor = customOverride ? customOverride.baseColor : sc.baseColor;
+                      const currentName = customOverride ? customOverride.name : sc.name;
+
+                      return (
+                        <div
+                          key={sc.id}
+                          className={`flex items-center justify-between p-3 rounded-2xl border bg-white shadow-sm transition-all ${
+                            isModified ? "border-amber-200 bg-amber-50/5" : "border-[#e2eaf3]"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span
+                              className="w-4.5 h-4.5 rounded-full border border-gray-200 shadow-inner shrink-0"
+                              style={{ backgroundColor: currentColor }}
+                            />
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold text-gray-700">
+                                {sc.emoji} {currentName}
+                              </span>
+                              {isModified && (
+                                <span className="text-[8px] text-amber-600 font-extrabold uppercase tracking-widest mt-0.5">
+                                  Modificada
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1">
+                            {/* Botão de Editar */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingColorId(sc.id);
+                                setColorFormName(currentName);
+                                setColorFormHex(currentColor);
+                              }}
+                              className="p-1.5 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                              title={`Editar cor ${sc.name}`}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                            </button>
+
+                            {/* Botão de Restaurar (Somente se modificado) */}
+                            {isModified && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (window.confirm(`Deseja mesmo restaurar a cor "${sc.name}" para o padrão original?`)) {
+                                    setData((prev: any) => {
+                                      const updatedColors = (prev.customColors || []).filter((c: any) => c.id !== sc.id);
+                                      return {
+                                        ...prev,
+                                        customColors: updatedColors
+                                      };
+                                    });
+                                    if (editingColorId === sc.id) {
+                                      setEditingColorId(null);
+                                      setColorFormName("");
+                                      setColorFormHex("#e91e63");
+                                    }
+                                  }
+                                }}
+                                className="p-1.5 text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                                title="Restaurar Cor Original"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                              </button>
+                            )}
+
+                            {/* Botão de Excluir / Ocultar Cor do Sistema */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm(`Deseja mesmo excluir/ocultar a cor do sistema "${currentName}"?`)) {
+                                  setData((prev: any) => {
+                                    const deletedList = prev.deletedSystemColors || [];
+                                    const updatedDeleted = [...deletedList, sc.id];
+
+                                    // Resetar livros usando essa cor para "pink"
+                                    const books = prev.books || {};
+                                    const updatedItems = (books.items || []).map((b: any) => {
+                                      if (b.theme === sc.id) {
+                                        return { ...b, theme: "pink" };
+                                      }
+                                      return b;
+                                    });
+
+                                    return {
+                                      ...prev,
+                                      deletedSystemColors: updatedDeleted,
+                                      books: {
+                                        ...books,
+                                        items: updatedItems
+                                      }
+                                    };
+                                  });
+                                  if (editingColorId === sc.id) {
+                                    setEditingColorId(null);
+                                    setColorFormName("");
+                                    setColorFormHex("#e91e63");
+                                  }
+                                }
+                              }}
+                              className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                              title="Excluir Cor"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Seção 2: Cores Criadas por Você */}
+                <div className="space-y-2.5 pt-4 border-t border-gray-100">
+                  <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-1 flex items-center gap-1.5">
+                    <span>✨</span> Suas Cores Personalizadas Adicionais
+                  </h4>
+                  
+                  {data.customColors && data.customColors.filter((c: any) => !SYSTEM_COLORS.some(sc => sc.id === c.id)).length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {data.customColors.filter((c: any) => !SYSTEM_COLORS.some(sc => sc.id === c.id)).map((c: any, idx: number) => (
+                        <div
+                          key={c.id}
+                          className="flex items-center justify-between p-3 rounded-2xl border border-[#e2eaf3] bg-white shadow-sm hover:border-gray-300 transition-all"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span
+                              className="w-4.5 h-4.5 rounded-full border border-gray-200 shadow-inner shrink-0"
+                              style={{ backgroundColor: c.baseColor }}
+                            />
+                            <span className="text-xs font-bold text-gray-700">{c.name}</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-1">
+                            {/* Botão de Editar */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingColorId(c.id);
+                                setColorFormName(c.name);
+                                setColorFormHex(c.baseColor);
+                              }}
+                              className="p-1.5 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                              title="Editar Cor"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                            </button>
+                            
+                            {/* Botão de Excluir */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm(`Deseja mesmo excluir a cor "${c.name}"?`)) {
+                                  setData((prev: any) => {
+                                    const updatedColors = (prev.customColors || []).filter((x: any) => x.id !== c.id);
+                                    // Also reset books that were using this color to "pink"
+                                    const books = prev.books || {};
+                                    const updatedItems = (books.items || []).map((b: any) => {
+                                      if (b.theme === c.id) {
+                                        return { ...b, theme: "pink" };
+                                      }
+                                      return b;
+                                    });
+                                    return {
+                                      ...prev,
+                                      customColors: updatedColors,
+                                      books: {
+                                        ...books,
+                                        items: updatedItems
+                                      }
+                                    };
+                                  });
+                                  if (editingColorId === c.id) {
+                                    setEditingColorId(null);
+                                    setColorFormName("");
+                                    setColorFormHex("#e91e63");
+                                  }
+                                }
+                              }}
+                              className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                              title="Excluir Cor"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center p-6 rounded-2xl border border-dashed border-[#c8d8e8] bg-gray-50">
+                      <p className="text-[11px] text-gray-400 italic">Nenhuma cor personalizada adicional criada ainda.</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Seção 3: Cores Padrão Ocultadas/Excluídas */}
+                {data.deletedSystemColors && data.deletedSystemColors.length > 0 && (
+                  <div className="space-y-2.5 pt-4 border-t border-gray-100">
+                    <h4 className="text-[10px] font-bold text-red-500 uppercase tracking-wider pl-1 flex items-center gap-1.5">
+                      <span>🗑️</span> Cores Padrão Excluídas (Clique para Restaurar)
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {SYSTEM_COLORS.filter(sc => data.deletedSystemColors.includes(sc.id)).map(sc => {
+                        const customOverride = data.customColors?.find((c: any) => c.id === sc.id);
+                        const name = customOverride ? customOverride.name : sc.name;
+                        const color = customOverride ? customOverride.baseColor : sc.baseColor;
+                        return (
+                          <div
+                            key={sc.id}
+                            className="flex items-center justify-between p-3 rounded-2xl border border-red-100 bg-red-50/5 shadow-sm"
+                          >
+                            <div className="flex items-center gap-2.5 opacity-60">
+                              <span
+                                className="w-4 h-4 rounded-full border border-gray-200 shadow-inner shrink-0"
+                                style={{ backgroundColor: color }}
+                              />
+                              <span className="text-xs font-bold text-gray-500 line-through">
+                                {sc.emoji} {name}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setData((prev: any) => {
+                                  const updatedDeleted = (prev.deletedSystemColors || []).filter((id: string) => id !== sc.id);
+                                  return {
+                                    ...prev,
+                                    deletedSystemColors: updatedDeleted
+                                  };
+                                });
+                              }}
+                              className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg font-bold text-[10px] transition-all cursor-pointer flex items-center gap-1"
+                              title="Restaurar Cor"
+                            >
+                              <span>🔄</span> Restaurar
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+              </div>
+
+            </div>
+
+            {/* Footer do Modal */}
+            <div className="bg-gray-50 px-6 py-4 border-t border-[#e2eaf3] flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsColorModalOpen(false);
+                  setEditingColorId(null);
+                  setColorFormName("");
+                }}
+                className="px-5 py-2.5 bg-white border border-[#c8d8e8] hover:bg-gray-50 text-gray-700 rounded-xl font-bold text-xs shadow-sm transition-all cursor-pointer"
+              >
+                Concluir
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1036,5 +2009,34 @@ const defaultMafKidsData = {
     badges: ["CONTEÚDO 100% CRISTÃO E SEGURO", "PARA TODAS AS IDADES INFANTIS", "PARTICIPAÇÃO DA FAMÍLIA", "AMBIENTE SEGURO E ACOLHEDOR"],
     finalText: "JESUS NA MINHA CASA",
     finalSubtext: "UM LUGAR DE AMOR, APRENDIZADO E MUITA ALEGRIA!"
+  },
+  projectInfo: {
+    importanceTitle: "Qual a importância do Culto no Lar?",
+    importanceText: "Atualmente tantos afazeres diários tem tomado tempo da vida das pessoas, fazendo com que; na maioria das vezes sobre pouquíssimo tempo para dar atenção de qualidade à família. Todos estão cansados depois de um longo dia de trabalho, estudos, etc.\n\nMeses e anos se passando muito rápido, muitos acabam não percebendo que suas relações familiares acabam se fragilizando.\n\nA família é um projeto de Deus para nós e devemos zelar por ela, sendo que uma das formas é realizando o Culto no Lar, que é ordem de Deus aos pais, conforme vemos em Deuteronômio 6:1-7.\n\n“Você as inculcará a seus filhos, e delas falará quando estiver sentado em sua casa, andando pelo caminho, ao deitar-se e ao levantar-se”\n\nAtravés do Culto no Lar tanto casais como seus filhos são abençoados ricamente.",
+    rulesTitle: "Regras do Projeto",
+    rules: [
+      "A criança levará a maleta “Jesus na minha casa” e retornará na no próximo domingo;",
+      "A criança ficará uma semana com a pasta e realizará o culto um dia da semana com a família;",
+      "O culto no lar não precisa ser longo para não se tornar cansativo, principalmente para as crianças menores. (Faça um culto de até 30 minutos);",
+      "No momento da oração lembre-se de agradecer também, é tão importante quanto pedir;",
+      "Este deve ser um momento prazeroso para todos e não deve trazer aborrecimentos, brigas ou repreensões;",
+      "Somente os pais façam as anotações;",
+      "Todos os itens da maleta poderão ser utilizados por todos os membros da família;",
+      "Não amassar, não rasgar, não sujar, devolver conforme recebeu (lembre que outra família utilizará);",
+      "Entregar a maleta para a pessoa responsável."
+    ],
+    programTitle: "Programa do Culto",
+    program: [
+      "Oração inicial",
+      "Hinos Cantados",
+      "Leitura Bíblica",
+      "Leitura do Livro infantil",
+      "Oportunidade para falar da leitura",
+      "Oração de Agradecimento",
+      "Hino Cantado em Agradecimento",
+      "Oração em família e término",
+      "Nos enviar foto da família no Culto",
+      "Preencher o pedido de oração da família, e entregar para a pessoa responsável."
+    ]
   }
 };

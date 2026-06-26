@@ -17,6 +17,8 @@ test('check for console errors', async ({ page }) => {
   await page.goto('http://localhost:3000/');
   await page.waitForTimeout(3000);
   
+  await page.screenshot({ path: 'screenshot.png' });
+  
   console.log("URL AFTER LOAD:", page.url());
   console.log("ERRORS:", errors);
   

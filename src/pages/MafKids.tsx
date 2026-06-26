@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { 
-  Image, Heart, Star, ShieldCheck, Check, Search, Brush, ChevronLeft, ChevronRight, Shield, Users, Lock, Plus
+  Image, Heart, Star, ShieldCheck, Check, Search, Brush, ChevronLeft, ChevronRight, Shield, Users, Lock, Plus, X, BookOpen, Sparkles
 } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
@@ -111,11 +111,71 @@ const themeMap: Record<string, { bg: string; border: string; tBg: string; btn: s
   }
 };
 
+const getThemeStyles = (themeKey: string, customColors?: any[]) => {
+  const custom = customColors?.find(c => c.id === themeKey || c.name === themeKey);
+  if (custom) {
+    return {
+      bgClass: "",
+      bgStyle: { backgroundColor: custom.bg, borderBottomColor: custom.btnDark || custom.text } as React.CSSProperties,
+      borderClass: "",
+      borderStyle: { borderColor: custom.border } as React.CSSProperties,
+      textClass: "",
+      textStyle: { color: custom.text } as React.CSSProperties,
+      iconBgClass: "",
+      iconBgStyle: { backgroundColor: custom.iconBg } as React.CSSProperties,
+      btnClass: "hover:translate-y-[3px]",
+      btnStyle: { 
+        backgroundColor: custom.btn, 
+        boxShadow: `0 5px 0 ${custom.btnDark || custom.text}`,
+        transition: "all 0.15s ease-in-out"
+      } as React.CSSProperties,
+      badgeClass: "",
+      badgeStyle: { backgroundColor: custom.btn } as React.CSSProperties
+    };
+  }
+
+  if (themeMap[themeKey]) {
+    const std = themeMap[themeKey];
+    return {
+      bgClass: std.bg,
+      bgStyle: {} as React.CSSProperties,
+      borderClass: std.border,
+      borderStyle: {} as React.CSSProperties,
+      textClass: std.text,
+      textStyle: {} as React.CSSProperties,
+      iconBgClass: std.iconBg,
+      iconBgStyle: {} as React.CSSProperties,
+      btnClass: std.btn,
+      btnStyle: {} as React.CSSProperties,
+      badgeClass: std.btn.split(" ")[0],
+      badgeStyle: {} as React.CSSProperties
+    };
+  }
+
+  const std = themeMap.pink;
+  return {
+    bgClass: std.bg,
+    bgStyle: {} as React.CSSProperties,
+    borderClass: std.border,
+    borderStyle: {} as React.CSSProperties,
+    textClass: std.text,
+    textStyle: {} as React.CSSProperties,
+    iconBgClass: std.iconBg,
+    iconBgStyle: {} as React.CSSProperties,
+    btnClass: std.btn,
+    btnStyle: {} as React.CSSProperties,
+    badgeClass: std.btn.split(" ")[0],
+    badgeStyle: {} as React.CSSProperties
+  };
+};
+
 export default function MafKids() {
   const [data, setData] = useState<any>(null);
   const [booksStartIndex, setBooksStartIndex] = useState<number>(0);
   const [visibleCount, setVisibleCount] = useState<number>(4);
   const [kidsAlert, setKidsAlert] = useState<string | null>(null);
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [projectActiveTab, setProjectActiveTab] = useState<"importance" | "rules" | "program">("importance");
 
   useEffect(() => {
     async function load() {
@@ -145,6 +205,7 @@ export default function MafKids() {
   }, []);
 
   const booksList = data?.books?.items || defaultData.books.items;
+  const projectInfo = data?.projectInfo || defaultData.projectInfo;
 
   useEffect(() => {
     if (booksList) {
@@ -459,7 +520,7 @@ export default function MafKids() {
                 const idx = booksStartIndex + currentIdxInSlice;
                 const defaultThemesKeys = ["pink", "orange", "green", "blue", "purple", "yellow", "red", "cyan", "teal", "brown", "lime", "grape"];
                 const themeKey = book.theme || defaultThemesKeys[idx % defaultThemesKeys.length];
-                const th = themeMap[themeKey] || themeMap.pink;
+                const thStyles = getThemeStyles(themeKey, data?.customColors);
                 
                 const isColoring = book.type === "COLORIR";
                 
@@ -490,7 +551,11 @@ export default function MafKids() {
                 };
 
                 return (
-                  <div key={idx} className={`${th.bg} rounded-[28px] border-[5px] ${th.border} flex flex-col items-center text-center shadow-md relative border-b-[8px] transform hover:-translate-y-1 transition-all duration-200 h-[350px] justify-between p-3.5 pt-7 overflow-visible`}>
+                  <div 
+                    key={idx} 
+                    className={`rounded-[28px] border-[5px] flex flex-col items-center text-center shadow-md relative border-b-[8px] transform hover:-translate-y-1 transition-all duration-200 h-[350px] justify-between p-3.5 pt-7 overflow-visible ${thStyles.bgClass} ${thStyles.borderClass}`}
+                    style={{ ...thStyles.bgStyle, ...thStyles.borderStyle }}
+                  >
                     
                     {/* Absolute Cover Image when custom image exists */}
                     {book.imageUrl && (
@@ -507,7 +572,10 @@ export default function MafKids() {
                     )}
 
                     {/* Top Header Badge */}
-                    <div className={`absolute -top-3.5 left-1/2 -translate-x-1/2 ${th.btn.split(" ")[0]} text-white border-2 border-white px-3.5 py-0.5 rounded-full font-black text-[10px] uppercase flex items-center gap-1 shadow-md whitespace-nowrap z-20`}>
+                    <div 
+                      className={`absolute -top-3.5 left-1/2 -translate-x-1/2 text-white border-2 border-white px-3.5 py-0.5 rounded-full font-black text-[10px] uppercase flex items-center gap-1 shadow-md whitespace-nowrap z-20 ${thStyles.badgeClass}`}
+                      style={thStyles.badgeStyle}
+                    >
                       <Star size={9} fill="currentColor" /> {book.label} <Star size={9} fill="currentColor" />
                     </div>
 
@@ -518,7 +586,10 @@ export default function MafKids() {
                       /* If no custom image exists, render default vector style card with only the mini illustration box */
                       <div className="w-full flex-grow flex flex-col justify-center items-center z-10 min-h-0 pt-1">
                         {/* Outer Frame with inner image container - Portrait fixed dimensions for perfect alignment and zero overflow */}
-                        <div className={`w-[145px] h-[195px] mx-auto rounded-2xl border-3 ${th.border} flex items-center justify-center overflow-hidden relative shadow-inner p-0 bg-white shrink-0`}>
+                        <div 
+                          className={`w-[145px] h-[195px] mx-auto rounded-2xl border-3 flex items-center justify-center overflow-hidden relative shadow-inner p-0 bg-white shrink-0 ${thStyles.borderClass}`}
+                          style={thStyles.borderStyle}
+                        >
                           {renderBookIllustration(idx, book)}
                         </div>
                       </div>
@@ -539,7 +610,8 @@ export default function MafKids() {
                           );
                         }
                       }}
-                      className={`w-full py-2.5 rounded-full text-white font-black text-[12px] uppercase flex items-center justify-center gap-1.5 ${th.btn} active:translate-y-[4px] active:shadow-none transition-all duration-150 z-10 cursor-pointer select-none`}
+                      className={`w-full py-2.5 rounded-full text-white font-black text-[12px] uppercase flex items-center justify-center gap-1.5 active:translate-y-[4px] active:shadow-none transition-all duration-150 z-10 cursor-pointer select-none ${thStyles.btnClass}`}
+                      style={thStyles.btnStyle}
                     >
                       {isColoring ? (
                         <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current shrink-0">
@@ -779,7 +851,11 @@ export default function MafKids() {
              </div>
 
              {/* Large final pill */}
-             <div className="bg-[#1976d2] border-[1px] border-white/40 flex-[1.2] flex items-center justify-between py-2 px-3 lg:px-4 shadow-[0_4px_0_rgba(21,101,192,0.8),inset_0_6px_10px_rgba(255,255,255,0.3)] rounded-[16px] lg:rounded-[20px] relative overflow-hidden h-[64px] lg:h-full mt-1.5 lg:mt-0">
+             <button 
+                  type="button"
+                  onClick={() => setIsProjectModalOpen(true)}
+                  className="bg-[#1976d2] hover:bg-[#1565c0] border-[1px] border-white/40 flex-[1.2] flex items-center justify-between py-2 px-3 lg:px-4 shadow-[0_4px_0_rgba(21,101,192,0.8),inset_0_6px_10px_rgba(255,255,255,0.3)] rounded-[16px] lg:rounded-[20px] relative overflow-hidden h-[64px] lg:h-full mt-1.5 lg:mt-0 cursor-pointer hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-150 text-left"
+             >
                   <div className="absolute top-0 left-4 right-4 h-1/3 bg-gradient-to-b from-white/50 to-transparent rounded-full opacity-60 pointer-events-none"></div>
                   
                   <div className="flex flex-col items-center justify-center flex-1 relative z-10 mt-1">
@@ -797,7 +873,7 @@ export default function MafKids() {
                   <div className="flex-shrink-0 relative z-10 ml-2">
                      <span className="text-[40px] lg:text-[46px] inline-block filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transform rotate-6 mb-1">🌟</span>
                   </div>
-             </div>
+             </button>
         </div>
 
       </div>
@@ -824,6 +900,159 @@ export default function MafKids() {
             >
               EBA, ENTENDI! ❤️
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Interativo do Projeto "Jesus na Minha Casa" / "Culto no Lar" */}
+      {isProjectModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-[32px] border-[6px] border-[#1976d2] shadow-2xl relative max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col border-b-[12px] transform scale-100 transition-all select-none">
+            
+            {/* Botão de Fechar */}
+            <button
+              type="button"
+              onClick={() => setIsProjectModalOpen(false)}
+              className="absolute top-4 right-4 z-20 p-1.5 bg-white hover:bg-red-50 text-[#1976d2] hover:text-[#d32f2f] rounded-full border-2 border-[#1976d2] hover:border-[#d32f2f] transition-all cursor-pointer shadow-md"
+              title="Fechar"
+            >
+              <X size={18} className="stroke-[3]" />
+            </button>
+
+            {/* Top decorative header */}
+            <div className="relative p-6 lg:p-7 bg-gradient-to-r from-[#e3f2fd] to-[#f1f8ff] border-b-4 border-[#1976d2] flex flex-col items-center text-center">
+              <div className="bg-white p-2.5 rounded-2xl border-2 border-[#1976d2] shadow-sm -mt-14 mb-2 flex items-center justify-center">
+                <span className="text-3xl">🏡</span>
+              </div>
+              <h3 className="font-serif font-black text-xl sm:text-2xl lg:text-3xl text-[#1565c0] leading-tight flex items-center gap-2">
+                <span>{projectInfo.importanceTitle || "Jesus na Minha Casa"}</span>
+              </h3>
+              <p className="text-[10px] sm:text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">
+                ✨ {data.footer?.finalSubtext || defaultData.footer.finalSubtext} ✨
+              </p>
+            </div>
+
+            {/* Abas do Modal */}
+            <div className="flex border-b border-gray-100 bg-gray-50/50 p-2 sm:p-3 gap-1.5 justify-center overflow-x-auto">
+              <button
+                type="button"
+                onClick={() => setProjectActiveTab("importance")}
+                className={`px-3 sm:px-4 py-2 rounded-2xl font-black text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-1.5 select-none ${
+                  projectActiveTab === "importance"
+                    ? "bg-[#1976d2] text-white shadow-[0_3px_0_#1565c0] -translate-y-0.5"
+                    : "bg-white text-[#1976d2] border border-[#c8d8e8] hover:bg-gray-50"
+                }`}
+              >
+                <span>❓</span> Importância
+              </button>
+              <button
+                type="button"
+                onClick={() => setProjectActiveTab("rules")}
+                className={`px-3 sm:px-4 py-2 rounded-2xl font-black text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-1.5 select-none ${
+                  projectActiveTab === "rules"
+                    ? "bg-[#4caf50] text-white shadow-[0_3px_0_#2e7d32] -translate-y-0.5"
+                    : "bg-white text-[#4caf50] border border-[#c8d8e8] hover:bg-gray-50"
+                }`}
+              >
+                <span>📋</span> Regras
+              </button>
+              <button
+                type="button"
+                onClick={() => setProjectActiveTab("program")}
+                className={`px-3 sm:px-4 py-2 rounded-2xl font-black text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-1.5 select-none ${
+                  projectActiveTab === "program"
+                    ? "bg-[#ff9800] text-white shadow-[0_3px_0_#f57c00] -translate-y-0.5"
+                    : "bg-white text-[#ff9800] border border-[#c8d8e8] hover:bg-gray-50"
+                }`}
+              >
+                <span>📅</span> Programa
+              </button>
+            </div>
+
+            {/* Conteúdo da Aba */}
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 lg:p-8 bg-white min-h-[250px]">
+              {projectActiveTab === "importance" && (
+                <div className="space-y-4 text-gray-700 leading-relaxed text-sm">
+                  {projectInfo.importanceText.split("\n\n").map((para: string, idx: number) => {
+                    const cleanPara = para.trim();
+                    if (!cleanPara) return null;
+                    
+                    // Se for o versículo ou contiver aspas grandes, estilizar como bloco de destaque
+                    if (cleanPara.startsWith("“") || cleanPara.includes("Deuteronômio")) {
+                      return (
+                        <div key={idx} className="bg-amber-50/70 border-l-4 border-[#ff9800] p-4 rounded-r-2xl italic text-gray-800 font-medium text-sm my-4 shadow-sm relative overflow-hidden">
+                          <span className="absolute -top-1 -right-2 text-6xl text-amber-100 font-serif leading-none select-none pointer-events-none">“</span>
+                          {cleanPara}
+                        </div>
+                      );
+                    }
+                    return (
+                      <p key={idx} className="font-bold text-gray-600">
+                        {cleanPara}
+                      </p>
+                    );
+                  })}
+                </div>
+              )}
+
+              {projectActiveTab === "rules" && (
+                <div className="space-y-4">
+                  <h4 className="font-serif font-black text-lg text-[#2e7d32] mb-3 flex items-center gap-2">
+                    <span>📝</span> {projectInfo.rulesTitle || "Regras do Projeto"}
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {(projectInfo.rules || []).map((rule: string, idx: number) => (
+                      <div
+                        key={idx}
+                        className="flex items-start gap-3 p-3 rounded-2xl border border-gray-100 bg-green-50/10 hover:bg-green-50/20 transition-all"
+                      >
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#4caf50]/15 text-[#2e7d32] font-black text-xs flex items-center justify-center mt-0.5">
+                          {idx + 1}
+                        </span>
+                        <p className="text-xs sm:text-sm font-bold text-gray-600 leading-snug">
+                          {rule}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {projectActiveTab === "program" && (
+                <div className="space-y-4">
+                  <h4 className="font-serif font-black text-lg text-[#e65100] mb-3 flex items-center gap-2">
+                    <span>🌟</span> {projectInfo.programTitle || "Programa do Culto"}
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {(projectInfo.program || []).map((step: string, idx: number) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-3 p-3.5 rounded-2xl border-2 border-dashed border-[#ff9800]/20 bg-[#fffde7]/30 hover:bg-[#fffde7]/60 transition-all"
+                      >
+                        <span className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-[#ff9800] to-[#f57c00] text-white font-black text-sm flex items-center justify-center shadow-sm">
+                          {idx + 1}
+                        </span>
+                        <span className="text-xs sm:text-sm font-black text-gray-700 leading-tight">
+                          {step}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer do Modal */}
+            <div className="bg-gray-50 border-t border-gray-100 px-6 py-4 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsProjectModalOpen(false)}
+                className="px-6 py-2.5 bg-[#1976d2] hover:bg-[#1565c0] text-white font-black text-xs sm:text-sm uppercase rounded-full shadow-[0_4px_0_#1565c0] border border-white hover:translate-y-[1px] hover:shadow-[0_3px_0_#1565c0] active:translate-y-[4px] active:shadow-none transition-all cursor-pointer"
+              >
+                FECHAR E PARTICIPAR! ❤️
+              </button>
+            </div>
+
           </div>
         </div>
       )}
@@ -903,5 +1132,34 @@ const defaultData = {
     badges: ["CONTEÚDO 100% CRISTÃO\nE SEGURO", "PARA TODAS\nAS IDADES\nINFANTIS", "PARTICIPAÇÃO\nDA FAMÍLIA", "AMBIENTE\nSEGURO E\nACOLHEDOR"],
     finalText: "JESUS NA MINHA CASA",
     finalSubtext: "UM LUGAR DE AMOR, APRENDIZADO E MUITA ALEGRIA!"
+  },
+  projectInfo: {
+    importanceTitle: "Qual a importância do Culto no Lar?",
+    importanceText: "Atualmente tantos afazeres diários tem tomado tempo da vida das pessoas, fazendo com que; na maioria das vezes sobre pouquíssimo tempo para dar atenção de qualidade à família. Todos estão cansados depois de um longo dia de trabalho, estudos, etc.\n\nMeses e anos se passando muito rápido, muitos acabam não percebendo que suas relações familiares acabam se fragilizando.\n\nA família é um projeto de Deus para nós e devemos zelar por ela, sendo que uma das formas é realizando o Culto no Lar, que é ordem de Deus aos pais, conforme vemos em Deuteronômio 6:1-7.\n\n“Você as inculcará a seus filhos, e delas falará quando estiver sentado em sua casa, andando pelo caminho, ao deitar-se e ao levantar-se”\n\nAtravés do Culto no Lar tanto casais como seus filhos são abençoados ricamente.",
+    rulesTitle: "Regras do Projeto",
+    rules: [
+      "A criança levará a maleta “Jesus na minha casa” e retornará na no próximo domingo;",
+      "A criança ficará uma semana com a pasta e realizará o culto um dia da semana com a família;",
+      "O culto no lar não precisa ser longo para não se tornar cansativo, principalmente para as crianças menores. (Faça um culto de até 30 minutos);",
+      "No momento da oração lembre-se de agradecer também, é tão importante quanto pedir;",
+      "Este deve ser um momento prazeroso para todos e não deve trazer aborrecimentos, brigas ou repreensões;",
+      "Somente os pais façam as anotações;",
+      "Todos os itens da maleta poderão ser utilizados por todos os membros da família;",
+      "Não amassar, não rasgar, não sujar, devolver conforme recebeu (lembre que outra família utilizará);",
+      "Entregar a maleta para a pessoa responsável."
+    ],
+    programTitle: "Programa do Culto",
+    program: [
+      "Oração inicial",
+      "Hinos Cantados",
+      "Leitura Bíblica",
+      "Leitura do Livro infantil",
+      "Oportunidade para falar da leitura",
+      "Oração de Agradecimento",
+      "Hino Cantado em Agradecimento",
+      "Oração em família e término",
+      "Nos enviar foto da família no Culto",
+      "Preencher o pedido de oração da família, e entregar para a pessoa responsável."
+    ]
   }
 };
