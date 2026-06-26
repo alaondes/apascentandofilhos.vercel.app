@@ -81,6 +81,8 @@ import MeusRegistros from "./MeusRegistros";
 import PedidoMaterial from "./PedidoMaterial";
 import Duvidas from "./Duvidas";
 import MeusDados from "./MeusDados";
+import FinanceiroPanel from "./FinanceiroPanel";
+import FotosPanel from "./FotosPanel";
 import RestrictedEditionPanel from "./RestrictedEditionPanel";
 import ColunistaPanelComponent from "./ColunistaPanelComponent";
 import FilhosDePazPanel from "./FilhosDePazPanel";
@@ -1302,6 +1304,11 @@ export default function AdminPanel() {
                     label: "Meus Dados",
                     icon: UserCircle,
                   },
+                  {
+                    id: "member_financeiro",
+                    label: "Financeiro",
+                    icon: DollarSign,
+                  },
                   { id: "member_pessoas", label: "Pessoas", icon: Users },
                   { id: "member_departamentos", label: "Departamentos", icon: Building },
                   { id: "member_grupos", label: "Grupos", icon: Users },
@@ -1309,6 +1316,7 @@ export default function AdminPanel() {
                   { id: "member_ensino", label: "Ensino", icon: BookOpen },
                   { id: "member_agenda", label: "Agenda", icon: Calendar },
                   { id: "member_midias", label: "Mídias", icon: Video },
+                  { id: "member_fotos", label: "Fotos", icon: ImageIcon },
                   { id: "member_ajuda", label: "Ajuda", icon: HelpCircle },
                 ].map((item) => (
                   <button
@@ -2319,10 +2327,12 @@ export default function AdminPanel() {
                     : undefined
               } 
             />
-          ) : [
+           ) : [
               "leader_overview",
               "leader_profile",
               "member_profile",
+              "member_financeiro",
+              "member_fotos",
               "leader_groups",
               "leader_new_group",
               "leader_reports",
@@ -2336,6 +2346,12 @@ export default function AdminPanel() {
               )}
               {(activeTab === "leader_profile" || activeTab === "member_profile") && (
                 <MeusDados isEmbedded={true} />
+              )}
+              {activeTab === "member_financeiro" && (
+                <FinanceiroPanel isEmbedded={true} />
+              )}
+              {activeTab === "member_fotos" && (
+                <FotosPanel isEmbedded={true} />
               )}
               {activeTab === "leader_groups" && (
                 <GruposCadastrados isEmbedded={true} />
