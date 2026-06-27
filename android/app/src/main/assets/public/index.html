@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-BR" translate="no">
+  <head>
+    <script>
+      window.addEventListener('error', function(e) {
+        const errDiv = document.createElement('div');
+        errDiv.style = 'color:red; z-index:9999; position:absolute; top:0; left:0; background:white; padding:20px;';
+        errDiv.innerHTML = 'ERROR: ' + e.message + '<br>' + e.filename + ':' + e.lineno;
+        document.body.appendChild(errDiv);
+      });
+      window.addEventListener('unhandledrejection', function(e) {
+        const errDiv = document.createElement('div');
+        errDiv.style = 'color:red; z-index:9999; position:absolute; top:0; left:0; background:white; padding:20px;';
+        errDiv.innerHTML = 'PROMISE REJECTION: ' + (e.reason && e.reason.message ? e.reason.message : e.reason);
+        document.body.appendChild(errDiv);
+      });
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ApascentandoFilhos</title>
+
+    <!-- PWA Meta Tags & Manifest -->
+    <link rel="manifest" href="/manifest.json?v=2" />
+    <meta name="theme-color" content="#1a6496" />
+    
+    <!-- iOS / Safari PWA support -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Apascentando Filhos" />
+    <link rel="apple-touch-icon" href="/logomaf_192.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/logomaf_192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/logomaf_512.png" />
+    <link rel="shortcut icon" href="/logomaf_192.png" type="image/png" />
+    <script type="module" crossorigin src="/assets/index-CjF0eW9e.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Bc6gTe_Q.css">
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- Service Worker Registration / Unregistration -->
+    <script>
+      // Desregistra qualquer Service Worker existente para forçar a limpeza do cache
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister().then(function(boolean) {
+              console.log('Service worker unregistered:', boolean);
+            });
+          }
+        });
+        
+        // Limpar todos os caches do navegador criados pelo Service Worker
+        if ('caches' in window) {
+          caches.keys().then(function(cacheNames) {
+            cacheNames.forEach(function(cacheName) {
+              caches.delete(cacheName);
+              console.log('Deleted cache:', cacheName);
+            });
+          });
+        }
+      }
+    </script>
+  </body>
+</html>
+
