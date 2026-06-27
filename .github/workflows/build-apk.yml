@@ -30,12 +30,18 @@ jobs:
           java-version: '17'
 
       - name: Add Android Folder (if not exists)
+        env:
+          CI: true
+          DISABLE_CAPACITOR_TELEMETRY: true
         run: |
           if [ ! -d "android" ]; then
             npx cap add android
           fi
 
       - name: Sync Capacitor
+        env:
+          CI: true
+          DISABLE_CAPACITOR_TELEMETRY: true
         run: npx cap sync android
 
       - name: Build APK
