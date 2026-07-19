@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "../lib/firebase";
 
 interface FirebaseContextType {
@@ -47,36 +47,56 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   useEffect(() => {
+    let unsubProfile: (() => void) | null = null;
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setLoading(true); // Ensure loading is true while fetching profile
-        try {
-          const docRef = doc(db, "users", firebaseUser.uid);
-          const docSnap = await getDoc(docRef);
+        setUser(firebaseUser);
+        
+        // Listen to users collection
+        const docRef = doc(db, "users", firebaseUser.uid);
+        unsubProfile = onSnapshot(docRef, (docSnap) => {
           if (docSnap.exists()) {
             setProfile(docSnap.data());
+            setLoading(false);
           } else {
+            // Fallback to membros if not in users
             const membroRef = doc(db, "membros", firebaseUser.uid);
-            const membroSnap = await getDoc(membroRef);
-            if (membroSnap.exists()) {
-              setProfile(membroSnap.data());
-            } else {
+            getDoc(membroRef).then(membroSnap => {
+              if (membroSnap.exists()) {
+                setProfile(membroSnap.data());
+              } else {
+                setProfile(null);
+              }
+              setLoading(false);
+            }).catch(error => {
+              console.error("Error fetching user profile from membros:", error);
               setProfile(null);
-            }
+              setLoading(false);
+            });
           }
-        } catch (error) {
-          console.error("Error fetching user profile:", error);
-          setProfile(null);
-        }
-        setUser(firebaseUser); // Set user AFTER profile is fetched
+        }, (error) => {
+           console.error("Error fetching user profile:", error);
+           setProfile(null);
+           setLoading(false);
+        });
+
       } else {
+        if (unsubProfile) {
+          unsubProfile();
+          unsubProfile = null;
+        }
         setUser(null);
         setProfile(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      if (unsubProfile) unsubProfile();
+    };
   }, []);
 
   return (

@@ -45,6 +45,7 @@ import {
 import { db } from "../lib/firebase";
 import CourseRegistrationModal from "../components/CourseRegistrationModal";
 import { useFirebase } from "../context/FirebaseContext";
+import { checkHasRole } from "../lib/roleUtils";
 
 const heroImages = [
   {
@@ -185,9 +186,8 @@ export default function Home({
     }
   }, [homeData?.youtubeChannelId]);
 
-  const isGlobalAdmin =
-    profile?.role === "admin" || user?.email === "alaondez@gmail.com";
-  const isEditor = profile?.role === "editor";
+  const isGlobalAdmin = checkHasRole(profile, ["admin", "super_admin"]) || user?.email === "alaondez@gmail.com";
+  const isEditor = checkHasRole(profile, "editor");
   const hasGlobalAccess = isGlobalAdmin || isEditor;
 
   const formatUrl = (url: string | undefined) => {

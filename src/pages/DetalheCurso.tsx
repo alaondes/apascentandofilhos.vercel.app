@@ -17,6 +17,7 @@ import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import CourseRegistrationModal from "../components/CourseRegistrationModal";
 import { useFirebase } from "../context/FirebaseContext";
+import { checkHasRole } from "../lib/roleUtils";
 
 // Fallback high-quality curated content for standard courses
 const FALLBACK_COURSE_DETAILS: Record<string, {
@@ -109,8 +110,8 @@ export default function DetalheCurso() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const isGlobalAdmin = profile?.role === "admin" || user?.email === "alaondez@gmail.com";
-  const isEditor = profile?.role === "editor";
+  const isGlobalAdmin = checkHasRole(profile, ["admin", "super_admin"]) || user?.email === "alaondez@gmail.com";
+  const isEditor = checkHasRole(profile, "editor");
   const hasGlobalAccess = isGlobalAdmin || isEditor;
   const [imageError, setImageError] = useState(false);
 

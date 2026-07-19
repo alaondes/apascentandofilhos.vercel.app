@@ -190,7 +190,7 @@ service cloud.firestore {
 
     match /course_registrations/{regId} {
       allow create: if true;
-      allow read, update, delete: if isAdmin() || isEditor() || isSecretary() || (isSignedIn() && existing().assignedLeaderId == request.auth.uid) || (isSignedIn() && existing().userId == request.auth.uid);
+      allow read, update, delete: if isAdmin() || isEditor() || isSecretary() || (isSignedIn() && existing().get('assignedLeaderId', '') == request.auth.uid) || (isSignedIn() && existing().get('userId', '') == request.auth.uid);
     }
 
     match /admins/{adminId} {

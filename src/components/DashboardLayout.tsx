@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useFirebase } from "../context/FirebaseContext";
+import { checkHasRole } from "../lib/roleUtils";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../lib/firebase";
 import {
@@ -67,13 +68,9 @@ export default function DashboardLayout({
     return () => unsub();
   }, []);
 
-  const isAdmin =
-    profile?.papel === "admin" ||
-    profile?.papel === "super_admin" ||
-    profile?.role === "admin" ||
-    user?.email === "alaondez@gmail.com";
+  const isAdmin = checkHasRole(profile, ["admin", "super_admin"]) || user?.email === "alaondez@gmail.com";
 
-  const isSecretary = profile?.role === "secretary";
+  const isSecretary = checkHasRole(profile, "secretary");
 
   const [unreadSupportCount, setUnreadSupportCount] = useState(0);
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useFirebase } from "../../context/FirebaseContext";
+import { checkHasRole } from "../../lib/roleUtils";
 import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { Loader2, Edit3, Save, ShieldAlert } from "lucide-react";
@@ -16,13 +17,8 @@ export default function RestrictedEditionPanel() {
   const [division2, setDivision2] = useState("");
   const [division3, setDivision3] = useState("");
 
-  const isAdmin =
-    profile?.papel === "admin" ||
-    profile?.papel === "super_admin" ||
-    profile?.role === "admin" ||
-    user?.email === "alaondez@gmail.com";
-  const isSecretary =
-    profile?.role === "secretary" || profile?.role === "secretaria";
+  const isAdmin = checkHasRole(profile, ["admin", "super_admin"]) || user?.email === "alaondez@gmail.com";
+  const isSecretary = checkHasRole(profile, ["secretary", "secretaria"]);
 
   useEffect(() => {
     if (!isAdmin && !isSecretary) {

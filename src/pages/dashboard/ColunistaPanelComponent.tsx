@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useFirebase } from "../../context/FirebaseContext";
+import { checkHasRole } from "../../lib/roleUtils";
 import {
   collection,
   query,
@@ -61,7 +62,7 @@ export default function ColunistaPanelComponent({
   const [artigos, setArtigos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const isAdmin = profile?.role === "admin" || user?.email === "alaondez@gmail.com";
+  const isAdmin = checkHasRole(profile, ["admin", "super_admin"]) || user?.email === "alaondez@gmail.com";
 
   // Editor State
   const [titulo, setTitulo] = useState("");

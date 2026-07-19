@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useFirebase } from "../context/FirebaseContext";
+import { checkHasRole } from "../lib/roleUtils";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
@@ -19,13 +20,9 @@ export default function DashboardSubNav() {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const navigate = useNavigate();
   const { profile, user } = useFirebase();
-  const isAdmin =
-    profile?.papel === "admin" ||
-    profile?.papel === "super_admin" ||
-    profile?.role === "admin" ||
-    user?.email === "alaondez@gmail.com";
+  const isAdmin = checkHasRole(profile, ["admin", "super_admin"]) || user?.email === "alaondez@gmail.com";
 
-  const isSecretary = profile?.role === "secretary";
+  const isSecretary = checkHasRole(profile, "secretary");
 
   const [unreadSupportCount, setUnreadSupportCount] = useState(0);
 

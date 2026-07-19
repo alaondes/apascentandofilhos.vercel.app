@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useFirebase } from "../context/FirebaseContext";
+import { checkHasRole } from "../lib/roleUtils";
 import { Loader2 } from "lucide-react";
 
 export default function PublicRoute() {
@@ -17,9 +18,7 @@ export default function PublicRoute() {
   // If user is already logged in, redirect them away from public pages like login/cadastro
   if (user) {
     const intendedLoginMode = sessionStorage.getItem("intendedLoginMode");
-    const isAdmin =
-      profile?.role === "admin" ||
-      user.email?.toLowerCase() === "alaondez@gmail.com";
+    const isAdmin = checkHasRole(profile, ["admin", "super_admin"]) || user.email?.toLowerCase() === "alaondez@gmail.com";
 
     if (intendedLoginMode === "admin" && isAdmin) {
       return <Navigate to="/dashboard/admin" replace />;

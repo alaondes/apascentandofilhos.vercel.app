@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
+import { checkHasRole } from "../lib/roleUtils";
 import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
@@ -133,16 +134,16 @@ export default function Login() {
       let isFinancial = false;
 
       if (!isAdmin) {
-        if (userRole === "admin") isAdmin = true;
-        if (userRole === "secretary") isSecretary = true;
-        if (userRole === "financial") isFinancial = true;
+        if (checkHasRole(userDoc.data(), ["admin", "super_admin"])) isAdmin = true;
+        if (checkHasRole(userDoc.data(), "secretary")) isSecretary = true;
+        if (checkHasRole(userDoc.data(), "financial")) isFinancial = true;
       }
 
       if (isAdmin || isSecretary || isFinancial) {
         navigate("/dashboard/admin", { replace: true });
-      } else if (userRole === "editor") {
+      } else if (checkHasRole(userDoc.data(), "editor")) {
         navigate("/dashboard/admin", { replace: true });
-      } else if (userRole === "membro" || userRole === "member") {
+      } else if (checkHasRole(userDoc.data(), ["membro", "member"])) {
         navigate("/dashboard/admin", { replace: true });
       } else {
         navigate("/dashboard/admin", { replace: true });

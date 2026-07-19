@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
+import { checkHasRole } from "../../lib/roleUtils";
 import {
   collection,
   query,
@@ -437,7 +438,7 @@ export default function DashboardHome({ isEmbedded = false }: DashboardHomeProps
         const userDoc = await getDoc(doc(db, "users", uid));
         const userData = userDoc.data();
         if (
-          userData?.role === "admin" ||
+          checkHasRole(userData, ["admin", "super_admin"]) ||
           auth.currentUser.email === "alaondez@gmail.com"
         ) {
           setIsAdmin(true);

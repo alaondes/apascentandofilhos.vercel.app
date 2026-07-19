@@ -33,6 +33,7 @@ import { auth, db } from "../../lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import AdminLayout from "../../components/AdminLayout";
 import { useFirebase } from "../../context/FirebaseContext";
+import { checkHasRole } from "../../lib/roleUtils";
 import ColunistaPanelComponent, { GerenciarColunistasHome } from "./ColunistaPanelComponent";
 
 interface GlobalContentPanelProps {
@@ -58,9 +59,8 @@ export default function GlobalContentPanel({
   const navigate = useNavigate();
   const { user, profile } = useFirebase();
 
-  const isGlobalAdmin =
-    profile?.role === "admin" || user?.email === "alaondez@gmail.com";
-  const isEditor = profile?.role === "editor";
+  const isGlobalAdmin = checkHasRole(profile, ["admin", "super_admin"]) || user?.email === "alaondez@gmail.com";
+  const isEditor = checkHasRole(profile, "editor");
   const hasGlobalAccess = isGlobalAdmin || isEditor;
 
   useEffect(() => {

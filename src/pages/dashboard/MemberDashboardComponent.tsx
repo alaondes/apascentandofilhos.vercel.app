@@ -38,6 +38,7 @@ export default function MemberDashboardComponent({ activeTab }: { activeTab?: st
   const [events, setEvents] = useState<any[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [agendaConfig, setAgendaConfig] = useState<any>(null);
+  const [activeEventMonth, setActiveEventMonth] = useState(new Date().getMonth() + 1);
 
   const [allMembers, setAllMembers] = useState<any[]>([]);
   const [loadingBirthdays, setLoadingBirthdays] = useState(true);
@@ -340,6 +341,92 @@ export default function MemberDashboardComponent({ activeTab }: { activeTab?: st
       {/* Grid Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
+        {/* Agenda da Igreja */}
+        <div className="bg-white rounded-[14px] border border-[#c8d8e8] overflow-hidden shadow-sm flex flex-col p-6 min-h-[300px] lg:col-span-2">
+          <div className="w-full flex justify-between items-center border-b border-[#e2eaf3] pb-4 mb-4 pt-2 px-2 flex-wrap gap-4">
+            <h3 className="font-bold text-primary-dark flex items-center gap-2">
+              <Calendar size={20} className="text-primary-base" />
+              Próximos Eventos
+            </h3>
+
+            {/* Month Selector for Events */}
+            <div className="flex bg-gray-100/80 p-1 rounded-lg overflow-x-auto max-w-full">
+              {months.map(m => {
+                const monthNum = parseInt(m.value);
+                return (
+                  <button
+                    key={m.value}
+                    onClick={() => setActiveEventMonth(monthNum)}
+                    className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${
+                      activeEventMonth === monthNum
+                        ? 'bg-white text-primary-base shadow-sm' 
+                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                );
+              })}
+            </div>
+            
+            {events.filter(e => e.monthNum === activeEventMonth).length > 0 && (
+              <span className="px-3 py-1 bg-primary-base/10 text-primary-base text-xs font-bold rounded-full">
+                {events.filter(e => e.monthNum === activeEventMonth).length} Eventos
+              </span>
+            )}
+          </div>
+          
+          <div className="flex-1 w-full h-full flex flex-col">
+            {loadingEvents ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-center opacity-70">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-base border-t-transparent" />
+              </div>
+            ) : events.filter(e => e.monthNum === activeEventMonth).length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center bg-[#f7fafd] border border-[#e2eaf3] p-4 text-center rounded-xl h-full">
+                <Calendar size={48} className="mb-4 text-[#455a64] opacity-50" />
+                <p className="text-gray-500 font-medium text-sm">
+                  Nenhum evento programado para este mês.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 w-full">
+                {events.filter(e => e.monthNum === activeEventMonth).map((evento, idx) => {
+                  const evtTypeObj = agendaConfig?.eventTypes?.find((t: any) => t.id === evento.type);
+                  const colorHex = evtTypeObj?.colorHex || "#2b56f5";
+                  
+                  return (
+                    <div key={idx} className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex items-stretch min-h-[100px]">
+                      {/* Left Date Strip */}
+                      <div style={{ backgroundColor: colorHex }} className="w-20 text-white flex flex-col justify-center items-center shrink-0 py-3 select-none">
+                        <span className="text-2xl font-black leading-none">{evento.day}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest mt-1 opacity-90">{evento.month}</span>
+                      </div>
+                      
+                      {/* Right Content */}
+                      <div className="p-4 flex flex-col justify-center flex-1 min-w-0">
+                        <div className="text-[9px] font-black tracking-wider uppercase mb-1 truncate" style={{ color: colorHex }}>
+                          {evento.type.replace(/ \(.+\)$/, "").trim()}
+                        </div>
+                        <h4 className="text-sm font-bold text-gray-800 leading-tight line-clamp-2" title={evento.title}>
+                          {evento.title}
+                        </h4>
+                        {evento.location && (
+                          <div className="flex items-center gap-1.5 mt-2 text-gray-500">
+                            <Navigation size={12} className="shrink-0" />
+                            <span className="text-[10px] font-bold uppercase tracking-wide truncate">
+                              {evento.location}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Aniversariantes do Mês */}
         <div className="bg-white rounded-[14px] border border-[#c8d8e8] overflow-hidden shadow-sm flex flex-col p-6 min-h-[300px] lg:col-span-2">
           <div className="w-full flex justify-between items-center border-b border-[#e2eaf3] pb-4 mb-4 pt-2 px-2">

@@ -524,6 +524,24 @@ export default function ManageMembers() {
   const [novaCategoriaInput, setNovaCategoriaInput] = useState("");
   const [novoCargoInput, setNovoCargoInput] = useState("");
 
+  const isFormValid =
+    formData.nome.trim() !== "" &&
+    formData.dataNascimento.trim() !== "" &&
+    formData.estadoCivil.trim() !== "" &&
+    formData.escolaridade.trim() !== "" &&
+    formData.profissao.trim() !== "" &&
+    formData.naturalidade.trim() !== "" &&
+    formData.naturalidadeEstado.trim() !== "" &&
+    formData.telefone.trim() !== "" &&
+    formData.cep.trim() !== "" &&
+    formData.rua.trim() !== "" &&
+    formData.numero.trim() !== "" &&
+    formData.bairro.trim() !== "" &&
+    formData.cidade.trim() !== "" &&
+    formData.estado.trim() !== "" &&
+    (editingMember ? true : formData.senha.trim() !== "") &&
+    (editingMember ? true : formData.email.trim() !== "");
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
@@ -573,107 +591,106 @@ export default function ManageMembers() {
         }
 
         const updateData = { ...formData };
-        if (editingMember) {
-          // Do not overwrite existing permissao if it exists (might be array)
-          delete (updateData as any).permissao;
-          
-          await setDoc(doc(db, "membros", finalUid), {
-            ...updateData,
-            createdAt: editingMember.createdAt || Timestamp.now(),
-            updatedAt: Timestamp.now(),
-          }, { merge: true });
+        // Do not overwrite existing permissao if it exists (might be array)
+        delete (updateData as any).permissao;
+        
+        await setDoc(doc(db, "membros", finalUid), {
+          ...updateData,
+          createdAt: editingMember.createdAt || Timestamp.now(),
+          updatedAt: Timestamp.now(),
+        }, { merge: true });
 
-          // Atualizar também na tabela de usuários para sincronizar o nível de acesso
-          if (formData.email) {
-            await setDoc(
-              doc(db, "users", finalUid),
-              {
-                nome: fullNome,
-                email: formData.email,
-                status: formData.status,
-                updatedAt: Timestamp.now(),
-              },
-              { merge: true },
+        // Atualizar também na tabela de usuários para sincronizar o nível de acesso
+        if (formData.email) {
+          await setDoc(
+            doc(db, "users", finalUid),
+            {
+              nome: fullNome,
+              email: formData.email,
+              status: formData.status,
+              updatedAt: Timestamp.now(),
+            },
+            { merge: true },
+          );
+        }
+      } else {
+        const updateData = { ...formData };
+        // New Member - initialize arrays
+        updateData.permissao = ["membro"] as any;
+        if (formData.email && formData.senha) {
+          try {
+            const secondaryApp = initializeApp(
+              firebaseConfig,
+              "SecondaryApp" + Date.now(),
             );
-          }
-        } else {
-          // New Member - initialize arrays
-          updateData.permissao = ["membro"] as any;
-          if (formData.email && formData.senha) {
-            try {
-              const secondaryApp = initializeApp(
-                firebaseConfig,
-                "SecondaryApp" + Date.now(),
-              );
-              const secondaryAuth = getAuth(secondaryApp);
-              const userCredential = await createUserWithEmailAndPassword(
-                secondaryAuth,
-                formData.email,
-                formData.senha,
-              );
-              const uid = userCredential.user.uid;
+            const secondaryAuth = getAuth(secondaryApp);
+            const userCredential = await createUserWithEmailAndPassword(
+              secondaryAuth,
+              formData.email,
+              formData.senha,
+            );
+            const uid = userCredential.user.uid;
 
-              await setDoc(doc(db, "users", uid), {
-                nome: fullNome,
-                email: formData.email,
-                role: ["membro"],
-                papel: ["membro"],
-                status: formData.status,
-                createdAt: Timestamp.now(),
-              });
+            await setDoc(doc(db, "users", uid), {
+              nome: fullNome,
+              email: formData.email,
+              role: ["membro"],
+              papel: ["membro"],
+              status: formData.status,
+              createdAt: Timestamp.now(),
+            });
 
-              await setDoc(doc(db, "membros", uid), {
-                ...updateData,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-              });
-
-              await secondaryAuth.signOut();
-            } catch (authError: any) {
-              console.error("Erro ao criar credencial:", authError);
-              if (authError.code === "auth/email-already-in-use") {
-                // Try to find the user by email in the users collection and use its ID
-                const q = query(
-                  collection(db, "users"),
-                  where("email", "==", formData.email)
-                );
-                const snapshot = await getDocs(q);
-                
-                if (!snapshot.empty) {
-                  const existingUid = snapshot.docs[0].id;
-                  
-                  await setDoc(doc(db, "users", existingUid), {
-                    nome: fullNome,
-                    email: formData.email,
-                    role: ["membro"],
-                    papel: ["membro"],
-                    status: formData.status,
-                    updatedAt: Timestamp.now(),
-                  }, { merge: true });
-
-                  await setDoc(doc(db, "membros", existingUid), {
-                    ...updateData,
-                    createdAt: Timestamp.now(),
-                    updatedAt: Timestamp.now(),
-                  }, { merge: true });
-                } else {
-                  setErrorMessage(
-                    "O e-mail informado já está cadastrado no Firebase Auth, mas não foi encontrado no banco de dados."
-                  );
-                  return;
-                }
-              } else {
-                setErrorMessage("Erro ao criar login: " + authError.message);
-                return;
-              }
-            }
-          } else {
-            await addDoc(collection(db, "membros"), {
+            await setDoc(doc(db, "membros", uid), {
               ...updateData,
               createdAt: Timestamp.now(),
               updatedAt: Timestamp.now(),
             });
+
+            await secondaryAuth.signOut();
+          } catch (authError: any) {
+            console.error("Erro ao criar credencial:", authError);
+            if (authError.code === "auth/email-already-in-use") {
+              // Try to find the user by email in the users collection and use its ID
+              const q = query(
+                collection(db, "users"),
+                where("email", "==", formData.email)
+              );
+              const snapshot = await getDocs(q);
+              
+              if (!snapshot.empty) {
+                const existingUid = snapshot.docs[0].id;
+                
+                await setDoc(doc(db, "users", existingUid), {
+                  nome: fullNome,
+                  email: formData.email,
+                  role: ["membro"],
+                  papel: ["membro"],
+                  status: formData.status,
+                  updatedAt: Timestamp.now(),
+                }, { merge: true });
+
+                await setDoc(doc(db, "membros", existingUid), {
+                  ...updateData,
+                  createdAt: Timestamp.now(),
+                  updatedAt: Timestamp.now(),
+                }, { merge: true });
+              } else {
+                setErrorMessage(
+                  "O e-mail informado já está cadastrado no Firebase Auth, mas não foi encontrado no banco de dados."
+                );
+                return;
+              }
+            } else {
+              setErrorMessage("Erro ao criar login: " + authError.message);
+              return;
+            }
           }
+        } else {
+          await addDoc(collection(db, "membros"), {
+            ...updateData,
+            createdAt: Timestamp.now(),
+            updatedAt: Timestamp.now(),
+          });
         }
       }
       handleCloseModal();
@@ -1213,7 +1230,7 @@ export default function ManageMembers() {
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 gap-4">
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Email Principal</label>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1 ml-1">Email Principal{!editingMember && "*"}</label>
                           <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="modal-input" />
                         </div>
                       </div>
@@ -1600,7 +1617,7 @@ export default function ManageMembers() {
                         </div>
                       </div>
                       <div className="pt-4 border-t">
-                         <label className="block text-[10px] font-black text-primary-base uppercase mb-1 ml-1">Senha de Acesso ao Painel</label>
+                         <label className="block text-[10px] font-black text-primary-base uppercase mb-1 ml-1">Senha de Acesso ao Painel{!editingMember && "*"}</label>
                          <input type="text" placeholder="Alterar senha..." value={formData.senha} onChange={(e) => setFormData({ ...formData, senha: e.target.value })} className="modal-input border-primary-base/30 bg-primary-base/5" />
                          <p className="text-[9px] text-gray-400 mt-2 px-1">
                            * Se o membro já possui acesso, alterar este campo mudará a senha dele. Se não possui, definirá a primeira senha.
@@ -1624,7 +1641,12 @@ export default function ManageMembers() {
                     </button>
                     <button
                       type="submit"
-                      className="px-8 py-2.5 bg-primary-base hover:bg-primary-dark text-white font-bold rounded-xl shadow-lg shadow-primary-base/20 transition flex items-center gap-2"
+                      disabled={!isFormValid}
+                      className={`px-8 py-2.5 font-bold rounded-xl shadow-lg shadow-primary-base/20 transition flex items-center gap-2 ${
+                        isFormValid 
+                          ? "bg-primary-base hover:bg-primary-dark text-white" 
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}
                     >
                       <Check size={18} /> Salvar Alterações
                     </button>

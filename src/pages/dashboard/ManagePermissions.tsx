@@ -70,7 +70,7 @@ function MultiSelectRole({
 }: {
   member: any;
   roles: any[];
-  onUpdate: (roles: string[]) => void;
+  onUpdate: (roles: string[]) => Promise<void> | void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -83,12 +83,15 @@ function MultiSelectRole({
       : ["membro"];
 
   const [currentRoles, setCurrentRoles] = useState<string[]>(propRoles);
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     setCurrentRoles(propRoles);
+    setHasChanges(false);
   }, [JSON.stringify(propRoles)]);
 
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
   const toggleRole = (roleId: string) => {
     const roleDef = roles.find((r) => r.id === roleId);
@@ -105,13 +108,25 @@ function MultiSelectRole({
     }
     
     setCurrentRoles(newRoles);
-    onUpdate(newRoles);
-    
-    setIsSuccess(true);
-    setTimeout(() => setIsSuccess(false), 2000);
+    setHasChanges(true);
   };
 
-  const currentLabels = currentRoles.map((id: string) => {
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await onUpdate(currentRoles);
+      setIsSuccess(true);
+      setHasChanges(false);
+      setTimeout(() => {
+        setIsSuccess(false);
+        setIsOpen(false);
+      }, 1000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const currentLabels = propRoles.map((id: string) => {
     const r = roles.find((r: any) => r.id === id || r.label === id);
     return r ? r.label : id;
   });
@@ -120,7 +135,11 @@ function MultiSelectRole({
     <>
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            setIsOpen(true);
+            setCurrentRoles(propRoles);
+            setHasChanges(false);
+          }}
           className="text-white bg-primary-base hover:bg-primary-dark px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap shadow-sm text-center"
         >
           Conceder/Retirar
@@ -178,12 +197,19 @@ function MultiSelectRole({
                 Permissão atualizada com sucesso!
               </div>
             )}
-            <div className="p-4 border-t border-[#e2eaf3] bg-[#f7fafd] flex justify-end">
+            <div className="p-4 border-t border-[#e2eaf3] bg-[#f7fafd] flex justify-end gap-3">
                <button
                  onClick={() => setIsOpen(false)}
-                 className="px-6 py-2 bg-primary-base text-white hover:bg-primary-dark rounded-xl text-sm font-bold shadow-sm transition-colors"
+                 className="px-6 py-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl text-sm font-bold shadow-sm transition-colors"
                >
-                 Concluir
+                 Cancelar
+               </button>
+               <button
+                 onClick={handleSave}
+                 disabled={!hasChanges || isSaving}
+                 className="px-6 py-2 bg-primary-base text-white hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-sm font-bold shadow-sm transition-colors"
+               >
+                 {isSaving ? "Salvando..." : "Salvar Alterações"}
                </button>
             </div>
           </div>
@@ -205,7 +231,23 @@ export default function ManagePermissions() {
   const [roleForm, setRoleForm] = useState({ label: "", base: "membro" });
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleteUserConfirmId, setDeleteUserConfirmId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      setIsLoading(true);
+      await deleteDoc(doc(db, "membros", userId)).catch(() => {});
+      await deleteDoc(doc(db, "users", userId)).catch(() => {});
+      setDeleteUserConfirmId(null);
+      setErrorMessage(null);
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      setErrorMessage("Erro ao excluir usuário.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     // Carregar papéis customizados
@@ -450,6 +492,7 @@ export default function ManagePermissions() {
                     <th className="p-4 border-b border-[#e2eaf3]">
                       Nível de Permissão (Visual)
                     </th>
+                    <th className="p-4 border-b border-[#e2eaf3] w-24 text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -473,12 +516,40 @@ export default function ManagePermissions() {
                           }
                         />
                       </td>
+                      <td className="p-4 text-right">
+                        {deleteUserConfirmId === member.id ? (
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => setDeleteUserConfirmId(null)}
+                              className="p-1.5 text-gray-600 bg-gray-200 rounded hover:bg-gray-300 transition"
+                              title="Cancelar"
+                            >
+                              <X size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(member.id)}
+                              className="p-1.5 text-white bg-red-600 rounded hover:bg-red-700 transition"
+                              title="Confirmar exclusão"
+                            >
+                              <Check size={16} />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setDeleteUserConfirmId(member.id)}
+                            className="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50"
+                            title="Excluir usuário"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                   {filteredMembers.length === 0 && !isLoading && (
                     <tr>
                       <td
-                        colSpan={3}
+                        colSpan={4}
                         className="p-8 text-center text-gray-500 font-medium"
                       >
                         Nenhum usuário encontrado.
